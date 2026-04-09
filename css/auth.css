@@ -1,0 +1,107 @@
+/* ====== GLOBAL STYLING ====== */
+body {
+    margin: 0;
+    font-family: 'Hind Siliguri', sans-serif;
+    background: #f9f9f9;
+    color: #333;
+}
+
+.auth-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    padding: 20px;
+}
+
+/* ====== AUTH BOX ====== */
+.auth-box {
+    background: #fff;
+    padding: 30px 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+    width: 100%;
+    max-width: 380px;
+}
+
+/* ====== TABS ====== */
+.auth-tabs {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.auth-tabs .tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px 0;
+    font-weight: 500;
+    cursor: pointer;
+    color: #555;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.auth-tabs .tab.on {
+    color: #333;
+    border-bottom: 3px solid #333;
+}
+
+/* ====== FORM ====== */
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.auth-form input {
+    padding: 12px 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border 0.2s ease;
+}
+
+.auth-form input:focus {
+    border-color: #333;
+}
+
+/* ====== BUTTON ====== */
+.auth-form button {
+    padding: 12px;
+    border: none;
+    border-radius: 25px;
+    background: #333;
+    color: #fff;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.auth-form button:hover {
+    background: #555;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;         /* ensures it fills the auth-box */
+    box-sizing: border-box;
+}
+
+.auth-form button {
+    align-self: center;  /* keeps the button centered */
+    width: 100%;         /* optional: full-width button */
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 480px) {
+    .auth-box {
+        padding: 25px 20px;
+    }
+    .auth-tabs .tab {
+        font-size: 14px;
+    }
+}

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Orders — Pencilwood</title>
+<meta name="description" content="Track your orders, view order history and status.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/orders.css">
+</head>
+<body>
+
+  <!-- Components -->
+  <div id="toast-container"></div>
+  <div id="float-wa"></div>
+  <div id="drawer-container"></div>
+  <div id="topnavbar-container"></div>
+  <div id="subnavbar-container"></div>
+  <div id="bc-br"></div>
+
+  <!-- ══ MY ORDERS PAGE ══ -->
+  <div class="page">
+
+    <h1 class="orders-title">My Orders</h1>
+
+    <!-- FILTER -->
+    <div class="orders-filter">
+      <button class="of-btn active" onclick="filterOrders('all', this)">All</button>
+      <button class="of-btn" onclick="filterOrders('pending', this)">Pending</button>
+      <button class="of-btn" onclick="filterOrders('delivered', this)">Delivered</button>
+      <button class="of-btn" onclick="filterOrders('cancelled', this)">Cancelled</button>
+    </div>
+
+    <!-- ORDER LIST -->
+    <div class="orders-list" id="ordersList">
+      <!-- Dynamic orders will be injected here -->
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div id="eco-container"></div>
+
+  <!-- JS -->
+  <script src="js/main.js"></script>
+  <script src="js/loadComponents.js"></script>
+
+  <script>
+    function viewOrder(orderId) {
+      window.location.href = `order.html?id=${orderId}`;
+    }
+
+    function filterOrders(status, btn) {
+      document.querySelectorAll('.of-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      document.querySelectorAll('.order-card').forEach(card => {
+        if (status === 'all' || card.dataset.status === status) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    function capitalize(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    function loadOrders() {
+      const ordersList = document.getElementById("ordersList");
+      ordersList.innerHTML = "";
+
+      const orders = JSON.parse(localStorage.getItem("orders")) || [];
+
+      if (orders.length === 0) {
+        ordersList.innerHTML = `<p style="text-align:center">No orders yet 😢</p>`;
+        return;
+      }
+
+      // Latest order on top
+      orders.reverse().forEach(order => {
+        let itemsHtml = order.items.map(i => `
+          <div class="order-item">
+            <div class="oi-img">${i.img || '👜'}</div>
+            <div class="oi-info">
+              <div class="oi-name">${i.name}</div>
+              <div class="oi-meta">Qty: ${i.qty}${i.color ? ' · ' + i.color : ''}</div>
+            </div>
+          </div>
+        `).join("");
+
+        ordersList.innerHTML += `
+          <div class="order-card" data-status="${order.status}">
+            <div class="order-top">
+              <div>
+                <div class="order-id">Order #${order.id}</div>
+                <div class="order-date">Placed on: ${order.date}</div>
+              </div>
+              <div class="order-status ${order.status}">${capitalize(order.status)}</div>
+            </div>
+
+            <div class="order-items">
+              ${itemsHtml}
+            </div>
+
+            <div class="order-bottom">
+              <div class="order-total">Total: ৳ ${order.total}</div>
+              <button class="btn-view" onclick="viewOrder('${order.id}')">View Details →</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', loadOrders);
+  </script>
+
+</body>
+</html>

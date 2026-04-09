@@ -1,0 +1,311 @@
+/* ───────────── GLOBAL ───────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  -webkit-tap-highlight-color: transparent;
+  font-size: 15px;
+}
+
+/* ───────────── BASE PAGE ───────────── */
+.page {
+  max-width: 1200px;
+  margin: auto;
+}
+
+/* ───────────── CHECKOUT LAYOUT ───────────── */
+.checkout-wrap {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 16px;
+  padding: 16px;
+}
+
+/* LEFT */
+.checkout-left {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* RIGHT */
+.checkout-right {
+  position: sticky;
+  top: 80px;
+  height: fit-content;
+}
+
+/* ───────────── CARD ───────────── */
+.ck-card {
+  background: #fff;
+  border: 1px solid var(--border-l);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.ck-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+/* ───────────── INPUTS ───────────── */
+.ck-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.ck-field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--mid);
+}
+
+.ck-field input,
+.ck-field textarea,
+.ck-field select {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 16px; /* prevents zoom */
+  font-family: inherit;
+  background: #fff;
+  transition: all 0.2s;
+}
+
+.ck-field input:focus,
+.ck-field textarea:focus,
+.ck-field select:focus {
+  border-color: var(--br);
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.05);
+}
+
+.ck-field textarea {
+  resize: none;
+  min-height: 90px;
+}
+
+/* ───────────── ADDRESS ROW ───────────── */
+.ck-address-row {
+  display: flex;
+  gap: 10px;
+}
+
+.ck-address-input {
+  flex: 2;
+}
+
+.ck-district {
+  flex: 1;
+}
+
+/* ───────────── PAYMENT ───────────── */
+.pay-opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1.5px solid var(--border);
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: all 0.2s;
+}
+
+.pay-opt input {
+  transform: scale(1.2);
+  accent-color: var(--br);
+}
+
+.pay-opt.active {
+  border-color: var(--br);
+  background: #faf7f2;
+}
+
+/* ───────────── PRODUCT LIST ───────────── */
+.ck-products {
+  margin-bottom: 15px;
+}
+
+.ck-product-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.ck-img {
+  width: 55px;
+  height: 55px;
+  background: #f2f2f2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-size: 20px;
+}
+
+.ck-info {
+  flex: 1;
+}
+
+.ck-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.ck-price {
+  font-size: 13px;
+  color: #666;
+}
+
+.ck-remove {
+  border: none;
+  background: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: red;
+}
+
+/* ───────────── SUMMARY ───────────── */
+.summary-box {
+  background: #fff;
+  border: 1px solid var(--border-l);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sum-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--mid);
+}
+
+.sum-total {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  border-top: 1px solid var(--border-l);
+  padding-top: 10px;
+}
+
+/* ───────────── BUTTON ───────────── */
+.btn-place {
+  width: 100%;
+  height: 50px;
+  border: none;
+  border-radius: 10px;
+  background: var(--br);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-place:active {
+  transform: scale(0.97);
+}
+
+/* NOTE */
+.ck-note {
+  font-size: 11px;
+  color: var(--lighter);
+  text-align: center;
+}
+
+/* ───────────── TABLET ───────────── */
+@media (max-width: 900px) {
+  .checkout-wrap {
+    grid-template-columns: 1fr;
+  }
+
+  .checkout-right {
+    position: static;
+  }
+}
+
+/* ───────────── MOBILE ───────────── */
+@media (max-width: 600px) {
+
+  .checkout-wrap {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .ck-card {
+    padding: 12px;
+  }
+
+  .ck-title {
+    font-size: 14px;
+  }
+
+  /* STACK ADDRESS */
+  .ck-address-row {
+    flex-direction: column;
+  }
+
+  /* BIGGER TOUCH */
+  .pay-opt {
+    padding: 14px;
+  }
+
+  .btn-place {
+    font-size: 14px;
+  }
+}
+
+/* ───────────── STICKY ORDER BAR (🔥 BOOST) ───────────── */
+@media (max-width: 600px) {
+
+  .checkout-right {
+    display: none;
+  }
+
+  .checkout-sticky {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-top: 1px solid var(--border-l);
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 999;
+  }
+
+  .sticky-total {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .sticky-btn {
+    flex: 1;
+    height: 46px;
+    border-radius: 10px;
+    border: none;
+    background: var(--br);
+    color: #fff;
+    font-weight: 700;
+  }
+
+  body {
+    padding-bottom: 75px;
+  }
+}

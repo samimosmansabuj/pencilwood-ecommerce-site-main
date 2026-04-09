@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Premium Leather Wallet — Pencilwood Bangladesh</title>
+<meta name="description" content="খাঁটি লেদারের প্রিমিয়াম ওয়ালেট। RFID প্রোটেকশন, ৮টি কার্ড স্লট। ঢাকায় ফ্রি ডেলিভারি। Cash on Delivery available.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/home.css">
+<link rel="stylesheet" href="css/product.css"></head>
+
+
+<body>
+
+  <!-- Components placeholders -->
+  <div id="toast-container"></div>
+  <div id ="float-wa"></div>
+  <div id="drawer-container"></div>
+  
+  <!-- Reusable navigation bars -->
+  <div id="topnavbar-container"></div>
+  <div id="subnavbar-container"></div>
+  <div id="bc-br"></div>
+
+  <!-- ══ PRODUCT PAGE CONTENT ══ -->
+  <div class="page">
+
+    <!-- PRODUCT HERO + GALLERY + INFO + DELIVERY -->
+    <div class="prod-hero" data-brand="buyolexleather" data-product-id="lth-w-001" data-category="wallet">
+       
+
+    
+    <!-- LIFESTYLE -->
+    <div class="lp-section lifestyle"></div>
+
+    <!-- TABS: Description / Features / Reviews / FAQ -->
+    <div class="lp-section" id="tabsSection"></div>
+
+    
+    <!-- RELATED PRODUCTS -->
+    <div class="lp-section related-products"></div>
+
+    <!-- ECO / Other Components -->
+    <div id="eco-container"></div>
+
+  </div><!-- /page -->
+
+  <!-- STICKY BAR (mobile) -->
+  <div class="sticky-bar"></div>
+
+  <!-- Footer Component -->
+  <div id="footer-container"></div>
+
+  <!-- JS -->
+  <script src="js/main.js"></script>
+  <script src="js/loadComponents.js"></script>
+  <script>
+    function buyNow() {
+    const product = {
+        id: "lth-w-001",
+        name: "Premium Leather Wallet",
+        price: 2500,
+        qty: qty
+    };
+
+    localStorage.setItem("checkoutItems", JSON.stringify([product]));
+    window.location.href = "checkout.html";
+}
+  </script>
+</body>
+</html>

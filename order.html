@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order Details — Pencilwood</title>
+<meta name="description" content="View full order details, items, delivery info and reorder easily.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/order.css">
+</head>
+<body>
+    
+<body>
+
+  <!-- Components -->
+  <div id="toast-container"></div>
+  <div id="float-wa"></div>
+  <div id="drawer-container"></div>
+  
+  <div id="topnavbar-container"></div>
+  <div id="subnavbar-container"></div>
+  <div id="bc-br"></div>
+
+  <!-- ══ ORDER DETAILS PAGE ══ -->
+  <div class="page order-page">
+
+    <div class="order-header">
+      <div>
+        <h1>Order #<span id="orderId"></span></h1>
+        <p class="order-date"></p>
+      </div>
+      <div class="order-status" id="orderStatus"></div>
+    </div>
+  
+    <div class="order-grid">
+  
+      <!-- LEFT -->
+      <div class="order-left">
+  
+        <!-- ITEMS -->
+        <div class="card">
+          <h2>Items</h2>
+          <div class="order-items" id="orderItems"></div>
+        </div>
+  
+        <!-- DELIVERY -->
+        <div class="card" id="orderDelivery"></div>
+  
+        <!-- PAYMENT -->
+        <div class="card">
+          <h2>Payment</h2>
+          <p>Cash on Delivery</p>
+        </div>
+  
+      </div>
+  
+      <!-- RIGHT -->
+      <div class="order-right">
+        <div class="card" id="orderSummary"></div>
+      </div>
+  
+    </div>
+  
+  </div>
+
+  <!-- Footer -->
+  <!-- <div id="footer-container"></div> -->
+  <div id="eco-container"></div>
+
+  <!-- JS -->
+  <script src="js/main.js"></script>
+  <script src="js/loadComponents.js"></script>
+
+  <script>
+    // Get order ID from URL
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get('id');
+    if(orderId){
+      document.getElementById('orderId').innerText = orderId;
+    }
+
+    function reorder() {
+      toast("Items added to cart again! 🛒");
+      // later:
+      // 1. add items to cart
+      // 2. redirect to cart.html
+    }
+
+    function loadOrderDetails() {
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get("id");
+
+    if (!orderId) return;
+
+    const orders = JSON.parse(localStorage.getItem("orders")) || [];
+    const order = orders.find(o => o.id === orderId);
+
+    if (!order) {
+      document.querySelector(".page").innerHTML = "<p>Order not found ❌</p>";
+      return;
+    }
+
+    // HEADER
+    document.getElementById("orderId").innerText = order.id;
+    document.querySelector(".order-date").innerText = "Placed on: " + order.date;
+
+    const statusEl = document.getElementById("orderStatus");
+    statusEl.innerText = order.status;
+    statusEl.className = "order-status " + order.status;
+
+    // ITEMS
+    const itemsContainer = document.getElementById("orderItems");
+    itemsContainer.innerHTML = "";
+
+    order.items.forEach(item => {
+      itemsContainer.innerHTML += `
+        <div class="order-item">
+          <div class="oi-img">${item.img || '👜'}</div>
+          <div class="oi-info">
+            <div class="oi-name">${item.name}</div>
+            <div class="oi-meta">Qty: ${item.qty}</div>
+          </div>
+          <div class="oi-price">৳ ${item.price}</div>
+        </div>
+      `;
+    });
+
+    // DELIVERY
+    document.getElementById("orderDelivery").innerHTML = `
+      <h2>Delivery Information</h2>
+      <p><strong>Name:</strong> ${order.address.name}</p>
+      <p><strong>Phone:</strong> ${order.address.phone}</p>
+      <p><strong>Address:</strong> ${order.address.text}, ${order.address.district}</p>
+    `;
+
+    // SUMMARY
+    document.getElementById("orderSummary").innerHTML = `
+      <h2>Order Summary</h2>
+
+      <div class="summary-row">
+        <span>Subtotal</span>
+        <span>৳ ${order.subtotal}</span>
+      </div>
+
+      <div class="summary-row">
+        <span>Delivery</span>
+        <span>৳ ${order.shipping}</span>
+      </div>
+
+      <div class="summary-row total">
+        <span>Total</span>
+        <span>৳ ${order.total}</span>
+      </div>
+    `;
+  }
+
+  // INIT
+  document.addEventListener("DOMContentLoaded", loadOrderDetails);
+  </script>
+
+</body>
+</html>

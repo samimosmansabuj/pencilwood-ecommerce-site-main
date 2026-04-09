@@ -1,0 +1,43 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Wishlist — Pencilwood</title>
+<link rel="stylesheet" href="css/wishlist.css">
+</head>
+<body>
+
+<div id="toast-container"></div>
+<div id="topnavbar-container"></div>
+<div id="subnavbar-container"></div>
+
+<div class="page">
+
+  <h1>My Wishlist ❤️</h1>
+
+
+    <!-- ITEM -->
+    <div class="wishlist-grid" id="wishlistContainer">
+        <!-- JS will inject items here -->
+      </div>
+
+ 
+
+</div>
+
+<div id="footer-container"></div>
+
+<script src="js/main.js"></script>
+<script src="js/loadComponents.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        loadWishlist();       // load wishlist items dynamically
+        updateWishlistCount(); // show badge count
+        updateCartCount();     // show cart count
+    });
+    </script>
+
+</body>
+</html>

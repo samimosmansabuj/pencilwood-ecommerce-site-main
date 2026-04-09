@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Profile — Pencilwood</title>
+<link rel="stylesheet" href="css/profile.css">
+</head>
+<body>
+
+<div id="toast-container"></div>
+<div id="drawer-container"></div>
+<div id="topnavbar-container"></div>
+<div id="subnavbar-container"></div>
+
+<div class="page">
+
+  <h1>My Profile</h1>
+
+  <div class="profile-card">
+
+    <div class="profile-row">
+      <label>Full Name</label>
+      <input id="profileFullName" type="text" placeholder="Enter your full name">
+    </div>
+    
+    <div class="profile-row">
+      <label>Phone</label>
+      <input id="profilePhone" type="text" placeholder="Enter your phone number">
+    </div>
+    
+    <div class="profile-row">
+      <label>WhatsApp Number</label>
+      <input id="profileWhatsapp" type="text" placeholder="Enter your WhatsApp number">
+    </div>
+    
+    <div class="profile-row">
+      <label>Email</label>
+    <input id="profileEmail" type="text" placeholder="Enter your email">
+    </div>
+    
+    <button onclick="saveProfile()">Save Changes</button>
+  </div>
+
+  <!-- QUICK LINKS -->
+  <div class="account-links">
+    <a href="my-orders.html">📦 My Orders</a>
+    <a href="address.html">📍 Address Book</a>
+    <a href="cart.html">🛒 Cart</a>
+  </div>
+
+</div>
+
+<!-- <div id="footer-container"></div> -->
+<div id="eco-container"></div>
+
+<script src="js/main.js"></script>
+<script src="js/loadComponents.js"></script>
+
+
+</body>
+</html>

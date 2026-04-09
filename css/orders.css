@@ -1,0 +1,185 @@
+/* ====== GLOBAL STYLING ====== */
+body {
+    font-family: 'Hind Siliguri', sans-serif;
+    background: #f9f9f9;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+.page {
+    max-width: 1024px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* ====== PAGE TITLE ====== */
+.orders-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* ====== FILTER BUTTONS ====== */
+.orders-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 25px;
+}
+
+.of-btn {
+    padding: 8px 18px;
+    border: 1px solid #ccc;
+    border-radius: 25px;
+    background: #fff;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.of-btn.active {
+    background: #333;
+    color: #fff;
+    border-color: #333;
+}
+
+.of-btn:hover {
+    background: #333;
+    color: #fff;
+    border-color: #333;
+}
+
+/* ====== ORDER CARDS ====== */
+.orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.order-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    padding: 18px;
+    transition: transform 0.2s;
+}
+
+.order-card:hover {
+    transform: translateY(-3px);
+}
+
+/* ====== ORDER TOP ====== */
+.order-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.order-id {
+    font-weight: 600;
+}
+
+.order-date {
+    font-size: 14px;
+    color: #666;
+}
+
+.order-status {
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 12px;
+    color: #fff;
+}
+
+.order-status.delivered { background: #28a745; }
+.order-status.pending   { background: #ffc107; color: #333; }
+.order-status.cancelled { background: #dc3545; }
+
+/* ====== ORDER ITEMS ====== */
+.order-items {
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    padding: 12px 0;
+}
+
+.order-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.oi-img {
+    font-size: 32px;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.oi-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.oi-name {
+    font-weight: 500;
+}
+
+.oi-meta {
+    font-size: 14px;
+    color: #666;
+}
+
+/* ====== ORDER BOTTOM ====== */
+.order-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+}
+
+.order-total {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.btn-view {
+    background: #333;
+    color: #fff;
+    border: none;
+    border-radius: 25px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.btn-view:hover {
+    background: #555;
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 768px) {
+    .order-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .order-bottom {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .orders-filter {
+        gap: 8px;
+    }
+}
