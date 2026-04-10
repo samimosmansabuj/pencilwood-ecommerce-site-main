@@ -362,6 +362,15 @@ img {
 }
 
 /* Breadcrumb */
+.bc-br-section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 12px 14px 0px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 .bc-bar {
     background: white;
     border-bottom: 1px solid var(--border);
@@ -2240,6 +2249,11 @@ img {
 }
 
 @media (max-width: 600px) {
+    .bc-br-section {
+        padding: 10px 12px 0px 12px;
+        gap: 12px;
+    }
+
     #footer-container {
         flex-direction: column;
         text-align: center;
