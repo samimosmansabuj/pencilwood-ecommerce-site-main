@@ -48,7 +48,6 @@ body {
     font-size: 14px;
     line-height: 1.6;
     overflow-x: hidden;
-    padding-bottom: 72px
 }
 
 a {
@@ -1384,7 +1383,7 @@ img {
 /* Why buy - horizontal scrollable on mobile */
 .why-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 10px
 }
 
@@ -1484,7 +1483,7 @@ img {
 /* Lifestyle */
 .lifestyle-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: 10px
 }
 
@@ -2217,6 +2216,71 @@ img {
     border-radius: 50%;
     flex-shrink: 0
 }
+#footer-container {
+  display: flex;
+  justify-content: space-between; /* left + right */
+  align-items: center;
+  padding: 10px 20px;
+}
+
+#copy-right-footer {
+  margin: 0;
+}
+
+.footer-links {
+  text-align: right;
+}
+
+.footer-links a {
+  text-decoration: none;
+  color: #000;
+  margin: 0 5px;
+}
+@media (max-width: 600px) {
+  #footer-container {
+    flex-direction: column;
+    text-align: center;
+  }
+  .footer-links {
+    /* border-top: 1px solid #ccc; */
+    border-top: 1px solid rgba(0,0,0,0.2);
+    width: 100%;
+    text-align: center;
+  }
+
+  .eco-section {
+        background: var(--br-d);
+        border-radius: var(--r-lg);
+        padding: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px
+    }
+
+    
+    .eco-links {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap
+    }
+
+    .eco-link {
+        font-size: 9px;
+        font-weight: 600;
+        padding: 3px 6px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, .09);
+        color: rgba(255, 255, 255, .75);
+        border: 1px solid rgba(255, 255, 255, .14);
+        transition: all var(--t);
+        display: flex;
+        align-items: center;
+        gap: 1px;
+    }
+}
+
 
 /* ══════════════════════════
      STICKY BOTTOM BAR
@@ -2355,7 +2419,7 @@ img {
 
     .why-grid,
     .feat-grid {
-        grid-template-columns: repeat(2, 1fr)
+        grid-template-columns: repeat(4, 1fr)
     }
 }
 
@@ -2435,16 +2499,38 @@ img {
         padding-bottom: 66px
     }
 
+
+
+
     .why-grid {
-        grid-template-columns: 1fr
+        grid-template-columns: repeat(2, 1fr)
     }
 
     .feat-grid {
         grid-template-columns: 1fr
     }
 
+
+
+
+
     .lifestyle-grid {
-        grid-template-columns: 1fr
+        grid-template-columns: repeat(2, 1fr)
+    }
+    .ls-copy {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 5px
+    }
+
+    .ls-copy-title {
+        font-size: 10px;
+    }
+
+    .ls-copy-sub {
+        display: none;
     }
 
     .related-grid {
