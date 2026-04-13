@@ -126,6 +126,16 @@ body {
   font-weight: 600;
 }
 
+/* ✅ FIX: also support your actual HTML (button without wrapper) */
+.cart-item > button {
+  font-size: 12px;
+  color: #E53935;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
 /* ───────────── SUMMARY ───────────── */
 .cart-summary {
   margin: 14px;
@@ -283,5 +293,102 @@ body {
 
   body {
     padding-bottom: 70px;
+  }
+}
+
+@media (max-width: 600px) {
+
+  .cart-item {
+    display: grid;
+    grid-template-columns: 70px 1fr;
+    grid-template-rows: auto auto;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .item-img {
+    grid-row: span 2;
+  }
+
+  .item-info {
+    grid-column: 2;
+  }
+
+  .item-qty {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+
+  .cart-item > button {
+    grid-column: 2;
+    justify-self: end;
+  }
+}
+
+/* ───────── MOBILE FIX PATCH (IMPORTANT) ───────── */
+@media (max-width: 600px) {
+
+  /* prevent horizontal overflow */
+  body, html {
+    overflow-x: hidden;
+  }
+
+  .page {
+    width: 100%;
+    padding: 10px;
+  }
+
+  /* cart card full width clean layout */
+  .cart-item {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 60px 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 10px;
+    align-items: center;
+  }
+
+  /* image fixed */
+  .item-img {
+    width: 60px;
+    height: 60px;
+  }
+
+  /* name + price better stacking */
+  .item-info {
+    grid-column: 2;
+  }
+
+  .item-price {
+    font-size: 13px;
+  }
+
+  /* qty controls cleaner */
+  .item-qty {
+    grid-column: 2;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .item-qty button {
+    width: 30px;
+    height: 30px;
+  }
+
+  .item-qty input {
+    width: 35px;
+    height: 30px;
+  }
+
+  /* remove button alignment fix */
+  .cart-item > button {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    align-self: center;
+  }
+
+  /* checkbox alignment fix */
+  .cart-check {
+    transform: scale(1.1);
   }
 }

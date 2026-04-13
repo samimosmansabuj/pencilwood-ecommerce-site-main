@@ -1,31 +1,52 @@
 /* ── STARS ── */
 function mkStars(id, score, sz) {
-    const el = document.getElementById(id); if (!el) return;
+    const el = document.getElementById(id); 
+    if (!el) return;
+
     el.style.cssText = 'display:flex;gap:2px';
+
     for (let i = 1; i <= 5; i++) {
         const s = document.createElement('div');
-        s.className = 'star ' + (i <= Math.floor(score) ? 'f' : (i - score < 1 && score % 1 >= .5 ? 'h' : ''));
-        if (sz) { s.style.width = sz + 'px'; s.style.height = sz + 'px' }
+        s.className = 'star ' + (
+            i <= Math.floor(score) ? 'f' : 
+            (i - score < 1 && score % 1 >= .5 ? 'h' : '')
+        );
+
+        if (sz) {
+            s.style.width = sz + 'px';
+            s.style.height = sz + 'px';
+        }
+
         el.appendChild(s);
     }
 }
-mkStars('prodStars', 4.8); mkStars('bigStars', 4.8, 15);
-mkStars('rv1s', 5); mkStars('rv2s', 5); mkStars('rv3s', 4);
+
+mkStars('prodStars', 4.8);
+mkStars('bigStars', 4.8, 15);
+mkStars('rv1s', 5);
+mkStars('rv2s', 5);
+mkStars('rv3s', 4);
 
 /* ── GALLERY ── */
 function setThumb(el, emoji) {
     document.querySelectorAll('.thumb').forEach(t => t.classList.remove('on'));
     el.classList.add('on');
-    document.getElementById('galEmoji').textContent = emoji;
-    document.getElementById('galMain').classList.remove('zoomed');
+
+    const galEmoji = document.getElementById('galEmoji');
+    if (galEmoji) galEmoji.textContent = emoji;
+
+    const galMain = document.getElementById('galMain');
+    if (galMain) galMain.classList.remove('zoomed');
 }
+
 function zoomToggle() {
     const g = document.getElementById('galMain');
-    g.classList.toggle('zoomed');
+    if (g) g.classList.toggle('zoomed');
 }
 
 /* ── WISHLIST ── */
 let wished = false;
+
 function wishToggle() {
     const product = {
         id: "lth-w-001",
@@ -58,18 +79,31 @@ function wishToggle() {
 
 /* ── QTY ── */
 let qty = 1, maxQ = 18;
+
 function chgQ(d) {
     qty = Math.max(1, Math.min(maxQ, qty + d));
-    document.getElementById('qVal').value = qty;
-    document.getElementById('qMinus').disabled = qty <= 1;
-    document.getElementById('qPlus').disabled = qty >= maxQ;
+
+    const qVal = document.getElementById('qVal');
+    if (qVal) qVal.value = qty;
+
+    const minus = document.getElementById('qMinus');
+    const plus = document.getElementById('qPlus');
+
+    if (minus) minus.disabled = qty <= 1;
+    if (plus) plus.disabled = qty >= maxQ;
 }
 
 /* ── COLOR ── */
 function pickColor(name, emoji) {
-    document.getElementById('selColor').textContent = name;
-    document.getElementById('galEmoji').textContent = emoji;
-    document.querySelectorAll('.thumb')[0].textContent = emoji;
+    const sel = document.getElementById('selColor');
+    if (sel) sel.textContent = name;
+
+    const galEmoji = document.getElementById('galEmoji');
+    if (galEmoji) galEmoji.textContent = emoji;
+
+    const firstThumb = document.querySelectorAll('.thumb')[0];
+    if (firstThumb) firstThumb.textContent = emoji;
+
     toast('Color: ' + name);
 }
 
@@ -92,28 +126,36 @@ function addCart() {
     updateCartCount();
 
     const btn = document.getElementById('cartBtn');
-    btn.classList.add('added');
-    btn.textContent = '✔ Added!';
+    if (btn) {
+        btn.classList.add('added');
+        btn.textContent = '✔ Added!';
+    }
 
     toast('✔ ' + qty + ' item(s) added to cart!');
 
     setTimeout(() => {
-        btn.classList.remove('added');
-        btn.textContent = '+ Add to Cart';
+        if (btn) {
+            btn.classList.remove('added');
+            btn.textContent = '+ Add to Cart';
+        }
     }, 2000);
 }
 
+/* ── CART COUNT ── */
 function updateCartCount() {
     const dot = document.getElementById('cartDot');
     if (!dot) return;
 
     const cart = getCart();
-    let total = 0;
-    cart.forEach(i => total += i.qty || 1);
+
+    let total = cart.reduce((sum, item) => {
+        return sum + (item.qty ? Number(item.qty) : 1);
+    }, 0);
 
     dot.textContent = total;
 }
 
+/* ── CART LOAD ── */
 function loadCartItems() {
     const container = document.getElementById('cartItemsContainer');
     if (!container) return;
@@ -146,10 +188,14 @@ function loadCartItems() {
     updateCartSummary();
 }
 
+/* ── CART QTY ── */
 function chgCartQty(id, delta) {
     let cart = getCart();
+
     cart = cart.map(item => {
-        if (item.id === id) item.qty = Math.max(1, item.qty + delta);
+        if (item.id === id) {
+            item.qty = Math.max(1, item.qty + delta);
+        }
         return item;
     });
 
@@ -158,6 +204,7 @@ function chgCartQty(id, delta) {
     updateCartCount();
 }
 
+/* ── REMOVE ITEM ── */
 function removeCartItem(id) {
     let cart = getCart();
     cart = cart.filter(item => item.id !== id);
@@ -169,16 +216,23 @@ function removeCartItem(id) {
     toast("Item removed ❌");
 }
 
+/* ── SUMMARY ── */
 function updateCartSummary() {
     const cart = getCart();
 
     let subtotal = 0;
-    cart.forEach(item => subtotal += item.price * item.qty);
+    cart.forEach(item => {
+        subtotal += item.price * item.qty;
+    });
 
-    document.getElementById('cartSubtotal').textContent = `৳ ${subtotal}`;
+    const subtotalEl = document.getElementById('cartSubtotal');
+    const stickyEl = document.getElementById('cartTotalSticky');
+
+    if (subtotalEl) subtotalEl.textContent = `৳ ${subtotal}`;
+    if (stickyEl) stickyEl.textContent = subtotal;
 }
 
-/* ── WISHLIST ── */
+/* ── WISHLIST LOAD ── */
 function loadWishlist() {
     const container = document.getElementById('wishlistContainer');
     if (!container) return;
@@ -207,6 +261,7 @@ function loadWishlist() {
     });
 }
 
+/* ── REMOVE WISH ── */
 function removeWish(id) {
     let wishlist = getWishlist();
     wishlist = wishlist.filter(item => item.id !== id);
@@ -218,6 +273,7 @@ function removeWish(id) {
     toast("Removed ❌");
 }
 
+/* ── MOVE TO CART ── */
 function moveToCart(id) {
     let wishlist = getWishlist();
     let cart = getCart();
@@ -226,6 +282,7 @@ function moveToCart(id) {
     if (!item) return;
 
     const exist = cart.find(i => i.id === id);
+
     if (exist) exist.qty += 1;
     else cart.push({ ...item, qty: 1 });
 
@@ -241,6 +298,7 @@ function moveToCart(id) {
     toast("Moved to cart 🛒");
 }
 
+/* ── WISH COUNT ── */
 function updateWishlistCount() {
     const el = document.getElementById('wishCount');
     if (!el) return;
@@ -252,12 +310,14 @@ function updateWishlistCount() {
 /* ── STORAGE ── */
 function getCart() { return JSON.parse(localStorage.getItem('cart')) || []; }
 function setCart(cart) { localStorage.setItem('cart', JSON.stringify(cart)); }
+
 function getWishlist() { return JSON.parse(localStorage.getItem('wishlist')) || []; }
 function setWishlist(wishlist) { localStorage.setItem('wishlist', JSON.stringify(wishlist)); }
+
 function getAddress() { return JSON.parse(localStorage.getItem('addressList')) || []; }
 function setAddress(data) { localStorage.setItem('addressList', JSON.stringify(data)); }
 
-/* ── ADDRESS FUNCTIONS ── */
+/* ── ADDRESS ── */
 function loadAddress() {
     const container = document.getElementById('addressList');
     if (!container) return;
@@ -285,54 +345,8 @@ function loadAddress() {
     });
 }
 
-function addAddress() {
-    const name = document.getElementById('addrName').value.trim();
-    const phone = document.getElementById('addrPhone').value.trim();
-    const district = document.getElementById('deliverydistrict').value;
-    const text = document.getElementById('addrText').value.trim();
-
-    if (!name || !phone || !district || !text) {
-        toast("Fill all fields ⚠️");
-        return;
-    }
-
-    let list = getAddress();
-    list.push({ id: Date.now(), name, phone, district, text });
-    setAddress(list);
-    loadAddress();
-    toast("Address added ✅");
-
-    document.getElementById('addrName').value = '';
-    document.getElementById('addrPhone').value = '';
-    document.getElementById('deliverydistrict').value = '';
-    document.getElementById('addrText').value = '';
-}
-
-function deleteAddress(id) {
-    let list = getAddress();
-    list = list.filter(a => a.id !== id);
-    setAddress(list);
-    loadAddress();
-    toast("Deleted ❌");
-}
-
-function editAddress(id) {
-    const list = getAddress();
-    const addr = list.find(a => a.id === id);
-    if (!addr) return;
-
-    document.getElementById('addrName').value = addr.name;
-    document.getElementById('addrPhone').value = addr.phone;
-    document.getElementById('deliverydistrict').value = addr.district;
-    document.getElementById('addrText').value = addr.text;
-
-    deleteAddress(id);
-    toast("Edit and save again ✏️");
-}
-
 /* ── INIT ── */
 window.addEventListener('DOMContentLoaded', () => {
-
     updateCartCount();
     updateWishlistCount();
 
@@ -351,35 +365,47 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     document.getElementById("ckDistrict")?.addEventListener("change", () => {
-        const subtotal = parseInt(document.getElementById("ckSubtotal").textContent) || 0;
+        const subtotal = parseInt(document.getElementById("ckSubtotal")?.textContent) || 0;
         updateShipping(subtotal);
     });
 
+    const btn = document.getElementById('addAddressBtn');
+    if (btn) btn.addEventListener('click', addAddress);
+
+    const profile = getProfile();
+
+    const nameInput = document.getElementById('addrName');
+    const phoneInput = document.getElementById('addrPhone');
+
+    if (nameInput && !nameInput.value) nameInput.value = profile.fullName || '';
+    if (phoneInput && !phoneInput.value) phoneInput.value = profile.phone || '';
 });
 
 /* ── DISTRICTS ── */
 function loadDistricts() {
-    const districtSelect = document.getElementById("ckDistrict");
-    if (!districtSelect) return;
+    const selects = [
+        document.getElementById("ckDistrict"),
+        document.getElementById("deliverydistrict")
+    ].filter(Boolean);
 
-    // reset first
-    districtSelect.innerHTML = `<option value="">District</option>`;
+    if (selects.length === 0) return;
 
     fetch('https://bdapi.vercel.app/api/v.1/district')
         .then(res => res.json())
         .then(data => {
             if (data.status === 200) {
-                data.data.forEach(d => {
-                    const option = document.createElement('option');
-                    option.value = d.name.toLowerCase(); // for logic (dhaka)
-                    option.textContent = d.bn_name; // UI
-                    districtSelect.appendChild(option);
+                selects.forEach(select => {
+                    select.innerHTML = `<option value="">Select District</option>`;
+                    data.data.forEach(d => {
+                        const option = document.createElement('option');
+                        option.value = d.name.toLowerCase();
+                        option.textContent = d.bn_name;
+                        select.appendChild(option);
+                    });
                 });
             }
         })
-        .catch(() => {
-            console.log("District API failed ❌");
-        });
+        .catch(() => console.log("District API failed ❌"));
 }
 
 /* ── PROFILE ── */
@@ -394,23 +420,29 @@ function setProfile(profile) {
 }
 
 function loadProfile() {
-    const profile = getProfile();
-    document.querySelector('#profileFullName').value = profile.fullName;
-    document.querySelector('#profilePhone').value = profile.phone;
-    document.querySelector('#profileWhatsapp').value = profile.whatsapp;
-    document.querySelector('#profileEmail').value = profile.email;
+    const p = getProfile();
+    const n = document.querySelector('#profileFullName');
+    const ph = document.querySelector('#profilePhone');
+    const w = document.querySelector('#profileWhatsapp');
+    const e = document.querySelector('#profileEmail');
+
+    if (n) n.value = p.fullName;
+    if (ph) ph.value = p.phone;
+    if (w) w.value = p.whatsapp;
+    if (e) e.value = p.email;
 }
 
 function saveProfile() {
     const profile = {
-        fullName: document.querySelector('#profileFullName').value.trim(),
-        phone: document.querySelector('#profilePhone').value.trim(),
-        whatsapp: document.querySelector('#profileWhatsapp').value.trim(),
-        email: document.querySelector('#profileEmail').value.trim()
+        fullName: document.querySelector('#profileFullName')?.value.trim(),
+        phone: document.querySelector('#profilePhone')?.value.trim(),
+        whatsapp: document.querySelector('#profileWhatsapp')?.value.trim(),
+        email: document.querySelector('#profileEmail')?.value.trim()
     };
 
     if (!profile.fullName || !profile.phone || !profile.email) {
-        toast("Fill required fields ⚠️"); return;
+        toast("Fill required fields ⚠️");
+        return;
     }
 
     setProfile(profile);
@@ -436,7 +468,6 @@ function toast(msg, type = "success") {
 }
 
 /* ── CHECKOUT ── */
-
 function loadCheckoutProducts() {
     const container = document.getElementById("checkoutProducts");
     const summary = document.getElementById("checkoutSummaryItems");
@@ -447,13 +478,13 @@ function loadCheckoutProducts() {
 
     if (items.length === 0) {
         container.innerHTML = `<p>No product selected 😢</p>`;
-        summary.innerHTML = "";
+        if (summary) summary.innerHTML = "";
         return;
     }
 
     let subtotal = 0;
     container.innerHTML = '';
-    summary.innerHTML = '';
+    if (summary) summary.innerHTML = '';
 
     items.forEach(item => {
         subtotal += item.price * item.qty;
@@ -467,91 +498,55 @@ function loadCheckoutProducts() {
             </div>
         </div>`;
 
-        summary.innerHTML += `
-        <div class="sum-item">
-            <div>${item.name}</div>
-            <div>৳ ${item.price} × ${item.qty}</div>
-        </div>`;
+        if (summary) {
+            summary.innerHTML += `
+            <div class="sum-item">
+                <div>${item.name}</div>
+                <div>৳ ${item.price} × ${item.qty}</div>
+            </div>`;
+        }
     });
 
-    document.getElementById("ckSubtotal").textContent = subtotal;
+    const sub = document.getElementById("ckSubtotal");
+    if (sub) sub.textContent = subtotal;
+
     updateShipping(subtotal);
 }
 
-function loadCheckoutProfile() {
-    const profile = getProfile();
-    document.getElementById("ckName").value = profile.fullName;
-    document.getElementById("ckPhone").value = profile.phone;
-}
+/* ── SHIPPING ── */
+function updateShipping(subtotal) {
+    const districtEl = document.getElementById("ckDistrict");
+    const shipEl = document.getElementById("ckShipping");
+    const totalEl = document.getElementById("ckTotal");
 
-function loadCheckoutAddress() {
-    const list = getAddress();
-    const select = document.getElementById("ckAddressSelect");
+    let shipping = 120;
 
-    if (!select) return;
-
-    select.innerHTML = `<option value="">Select saved address</option>`;
-
-    if (list.length === 0) {
-        document.getElementById("ckAddress").value = "";
-        document.getElementById("ckDistrict").value = "";
-        return;
+    if (districtEl && districtEl.value === "dhaka") {
+        shipping = 60;
     }
 
-    list.forEach(addr => {
-        const option = document.createElement("option");
-        option.value = addr.id;
-        option.textContent = `${addr.text}, ${addr.district}`;
-        select.appendChild(option);
-    });
-
-    const lastAddr = list[list.length - 1];
-    select.value = lastAddr.id;
-
-    document.getElementById("ckAddress").value = lastAddr.text;
-    document.getElementById("ckDistrict").value = lastAddr.district;
-
-    select.addEventListener("change", function () {
-        const selected = list.find(a => a.id == this.value);
-
-        if (selected) {
-            document.getElementById("ckAddress").value = selected.text;
-            document.getElementById("ckDistrict").value = selected.district;
-        } else {
-            document.getElementById("ckAddress").value = "";
-            document.getElementById("ckDistrict").value = "";
-        }
-    });
+    if (shipEl) shipEl.textContent = shipping;
+    if (totalEl) totalEl.textContent = subtotal + shipping;
 }
 
-function updateShipping(subtotal) {
-    let shipping = 120;
-    const district = document.getElementById("ckDistrict").value;
-    if (district === "dhaka") shipping = 60;
-
-    document.getElementById("ckShipping").textContent = shipping;
-    document.getElementById("ckTotal").textContent = subtotal + shipping;
-}
-
+/* ── PLACE ORDER ── */
 function placeOrder() {
-    const name = document.getElementById("ckName").value.trim();
-    const phone = document.getElementById("ckPhone").value.trim();
-    const addressText = document.getElementById("ckAddress").value.trim();
-    const selectedId = document.getElementById("ckAddressSelect").value;
-    const district = document.getElementById("ckDistrict").value;
+    const name = document.getElementById("ckName")?.value.trim();
+    const phone = document.getElementById("ckPhone")?.value.trim();
+    const addressText = document.getElementById("ckAddress")?.value.trim();
+    const selectedId = document.getElementById("ckAddressSelect")?.value;
+    const district = document.getElementById("ckDistrict")?.value;
 
     if (!name || !phone || !addressText || !district) {
         toast("Enter all delivery info ⚠️");
         return;
     }
 
-    // Save profile
     const profile = getProfile();
     profile.fullName = name;
     profile.phone = phone;
     setProfile(profile);
 
-    // Load address book
     let addrList = getAddress();
     let addressId;
 
@@ -559,32 +554,20 @@ function placeOrder() {
         const selected = addrList.find(a => a.id == selectedId);
         if (selected) addressId = selected.id;
     } else {
-        // New address: save to address book
         addressId = Date.now();
         const newAddress = { id: addressId, name, phone, text: addressText, district };
         addrList.push(newAddress);
         setAddress(addrList);
-        toast("New address saved to address book ✅");
-
-        // Update ckAddressSelect immediately
-        const select = document.getElementById("ckAddressSelect");
-        if (select) {
-            const option = document.createElement("option");
-            option.value = addressId;
-            option.textContent = `${addressText}, ${district}`;
-            select.appendChild(option);
-            select.value = addressId;
-        }
     }
 
-    // Place order
     let cartItems = JSON.parse(localStorage.getItem("checkoutItems")) || [];
     if (cartItems.length === 0) {
-        toast("Cart empty ❌"); return;
+        toast("Cart empty ❌");
+        return;
     }
 
     const subtotal = cartItems.reduce((s, i) => s + i.price * i.qty, 0);
-    const shipping = parseInt(document.getElementById("ckShipping").textContent) || 0;
+    const shipping = parseInt(document.getElementById("ckShipping")?.textContent) || 0;
     const total = subtotal + shipping;
 
     let orders = JSON.parse(localStorage.getItem("orders")) || [];
@@ -594,12 +577,20 @@ function placeOrder() {
         date: new Date().toLocaleDateString(),
         status: "pending",
         items: cartItems,
-        subtotal, shipping, total,
+        subtotal,
+        shipping,
+        total,
         address: { id: addressId, name, phone, text: addressText, district }
     };
 
     orders.push(order);
     localStorage.setItem("orders", JSON.stringify(orders));
+
+    let cart = getCart();
+    localStorage.setItem("cart", JSON.stringify(cart));
+
+    updateCartCount();
+    setCart(cart);
 
     localStorage.removeItem("checkoutItems");
 
@@ -608,37 +599,62 @@ function placeOrder() {
     setTimeout(() => window.location.href = "my-orders.html", 1200);
 }
 
+/* ── HERO SLIDER + DRAWER (UNCHANGED) ── */
+let currentSlide = 0;
+const slides = document.querySelectorAll('.slide');
+const dots = document.querySelectorAll('.slider-dots span');
+const slider = document.querySelector('.hero-slider');
 
-
-// ── CART ──
-function getCart() {
-    return JSON.parse(localStorage.getItem('cart')) || [];
-}
-function setCart(items) {
-    localStorage.setItem('cart', JSON.stringify(items));
-    updateCartCount();
-}
-function updateCartCount() {
-    const c = getCart().length;
-    document.querySelectorAll('#cartBtnCount, .cart-count').forEach(el => el.textContent = c);
-}
-
-// ── WISHLIST ──
-function getWish() {
-    return JSON.parse(localStorage.getItem('wishlist')) || [];
-}
-function setWish(items) {
-    localStorage.setItem('wishlist', JSON.stringify(items));
-    updateWishCount();
-}
-function updateWishCount() {
-    const w = getWish().length;
-    document.querySelectorAll('#wishBtnCount, .wish-count').forEach(el => el.textContent = w);
+function showSlide(i) {
+  if (!slides.length) return;
+  slides.forEach(s => s.classList.remove('active'));
+  dots.forEach(d => d.classList.remove('active'));
+  if (slides[i]) slides[i].classList.add('active');
+  if (dots[i]) dots[i].classList.add('active');
 }
 
-// ── INIT ON PAGE LOAD ──
-document.addEventListener('DOMContentLoaded', () => {
-    updateCartCount();
-    updateWishCount();
-});
+function nextSlide() {
+  if (!slides.length) return;
+  currentSlide = (currentSlide + 1) % slides.length;
+  showSlide(currentSlide);
+}
 
+function prevSlide() {
+  if (!slides.length) return;
+  currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+  showSlide(currentSlide);
+}
+
+function goSlide(i) {
+  currentSlide = i;
+  showSlide(i);
+}
+
+if (slides.length > 1) {
+  setInterval(nextSlide, 4000);
+}
+
+let startX = 0;
+
+if (slider) {
+  slider.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+  });
+
+  slider.addEventListener('touchend', e => {
+    let endX = e.changedTouches[0].clientX;
+
+    if (startX - endX > 50) nextSlide();
+    if (endX - startX > 50) prevSlide();
+  });
+}
+
+function openDrw() {
+    document.getElementById("drawer")?.classList.add("on");
+    document.getElementById("drawerOverlay")?.classList.add("on");
+}
+
+function closeDrw() {
+    document.getElementById("drawer")?.classList.remove("on");
+    document.getElementById("drawerOverlay")?.classList.remove("on");
+}

@@ -2790,3 +2790,59 @@ select,
 textarea {
     font-size: 16px;
 }
+
+/* desktop default */
+.drawer {
+    display: none;
+  }
+  
+  /* mobile drawer */
+  .drawer-overlay,
+  .drawer {
+    display: none;
+  }
+  
+  .drawer.on,
+  .drawer-overlay.on {
+    display: block;
+  }
+  
+  /* desktop subnav visible */
+  .subnav {
+    display: block;
+  }
+  
+  /* MOBILE MODE */
+  @media (max-width: 768px) {
+  
+    .subnav {
+      display: none; /* hide desktop subnav */
+    }
+  
+    .drawer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 280px;
+      height: 100%;
+      background: #fff;
+      z-index: 9999;
+      transform: translateX(-100%);
+      transition: 0.3s;
+    }
+  
+    .drawer.on {
+      transform: translateX(0);
+    }
+  
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 9998;
+    }
+  
+    .drawer-overlay.on {
+      display: block;
+    }
+  }
