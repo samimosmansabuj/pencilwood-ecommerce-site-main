@@ -1,51 +1,73 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Premium Leather Wallet — pencile Wood</title>
-  <meta name="description"
-    content="খাঁটি লেদারের প্রিমিয়াম ওয়ালেট। RFID প্রোটেকশন, ৮টি কার্ড স্লট। ঢাকায় ফ্রি ডেলিভারি। Cash on Delivery available.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet">
-  <script>/* GTM */</script>
-  <script>/* Meta Pixel fbq('track','ViewContent',{content_ids:['lth-w-001'],value:2500,currency:'BDT'}) */</script>
-  <link rel="stylesheet" href="css/home.css">
-</head>
 <!-- TOP NAV -->
 <div class="topnav" id="topnavbar-container">
   <div class="topnav-in">
-    <button class="hburg" onclick="openDrw()" aria-label="Menu"><span></span><span></span><span></span></button>
-    <a class="logo-wrap" href="#">
+
+    <button class="hburg" onclick="openDrw()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <a class="logo-wrap" href="home.html">
       <div class="logo-icon">PW</div>
       <div class="logo-name">Pencile Wood<small>Premium Goods</small></div>
     </a>
-    <div class="search-wrap"><input class="search-in" type="text"
-        placeholder="Search Cradle, Mobile Stands, calendar holders..."><button class="search-go">🔍</button></div>
+
+    <div class="search-wrap">
+      <input class="search-in" type="text"
+        placeholder="Search Cradle, Mobile Stands, calendar holders...">
+      <button class="search-go">🔍</button>
+    </div>
+
     <div class="nav-ics">
-      <div class="nav-ic"><span class="nav-ic-icon" onclick="window.location.href='profile.html'">👤</span>Account</div>
+      <div class="nav-ic" onclick="window.location.href='profile.html'">
+        <span class="nav-ic-icon">👤</span>Account
+      </div>
+
       <div class="nav-ic" onclick="window.location.href='wishlist.html'">
         <span class="nav-ic-icon">❤️<span class="cart-dot" id="wishCount">0</span></span>Wishlist
       </div>
+
       <div class="nav-ic cart-wrap" onclick="window.location.href='cart.html'">
         <span class="nav-ic-icon">🛒<span class="cart-dot" id="cartDot">0</span></span>Cart
       </div>
     </div>
+
   </div>
 </div>
 
-<!-- SUBNAV -->
+
+<!-- SUBNAV (DESKTOP ONLY) -->
 <div class="subnav" id="subnavbar-container">
   <div class="subnav-in">
-    <a href="/" class="active" onclick="window.location.href='index.html'">Home</a>
-    <a href="#" onclick="window.location.href='product-details.html'">Product Details</a>
+    <a href="home.html">Home</a>
+    <a href="index.html">All Product</a>
+    <a href="product-details.html">Product Details</a>
     <a href="https://cradle.pencilwoodbd.com/" target="_blank">Cradle</a>
-    <a href="">Key Holders</a>
-    <a href="">New Arrivals</a>
-    <a href="">Sale</a>
-    <a href="">Corporate</a>
+    <a href="#">Key Holders</a>
+    <a href="#">New Arrivals</a>
+    <a href="#">Sale</a>
+    <a href="#">Corporate</a>
   </div>
+</div>
+
+
+<!-- DRAWER (MOBILE MENU) -->
+<div id="drawerOverlay" class="drawer-overlay" onclick="closeDrw()"></div>
+
+<div id="drawer" class="drawer">
+
+  <div class="drawer-head">
+    <div class="drawer-title">Menu</div>
+    <button class="drawer-close" onclick="closeDrw()">×</button>
+  </div>
+
+  <!-- 🔥 SUBNAV INSIDE DRAWER -->
+  <a href="home.html">Home</a>
+  <a href="index.html">All Product</a>
+  <a href="product-details.html">Product Details</a>
+  <a href="https://cradle.pencilwoodbd.com/" target="_blank">Cradle</a>
+  <a href="#">Key Holders</a>
+  <a href="#">New Arrivals</a>
+  <a href="#">Sale</a>
+  <a href="#">Corporate</a>
+
 </div>
