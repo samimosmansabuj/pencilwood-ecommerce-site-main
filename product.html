@@ -64,6 +64,12 @@
         qty: qty
     };
 
+    // 🔥 ALWAYS overwrite fresh
+    localStorage.setItem("checkoutItems", JSON.stringify([product]));
+
+    window.location.href = "checkout.html";
+}
+
     localStorage.setItem("checkoutItems", JSON.stringify([product]));
     window.location.href = "checkout.html";
 }

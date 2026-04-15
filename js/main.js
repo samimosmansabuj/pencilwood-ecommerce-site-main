@@ -45,9 +45,10 @@ function zoomToggle() {
 }
 
 /* ── WISHLIST ── */
-let wished = false;
+// const exist = getWishlist().some(i => i.id === product.id);
 
 function wishToggle() {
+    let wished;
     const product = {
         id: "lth-w-001",
         name: "Premium Leather Wallet",
@@ -146,6 +147,11 @@ function updateCartCount() {
     const dot = document.getElementById('cartDot');
     if (!dot) return;
 
+    if (window.location.pathname.includes("checkout.html")) {
+        dot.textContent = 0;
+        return;
+    }
+
     const cart = getCart();
 
     let total = cart.reduce((sum, item) => {
@@ -166,22 +172,24 @@ function loadCartItems() {
     cart.forEach(item => {
         container.innerHTML += `
         <div class="cart-item">
-          <input type="checkbox" class="cart-check" data-id="${item.id}" checked>
+        
+        <input type="checkbox" class="cart-check" data-id="${item.id}" checked>
 
-          <div class="item-img">${item.img || '👜'}</div>
+        <div class="item-img">${item.img || '👜'}</div>
 
-          <div class="item-info">
+        <div class="item-content">
             <div class="item-name">${item.name}</div>
             <div class="item-price">৳ ${item.price}</div>
-          </div>
 
-          <div class="item-qty">
-            <button onclick="chgCartQty('${item.id}', -1)">−</button>
-            <input value="${item.qty}" readonly>
-            <button onclick="chgCartQty('${item.id}', 1)">+</button>
-          </div>
+            <div class="item-qty">
+                <button onclick="chgCartQty('${item.id}', -1)">−</button>
+                <input value="${item.qty}" readonly>
+                <button onclick="chgCartQty('${item.id}', 1)">+</button>
+            </div>
+        </div>
 
-          <button onclick="removeCartItem('${item.id}')">✕</button>
+        <button class="remove-btn" onclick="removeCartItem('${item.id}')">✕</button>
+
         </div>`;
     });
 
@@ -194,7 +202,7 @@ function chgCartQty(id, delta) {
 
     cart = cart.map(item => {
         if (item.id === id) {
-            item.qty = Math.max(1, item.qty + delta);
+            item.qty = Math.max(1, Number(item.qty || 1) + delta);
         }
         return item;
     });
@@ -318,6 +326,48 @@ function getAddress() { return JSON.parse(localStorage.getItem('addressList')) |
 function setAddress(data) { localStorage.setItem('addressList', JSON.stringify(data)); }
 
 /* ── ADDRESS ── */
+
+function addAddress() {
+    const profile = getProfile();
+
+    let name = document.getElementById('addrName')?.value.trim();
+    let phone = document.getElementById('addrPhone')?.value.trim();
+    let district = document.getElementById('deliverydistrict')?.value;
+    let text = document.getElementById('addrText')?.value.trim();
+
+    if (!district || !text) {
+        toast("Fill address + district ⚠️");
+        return;
+    }
+
+    name = name || profile.fullName;
+    phone = phone || profile.phone;
+
+    if (!name || !phone) {
+        toast("Name/Phone missing ⚠️");
+        return;
+    }
+
+    const addrList = getAddress();
+
+    const newAddress = {
+        id: Date.now(),
+        name,
+        phone,
+        text,
+        district
+    };
+
+    addrList.push(newAddress);
+    setAddress(addrList);
+
+    loadAddress();
+    toast("Address saved ✅");
+
+    document.getElementById('addrText').value = '';
+    document.getElementById('deliverydistrict').value = '';
+}
+
 function loadAddress() {
     const container = document.getElementById('addressList');
     if (!container) return;
@@ -350,6 +400,10 @@ window.addEventListener('DOMContentLoaded', () => {
     updateCartCount();
     updateWishlistCount();
 
+    if (document.getElementById("addrName")) {
+        loadAddressPageDefaults();
+    }
+
     if (document.getElementById("profileFullName")) loadProfile();
 
     if (document.getElementById("addressList")) {
@@ -362,6 +416,11 @@ window.addEventListener('DOMContentLoaded', () => {
         loadCheckoutProfile();
         loadCheckoutAddress();
         loadDistricts();
+
+        validateCheckout();
+
+        document.getElementById("ckName")?.addEventListener("input", validateCheckout);
+        document.getElementById("ckPhone")?.addEventListener("input", validateCheckout);
     }
 
     document.getElementById("ckDistrict")?.addEventListener("change", () => {
@@ -371,15 +430,22 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const btn = document.getElementById('addAddressBtn');
     if (btn) btn.addEventListener('click', addAddress);
+});
 
+function loadAddressPageDefaults() {
     const profile = getProfile();
 
     const nameInput = document.getElementById('addrName');
     const phoneInput = document.getElementById('addrPhone');
 
-    if (nameInput && !nameInput.value) nameInput.value = profile.fullName || '';
-    if (phoneInput && !phoneInput.value) phoneInput.value = profile.phone || '';
-});
+    if (profile.fullName && nameInput) {
+        nameInput.value = profile.fullName;
+    }
+
+    if (profile.phone && phoneInput) {
+        phoneInput.value = profile.phone;
+    }
+}
 
 /* ── DISTRICTS ── */
 function loadDistricts() {
@@ -398,8 +464,8 @@ function loadDistricts() {
                     select.innerHTML = `<option value="">Select District</option>`;
                     data.data.forEach(d => {
                         const option = document.createElement('option');
-                        option.value = d.name.toLowerCase();
                         option.textContent = d.bn_name;
+                        option.value = d.bn_name.toLowerCase();
                         select.appendChild(option);
                     });
                 });
@@ -468,18 +534,67 @@ function toast(msg, type = "success") {
 }
 
 /* ── CHECKOUT ── */
+
+function goToCheckout() {
+    const cart = getCart();
+
+    const selectedItems = cart.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        qty: item.qty,
+        img: item.img || ''
+    }));
+
+    localStorage.setItem("checkoutItems", JSON.stringify(selectedItems));
+
+    window.location.href = "checkout.html";
+}
+
+function loadCheckoutProfile() {
+    const profile = getProfile();
+
+    const name = document.getElementById("ckName");
+    const phone = document.getElementById("ckPhone");
+
+    if (profile.fullName && name) name.value = profile.fullName;
+    if (profile.phone && phone) phone.value = profile.phone;
+}
+
+function loadCheckoutAddress() {
+    const select = document.getElementById("ckAddressSelect");
+    if (!select) return;
+
+    const list = getAddress();
+
+    select.innerHTML = `<option value="">Select saved address</option>`;
+
+    list.forEach(addr => {
+        const opt = document.createElement("option");
+        opt.value = addr.id;
+        opt.textContent = `${addr.text}, ${addr.district}`;
+        select.appendChild(opt);
+    });
+}
+
 function loadCheckoutProducts() {
     const container = document.getElementById("checkoutProducts");
     const summary = document.getElementById("checkoutSummaryItems");
 
     if (!container) return;
 
-    let items = JSON.parse(localStorage.getItem("checkoutItems")) || [];
+    let items = JSON.parse(localStorage.getItem("checkoutItems"));
 
-    if (items.length === 0) {
-        container.innerHTML = `<p>No product selected 😢</p>`;
-        if (summary) summary.innerHTML = "";
-        return;
+    if (!items || items.length === 0) {
+        const cart = getCart();
+        if (cart.length > 0) {
+            items = cart;
+            localStorage.setItem("checkoutItems", JSON.stringify([...cart]));
+        } else {
+            container.innerHTML = `<p>No product selected 😢</p>`;
+            if (summary) summary.innerHTML = "";
+            return;
+        }
     }
 
     let subtotal = 0;
@@ -513,6 +628,16 @@ function loadCheckoutProducts() {
     updateShipping(subtotal);
 }
 
+function validateCheckout() {
+    const btn = document.querySelector('.btn-place, .sticky-btn');
+    if (!btn) return;
+
+    const name = document.getElementById("ckName")?.value.trim();
+    const phone = document.getElementById("ckPhone")?.value.trim();
+
+    btn.disabled = !(name && phone);
+}
+
 /* ── SHIPPING ── */
 function updateShipping(subtotal) {
     const districtEl = document.getElementById("ckDistrict");
@@ -521,7 +646,7 @@ function updateShipping(subtotal) {
 
     let shipping = 120;
 
-    if (districtEl && districtEl.value === "dhaka") {
+    if (districtEl && districtEl.value.toLowerCase().includes("dhaka")) {
         shipping = 60;
     }
 
@@ -530,6 +655,7 @@ function updateShipping(subtotal) {
 }
 
 /* ── PLACE ORDER ── */
+
 function placeOrder() {
     const name = document.getElementById("ckName")?.value.trim();
     const phone = document.getElementById("ckPhone")?.value.trim();
@@ -537,8 +663,26 @@ function placeOrder() {
     const selectedId = document.getElementById("ckAddressSelect")?.value;
     const district = document.getElementById("ckDistrict")?.value;
 
-    if (!name || !phone || !addressText || !district) {
-        toast("Enter all delivery info ⚠️");
+    let addrList = getAddress();
+    let selectedAddress = null;
+
+    if (selectedId) {
+        selectedAddress = addrList.find(a => a.id == selectedId);
+    }
+
+    let finalDistrict = district;
+
+    if (selectedAddress) {
+        finalDistrict = selectedAddress.district;
+    }
+
+    if (!name || !phone) {
+        toast("Enter name & phone ⚠️");
+        return;
+    }
+
+    if (!selectedId && (!addressText || !district)) {
+        toast("Enter address & district ⚠️");
         return;
     }
 
@@ -547,16 +691,20 @@ function placeOrder() {
     profile.phone = phone;
     setProfile(profile);
 
-    let addrList = getAddress();
-    let addressId;
+    let finalAddress;
 
-    if (selectedId) {
-        const selected = addrList.find(a => a.id == selectedId);
-        if (selected) addressId = selected.id;
+    if (selectedAddress) {
+        finalAddress = selectedAddress;
     } else {
-        addressId = Date.now();
-        const newAddress = { id: addressId, name, phone, text: addressText, district };
-        addrList.push(newAddress);
+        finalAddress = {
+            id: Date.now(),
+            name,
+            phone,
+            text: addressText,
+            district: finalDistrict
+        };
+
+        addrList.push(finalAddress);
         setAddress(addrList);
     }
 
@@ -574,87 +722,31 @@ function placeOrder() {
 
     const order = {
         id: `BX${Date.now()}`,
-        date: new Date().toLocaleDateString(),
+        date: new Date().toLocaleString(),
         status: "pending",
         items: cartItems,
         subtotal,
         shipping,
         total,
-        address: { id: addressId, name, phone, text: addressText, district }
+        address: finalAddress,
     };
 
     orders.push(order);
     localStorage.setItem("orders", JSON.stringify(orders));
 
     let cart = getCart();
-    localStorage.setItem("cart", JSON.stringify(cart));
+    let checkoutItems = JSON.parse(localStorage.getItem("checkoutItems")) || [];
 
-    updateCartCount();
+    cart = cart.filter(cartItem => {
+        return !checkoutItems.find(ci => ci.id === cartItem.id);
+    });
+
     setCart(cart);
+    updateCartCount();
 
     localStorage.removeItem("checkoutItems");
 
     toast("Order placed ✅");
 
     setTimeout(() => window.location.href = "my-orders.html", 1200);
-}
-
-/* ── HERO SLIDER + DRAWER (UNCHANGED) ── */
-let currentSlide = 0;
-const slides = document.querySelectorAll('.slide');
-const dots = document.querySelectorAll('.slider-dots span');
-const slider = document.querySelector('.hero-slider');
-
-function showSlide(i) {
-  if (!slides.length) return;
-  slides.forEach(s => s.classList.remove('active'));
-  dots.forEach(d => d.classList.remove('active'));
-  if (slides[i]) slides[i].classList.add('active');
-  if (dots[i]) dots[i].classList.add('active');
-}
-
-function nextSlide() {
-  if (!slides.length) return;
-  currentSlide = (currentSlide + 1) % slides.length;
-  showSlide(currentSlide);
-}
-
-function prevSlide() {
-  if (!slides.length) return;
-  currentSlide = (currentSlide - 1 + slides.length) % slides.length;
-  showSlide(currentSlide);
-}
-
-function goSlide(i) {
-  currentSlide = i;
-  showSlide(i);
-}
-
-if (slides.length > 1) {
-  setInterval(nextSlide, 4000);
-}
-
-let startX = 0;
-
-if (slider) {
-  slider.addEventListener('touchstart', e => {
-    startX = e.touches[0].clientX;
-  });
-
-  slider.addEventListener('touchend', e => {
-    let endX = e.changedTouches[0].clientX;
-
-    if (startX - endX > 50) nextSlide();
-    if (endX - startX > 50) prevSlide();
-  });
-}
-
-function openDrw() {
-    document.getElementById("drawer")?.classList.add("on");
-    document.getElementById("drawerOverlay")?.classList.add("on");
-}
-
-function closeDrw() {
-    document.getElementById("drawer")?.classList.remove("on");
-    document.getElementById("drawerOverlay")?.classList.remove("on");
 }

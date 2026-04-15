@@ -89,39 +89,42 @@
 
     </div>
 
-    <!-- RIGHT -->
-    <div class="checkout-right">
+    
 
-      <div class="summary-box">
+  </div>
 
-        <!-- 🔥 PRODUCT SUMMARY (DYNAMIC) -->
-        <div id="checkoutSummaryItems"></div>
+  <!-- MOBILE STICKY CHECKOUT BAR -->
+  <div class="summary-box">
 
-        <div class="sum-row">
-          <span>Subtotal</span>
-          <span>৳ <span id="ckSubtotal">0</span></span>
-        </div>
-
-        <div class="sum-row">
-          <span>Shipping</span>
-          <span>৳ <span id="ckShipping">0</span></span>
-        </div>
-
-        <div class="sum-row sum-total">
-          <span>Total</span>
-          <span>৳ <span id="ckTotal">0</span></span>
-        </div>
-
-        <button class="btn-place" onclick="placeOrder()">Place Order</button>
-
-        <div class="ck-note">
-          Cash on Delivery available across Bangladesh
-        </div>
-
-      </div>
-
+    <div id="checkoutSummaryItems"></div>
+  
+    <!-- Subtotal -->
+    <div class="sum-row">
+      <span>Subtotal</span>
+      <span>৳ <span id="ckSubtotal">0</span></span>
     </div>
-
+  
+    <!-- Shipping -->
+    <div class="sum-row">
+      <span>Delivery Charge</span>
+      <span>৳ <span id="ckShipping">0</span></span>
+    </div>
+  
+    <!-- Total -->
+    <div class="sum-row sum-total">
+      <span>Total</span>
+      <span>৳ <span id="ckTotal">0</span></span>
+    </div>
+  
+    <!-- Place Order Button -->
+    <button class="btn-place" onclick="placeOrder()">
+      Place Order
+    </button>
+  
+    <div class="ck-note">
+      Cash on Delivery available across Bangladesh
+    </div>
+  
   </div>
 
 </div>
