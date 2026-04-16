@@ -1,140 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Checkout — Pencilwood</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout — Pencilwood</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
 
-<link rel="stylesheet" href="css/home.css">
-<link rel="stylesheet" href="css/checkout.css">
+  <link rel="stylesheet" href="css/home.css">
+  <link rel="stylesheet" href="css/checkout.css">
 </head>
 
 <body>
 
-<!-- Components -->
-<div id="toast-container"></div>
-<div id="float-wa"></div>
-<div id="drawer-container"></div>
-<div id="topnavbar-container"></div>
-<div id="subnavbar-container"></div>
-<div id="bc-br"></div>
+  <!-- Components placeholders -->
+  <div id="toast-container"></div>
+  <div id="float-wa"></div>
+  <div id="drawer-container"></div>
 
-<!-- ═════════ PAGE BODY ═════════ -->
-<div class="page">
+  <div id="topnavbar-container"></div>
+  <div id="subnavbar-container"></div>
+  <div id="bc-br" class="bc-br-section"></div>
 
-  <!-- 🔥 PRODUCTS (DYNAMIC) -->
-  <div id="checkoutProducts" class="ck-products"></div>
+  <!-- ═════════ PAGE BODY ═════════ -->
+  <div class="page">
 
-  <!-- 🔥 CHECKOUT SECTION -->
-  <div class="checkout-wrap">
+    <!-- 🔥 PRODUCTS (DYNAMIC) -->
+    <div id="checkoutProducts" class="ck-products"></div>
 
-    <!-- LEFT -->
-    <div class="checkout-left">
+    <!-- 🔥 CHECKOUT SECTION -->
+    <div class="checkout-wrap">
 
-      <!-- DELIVERY INFO -->
-      <div class="ck-card">
-        <div class="ck-title">Delivery Information</div>
+      <!-- LEFT -->
+      <div class="checkout-left">
 
-        <div class="ck-field">
-          <label>Name</label>
-          <input id="ckName" type="text" placeholder="Your full name">
-        </div>
+        <!-- DELIVERY INFO -->
+        <div class="ck-card">
+          <div class="ck-title">Delivery Information</div>
 
-        <div class="ck-field">
-          <label>Phone</label>
-          <input id="ckPhone" type="text" placeholder="01XXXXXXXXX">
-        </div>
+          <div class="ck-field">
+            <label>Name</label>
+            <input id="ckName" type="text" placeholder="Your full name">
+          </div>
 
-        <div class="ck-field">
-          <label>Select Address</label>
-          <select id="ckAddressSelect"></select>
-        </div>
-        
-        <div class="ck-field">
-          <label>Or Enter New Address</label>
-        
-          <div class="ck-address-row">
-      
-            <!-- LEFT: ADDRESS -->
-            <input 
-              type="text" 
-              id="ckAddress" 
-              class="ck-address-input"
-              placeholder="Area / Road / House"
-            >
-            <!-- RIGHT: DISTRICT -->
-            <select id="ckDistrict" class="ck-district">
-              <option value="">District</option>
-            </select>
-        
+          <div class="ck-field">
+            <label>Phone</label>
+            <input id="ckPhone" type="text" placeholder="01XXXXXXXXX">
+          </div>
+
+          <div class="ck-field">
+            <label>Select Address</label>
+            <select id="ckAddressSelect"></select>
+          </div>
+
+          <div class="ck-field">
+            <label>Or Enter New Address</label>
+
+            <div class="ck-address-row">
+
+              <!-- LEFT: ADDRESS -->
+              <input type="text" id="ckAddress" class="ck-address-input" placeholder="Area / Road / House">
+              <!-- RIGHT: DISTRICT -->
+              <select id="ckDistrict" class="ck-district">
+                <option value="">District</option>
+              </select>
+
+            </div>
           </div>
         </div>
+
+        <!-- PAYMENT -->
+        <div class="ck-card">
+          <div class="ck-title">Payment Method</div>
+
+          <label class="pay-opt active">
+            <input type="radio" name="pay" checked> Cash on Delivery
+          </label>
+
+          <label class="pay-opt">
+            <input type="radio" name="pay"> Online Payment
+          </label>
+        </div>
+
       </div>
 
-      <!-- PAYMENT -->
-      <div class="ck-card">
-        <div class="ck-title">Payment Method</div>
+      <!-- RIGHT -->
+      <div class="checkout-right">
 
-        <label class="pay-opt active">
-          <input type="radio" name="pay" checked> Cash on Delivery
-        </label>
+        <div class="summary-box">
 
-        <label class="pay-opt">
-          <input type="radio" name="pay"> Online Payment
-        </label>
+          <!-- 🔥 PRODUCT SUMMARY (DYNAMIC) -->
+          <div id="checkoutSummaryItems"></div>
+
+          <!-- Subtotal -->
+          <div class="sum-row">
+            <span>Subtotal</span>
+            <span>৳ <span id="ckSubtotal">0</span></span>
+          </div>
+
+          <!-- Shipping -->
+          <div class="sum-row">
+            <span>Delivery Charge</span>
+            <span>৳ <span id="ckShipping">0</span></span>
+          </div>
+
+          <!-- Total -->
+          <div class="sum-row sum-total">
+            <span>Total</span>
+            <span>৳ <span id="ckTotal">0</span></span>
+          </div>
+
+          <!-- Place Order Button -->
+          <button class="btn-place" onclick="placeOrder()">
+            Place Order
+          </button>
+
+          <div class="ck-note">
+            Cash on Delivery available across Bangladesh
+          </div>
+
+        </div>
+
       </div>
 
     </div>
-
-    
 
   </div>
 
-  <!-- MOBILE STICKY CHECKOUT BAR -->
-  <div class="summary-box">
+  <!-- FOOTER -->
+  <div id="eco-container"></div>
 
-    <div id="checkoutSummaryItems"></div>
-  
-    <!-- Subtotal -->
-    <div class="sum-row">
-      <span>Subtotal</span>
-      <span>৳ <span id="ckSubtotal">0</span></span>
-    </div>
-  
-    <!-- Shipping -->
-    <div class="sum-row">
-      <span>Delivery Charge</span>
-      <span>৳ <span id="ckShipping">0</span></span>
-    </div>
-  
-    <!-- Total -->
-    <div class="sum-row sum-total">
-      <span>Total</span>
-      <span>৳ <span id="ckTotal">0</span></span>
-    </div>
-  
-    <!-- Place Order Button -->
-    <button class="btn-place" onclick="placeOrder()">
-      Place Order
-    </button>
-  
-    <div class="ck-note">
-      Cash on Delivery available across Bangladesh
-    </div>
-  
-  </div>
-
-</div>
-
-<!-- FOOTER -->
-<div id="eco-container"></div>
-
-<!-- JS -->
-<script src="js/main.js"></script>
-<script src="js/loadComponents.js"></script>
+  <!-- JS -->
+  <script src="js/main.js"></script>
+  <script src="js/loadComponents.js"></script>
 
 </body>
+
 </html>

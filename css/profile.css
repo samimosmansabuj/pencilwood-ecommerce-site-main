@@ -1,24 +1,3 @@
-/* ====== GLOBAL ====== */
-body {
-    margin: 0;
-    font-family: 'Hind Siliguri', sans-serif;
-    background: #f9f9f9;
-    color: #333;
-}
-
-.page {
-    max-width: 900px;
-    margin: 20px auto;
-    padding: 0 20px;
-}
-
-/* ====== PAGE TITLE ====== */
-.page h1 {
-    font-size: 28px;
-    margin-bottom: 20px;
-    font-weight: 600;
-}
-
 /* ====== PROFILE CARD ====== */
 .profile-card {
     background: #fff;
@@ -96,10 +75,6 @@ body {
 
 /* ====== RESPONSIVE ====== */
 @media (max-width: 480px) {
-    .page h1 {
-        font-size: 24px;
-    }
-
     .profile-card {
         padding: 20px;
     }
