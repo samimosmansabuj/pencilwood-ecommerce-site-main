@@ -21,35 +21,28 @@
   <div id="bc-br"></div>
 
   <!-- ══ CART PAGE ══ -->
-  <div class="page">
+<div class="page">
 
-    <h1 class="cart-title">My Cart</h1>
+  <h1 class="cart-title">My Cart</h1>
 
-    <!-- CART ITEMS LIST -->
-    <div class="cart-items" id="cartItemsContainer"></div>
+  <!-- CART ITEMS LIST -->
+  <div class="cart-items" id="cartItemsContainer"></div>
 
-    <!-- CART SUMMARY -->
-    <div class="cart-summary">
-      <div class="summary-row"><span>Subtotal:</span><span id="cartSubtotal">৳ 0</span></div>
-      <!-- <div class="summary-row"><span>Shipping:</span><span id="cartShipping">৳ 0</span></div> -->
-      <div class="summary-row total"><span>Total:</span><span id="cartTotal">৳ 0</span></div>
-  
-      <button class="btn-checkout" onclick="goToCheckout()">Proceed to Checkout</button>    
-    </div>
+<!-- CART SUMMARY (ONLY ONE) -->
+<div class="cart-summary">
+  <div id="cartSummaryList"></div>
 
-    <!-- STICKY CHECKOUT (mobile only) -->
-    <div class="cart-sticky">
-      <div class="sticky-top">
-        <span>Subtotal</span>
-        <span>৳ <span id="cartTotalSticky">0</span></span>
-      </div>
-    
-      <button class="sticky-btn" onclick="goToCheckout()">
-        Checkout
-      </button>
-    </div>
-
+  <div class="summary-row subtotal">
+    <span>Subtotal</span>
+    <span id="cartSubtotal">৳ 0</span>
   </div>
+
+  <button class="btn-checkout" onclick="goToCheckout()">
+    Proceed to Checkout
+  </button>
+</div>
+
+</div>
   <!-- /page -->
 
   <!-- Footer -->

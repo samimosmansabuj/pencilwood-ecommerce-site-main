@@ -126,19 +126,28 @@ function addCart() {
     setCart(cart);
     updateCartCount();
 
-    const btn = document.getElementById('cartBtn');
-    if (btn) {
+    // 🔥 BOTH BUTTON HANDLE
+    const buttons = [
+        document.getElementById('cartBtn'),
+        document.getElementById('cartBtnSticky')
+    ];
+
+    buttons.forEach(btn => {
+        if (!btn) return;
+
         btn.classList.add('added');
         btn.textContent = '✔ Added!';
-    }
+    });
 
     toast('✔ ' + qty + ' item(s) added to cart!');
 
     setTimeout(() => {
-        if (btn) {
+        buttons.forEach(btn => {
+            if (!btn) return;
+
             btn.classList.remove('added');
             btn.textContent = '+ Add to Cart';
-        }
+        });
     }, 2000);
 }
 
@@ -229,15 +238,23 @@ function updateCartSummary() {
     const cart = getCart();
 
     let subtotal = 0;
+    let html = '';
+
     cart.forEach(item => {
         subtotal += item.price * item.qty;
+
+        html += `
+        <div class="summary-item">
+            <span>${item.name} × ${item.qty}</span>
+            <span>৳ ${item.price * item.qty}</span>
+        </div>`;
     });
 
+    const listEl = document.getElementById('cartSummaryList');
     const subtotalEl = document.getElementById('cartSubtotal');
-    const stickyEl = document.getElementById('cartTotalSticky');
 
+    if (listEl) listEl.innerHTML = html;
     if (subtotalEl) subtotalEl.textContent = `৳ ${subtotal}`;
-    if (stickyEl) stickyEl.textContent = subtotal;
 }
 
 /* ── WISHLIST LOAD ── */
@@ -250,6 +267,7 @@ function loadWishlist() {
 
     if (wishlist.length === 0) {
         container.innerHTML = `<p style="text-align:center">Your wishlist is empty 😢</p>`;
+        updateWishlistCount(); // ✅ sync fix
         return;
     }
 
@@ -258,7 +276,7 @@ function loadWishlist() {
         <div class="wish-card">
             <div class="wish-img">👜</div>
             <div class="wish-info">
-                <div class="wish-name">${item.name}</div>
+                <div class="wish-name">${item.name}</div
                 <div class="wish-price">৳ ${item.price}</div>
             </div>
             <div class="wish-actions">
@@ -276,6 +294,7 @@ function removeWish(id) {
 
     setWishlist(wishlist);
     loadWishlist();
+    updateCartCount(); // safety (if same item was in cart logic later)
     updateWishlistCount();
 
     toast("Removed ❌");
@@ -300,6 +319,7 @@ function moveToCart(id) {
     setWishlist(wishlist);
 
     loadWishlist();
+    loadCartItems(); // optional if cart page open
     updateCartCount();
     updateWishlistCount();
 
@@ -399,6 +419,8 @@ function loadAddress() {
 window.addEventListener('DOMContentLoaded', () => {
     updateCartCount();
     updateWishlistCount();
+
+    loadWishlist(); // ✅ ADD THIS FIX
 
     if (document.getElementById("addrName")) {
         loadAddressPageDefaults();
@@ -533,6 +555,18 @@ function toast(msg, type = "success") {
     }, 3000);
 }
 
+function buyNow() {
+    const product = {
+        id: "lth-w-001",
+        name: "Premium Leather Wallet",
+        price: 2500,
+        qty: qty
+    };
+
+    localStorage.setItem("checkoutItems", JSON.stringify([product]));
+    window.location.href = "checkout.html";
+}
+
 /* ── CHECKOUT ── */
 
 function goToCheckout() {
@@ -637,6 +671,7 @@ function validateCheckout() {
 
     btn.disabled = !(name && phone);
 }
+
 
 /* ── SHIPPING ── */
 function updateShipping(subtotal) {
@@ -750,3 +785,47 @@ function placeOrder() {
 
     setTimeout(() => window.location.href = "my-orders.html", 1200);
 }
+
+function openDrw() {
+  document.getElementById("drawer").classList.add("on");
+  document.getElementById("drawerOverlay").classList.add("on");
+}
+
+function closeDrw() {
+  document.getElementById("drawer").classList.remove("on");
+  document.getElementById("drawerOverlay").classList.remove("on");
+}
+
+let currentSlide = 0;
+
+function showSlide(index) {
+    const slides = document.querySelectorAll('.hero-slider .slide');
+    const dots = document.querySelectorAll('.slider-dots span');
+
+    if (!slides.length) return;
+
+    slides.forEach(s => s.classList.remove('active'));
+    dots.forEach(d => d.classList.remove('active'));
+
+    currentSlide = (index + slides.length) % slides.length;
+
+    slides[currentSlide].classList.add('active');
+    if (dots[currentSlide]) dots[currentSlide].classList.add('active');
+}
+
+function nextSlide() {
+    showSlide(currentSlide + 1);
+}
+
+function prevSlide() {
+    showSlide(currentSlide - 1);
+}
+
+function goSlide(i) {
+    showSlide(i);
+}
+
+/* Auto slide */
+setInterval(() => {
+    nextSlide();
+}, 2000);

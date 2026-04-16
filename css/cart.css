@@ -25,7 +25,7 @@ body {
   padding: 0 14px 12px;
 }
 
-/* ───────────── CART ITEM (DESKTOP) ───────────── */
+/* ───────────── CART ITEM ───────────── */
 .cart-item {
   display: flex;
   gap: 12px;
@@ -92,19 +92,43 @@ body {
   font-size: 16px;
 }
 
-/* ───────────── SUMMARY (DESKTOP) ───────────── */
+/* ───────────── CART SUMMARY (DESKTOP DEFAULT) ───────────── */
 .cart-summary {
   margin: 14px;
   padding: 16px;
   background: #fff;
   border-radius: 12px;
+  border: 1px solid var(--border-l);
 }
 
-.summary-row {
+/* product list inside summary */
+#cartSummaryList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+/* each row */
+.summary-item {
   display: flex;
   justify-content: space-between;
+  font-size: 14px;
+  padding: 6px 0;
+  border-bottom: 1px dashed #eee;
 }
 
+/* subtotal row */
+.summary-row.subtotal {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
+}
+
+/* checkout button */
 .btn-checkout {
   width: 100%;
   height: 48px;
@@ -112,10 +136,10 @@ body {
   color: #fff;
   border: none;
   border-radius: 10px;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
-/* ───────────── MOBILE FIX (FINAL CLEAN) ───────────── */
+/* ───────────── MOBILE FIX ───────────── */
 @media (max-width: 600px) {
 
   body, html {
@@ -135,7 +159,7 @@ body {
     padding: 0 10px 10px;
   }
 
-  /* ✅ PERFECT STRUCTURE */
+  /* cart item grid for mobile */
   .cart-item {
     display: grid;
     grid-template-columns: 20px 60px 1fr 20px;
@@ -153,22 +177,12 @@ body {
     height: 60px;
   }
 
-  .item-content {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
   .item-name {
     font-size: 14px;
   }
 
   .item-price {
     font-size: 13px;
-  }
-
-  .item-qty {
-    margin-top: 4px;
   }
 
   .item-qty button {
@@ -186,42 +200,22 @@ body {
     margin-top: 4px;
   }
 
-  /* ❌ hide desktop summary */
+  /* ⭐ MOBILE STICKY SUMMARY */
   .cart-summary {
-    display: none;
-  }
-
-  /* ✅ STICKY CHECKOUT (FIXED LIKE YOU WANT) */
-  .cart-sticky {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    background: #fff;
-    border-top: 1px solid var(--border-l);
-    padding: 10px;
+
+    margin: 0;
+    border-radius: 12px 12px 0 0;
+
     z-index: 999;
-  }
-
-  .sticky-top {
-    display: flex;
-    justify-content: space-between;
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 6px;
-  }
-
-  .sticky-btn {
-    width: 100%;
-    height: 46px;
-    border: none;
-    border-radius: 10px;
-    background: var(--br);
-    color: #fff;
-    font-weight: 700;
+    border-top: 1px solid var(--border-l);
+    background: #fff;
   }
 
   body {
-    padding-bottom: 80px;
+    padding-bottom: 120px;
   }
 }
