@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>All Products — Pencilwood Leather Bangladesh</title>
   <meta name="description"
     content="Explore Pencilwood Leather's collection of wallets, belts, card holders, and accessories. Premium genuine leather products. Free delivery in Dhaka.">
@@ -11,14 +12,15 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap"
     rel="stylesheet">
+
   <link rel="stylesheet" href="css/home.css?v=2">
   <link rel="stylesheet" href="css/products.css?v=2">
+  <link rel="stylesheet" href="css/product.css?v=2">
 </head>
 
 <body>
 
   <body>
-
     <!-- Components placeholders -->
     <div id="toast-container"></div>
     <div id="float-wa"></div>
@@ -32,12 +34,61 @@
     <!-- PAGE CONTENT -->
     <div class="page">
 
-      <!-- ① PAGE HEADER -->
-      <div class="lp-section">
-        <div class="lp-head">
-          <div class="lp-title">All Products</div>
-          <div class="lp-sub">Browse our premium leather collection</div>
+      <!-- 🔥 HERO SLIDER -->
+      <div class="hero-slider">
+
+
+        <div class="slide active" onclick="window.open('product-details.html')">
+          <div class="slide-content">
+
+            <div class="slide-text">
+              <h2>Cradle Collection</h2>
+              <p>Elegant • Premium • Signature Design</p>
+              <button onclick="window.open('product-details.html')">
+                Shop Now
+              </button>
+            </div>
+
+            <div class="slide-img">
+              <img src="https://cradle.pencilwoodbd.com/path-to-main-image.jpg" alt="Cradle Product" />
+            </div>
+
+          </div>
         </div>
+
+        <div class="slide" onclick="window.location.href='/product-details.html'">
+          <div class="slide-content">
+            <div class="slide-text">
+              <h2>Premium Leather Wallet</h2>
+              <p>Elegant • Minimal • Everyday Use</p>
+              <button>Shop Now</button>
+            </div>
+            <div class="slide-img">💼</div>
+          </div>
+        </div>
+
+        <div class="slide" onclick="window.location.href='/product-details.html'">
+          <div class="slide-content">
+            <div class="slide-text">
+              <h2>Classic Leather Belt</h2>
+              <p>Strong & Durable</p>
+              <button>Explore</button>
+            </div>
+            <div class="slide-img">👔</div>
+          </div>
+        </div>
+
+        <!-- arrows (desktop) -->
+        <button class="slide-prev" onclick="prevSlide()">‹</button>
+        <button class="slide-next" onclick="nextSlide()">›</button>
+
+        <!-- dots -->
+        <div class="slider-dots">
+          <span onclick="goSlide(0)" class="active"></span>
+          <span onclick="goSlide(1)"></span>
+          <span onclick="goSlide(2)"></span>
+        </div>
+
       </div>
 
       <!-- ② FILTER / SORT -->
@@ -73,7 +124,7 @@
         <div class="prod-card" data-category="wallet" data-price="2500" data-popularity="340">
           <div class="prod-img" style="background:linear-gradient(135deg,#F0E8DC,#E0D0BC)">💼<span
               class="prod-badge">Top</span></div>
-          <div class="prod-name" onclick="window.location.href='index.html'">Premium Leather Wallet</div>
+          <div class="prod-name" onclick="window.location.href='product-details.html'">Premium Leather Wallet</div>
           <div class="prod-price">৳ 2,500 <span class="prod-orig">৳ 3,000</span></div>
           <div class="prod-stars">★★★★★ (340)</div>
           <button class="prod-cart" onclick="toast('Added to cart')">+ Cart</button>
@@ -81,7 +132,7 @@
 
         <div class="prod-card" data-category="belt" data-price="1200" data-popularity="62">
           <div class="prod-img" style="background:linear-gradient(135deg,#EDE5D5,#DDD0B8)">👔</div>
-          <div class="prod-name">Classic Leather Belt</div>
+          <div class="prod-name" onclick="window.location.href='product-details.html'">Classic Leather Belt</div>
           <div class="prod-price">৳ 1,200</div>
           <div class="prod-stars">★★★★☆ (62)</div>
           <button class="prod-cart" onclick="toast('Added to cart')">+ Cart</button>
@@ -89,7 +140,7 @@
 
         <div class="prod-card" data-category="card-holder" data-price="750" data-popularity="29">
           <div class="prod-img" style="background:linear-gradient(135deg,#EDE5D5,#DDD0B8)">💼</div>
-          <div class="prod-name">Leather Card Holder</div>
+          <div class="prod-name" onclick="window.location.href='product-details.html'">Leather Card Holder</div>
           <div class="prod-price">৳ 750</div>
           <div class="prod-stars">★★★★★ (29)</div>
           <button class="prod-cart" onclick="toast('Added to cart')">+ Cart</button>
@@ -98,7 +149,7 @@
         <div class="prod-card" data-category="passport-holder" data-price="1650" data-popularity="87">
           <div class="prod-img" style="background:linear-gradient(135deg,#F5EDE5,#EDD9C8)">✈️<span
               class="prod-badge">New</span></div>
-          <div class="prod-name">Premium Passport Holder</div>
+          <div class="prod-name" onclick="window.location.href='product-details.html'">Premium Passport Holder</div>
           <div class="prod-price">৳ 1,650 <span class="prod-orig">৳ 2,000</span></div>
           <div class="prod-stars">★★★★★ (87)</div>
           <button class="prod-cart" onclick="toast('Added to cart')">+ Cart</button>
@@ -107,7 +158,7 @@
         <div class="prod-card" data-category="wallet" data-price="2500" data-popularity="340">
           <div class="prod-img" style="background:linear-gradient(135deg,#F0E8DC,#E0D0BC)">💼<span
               class="prod-badge">Top</span></div>
-          <div class="prod-name" onclick="window.location.href='index.html'">Premium Leather Wallet</div>
+          <div class="prod-name" onclick="window.location.href='product-details.html'">Premium Leather Wallet</div>
           <div class="prod-price">৳ 2,500 <span class="prod-orig">৳ 3,000</span></div>
           <div class="prod-stars">★★★★★ (340)</div>
           <button class="prod-cart" onclick="toast('Added to cart')">+ Cart</button>
@@ -115,7 +166,7 @@
 
         <div class="prod-card" data-category="belt" data-price="1200" data-popularity="62">
           <div class="prod-img" style="background:linear-gradient(135deg,#EDE5D5,#DDD0B8)">👔</div>
-          <div class="prod-name">Classic Leather Belt</div>
+          <div class="prod-name" onclick="window.location.href='product-details.html'">Classic Leather Belt</div>
           <div class="prod-price">৳ 1,200</div>
           <div class="prod-stars">★★★★☆ (62)</div>
           <button class="prod-cart" onclick="toast('Added to cart')">+ Cart</button>
@@ -123,7 +174,7 @@
 
         <div class="prod-card" data-category="card-holder" data-price="750" data-popularity="29">
           <div class="prod-img" style="background:linear-gradient(135deg,#EDE5D5,#DDD0B8)">💼</div>
-          <div class="prod-name">Leather Card Holder</div>
+          <div class="prod-name" onclick="window.location.href='product-details.html'">Leather Card Holder</div>
           <div class="prod-price">৳ 750</div>
           <div class="prod-stars">★★★★★ (29)</div>
           <button class="prod-cart" onclick="toast('Added to cart')">+ Cart</button>
@@ -132,7 +183,7 @@
         <div class="prod-card" data-category="passport-holder" data-price="1650" data-popularity="87">
           <div class="prod-img" style="background:linear-gradient(135deg,#F5EDE5,#EDD9C8)">✈️<span
               class="prod-badge">New</span></div>
-          <div class="prod-name">Premium Passport Holder</div>
+          <div class="prod-name" onclick="window.location.href='product-details.html'">Premium Passport Holder</div>
           <div class="prod-price">৳ 1,650 <span class="prod-orig">৳ 2,000</span></div>
           <div class="prod-stars">★★★★★ (87)</div>
           <button class="prod-cart" onclick="toast('Added to cart')">+ Cart</button>

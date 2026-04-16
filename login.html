@@ -1,78 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login / Signup — Pencilwood</title>
-<link rel="stylesheet" href="css/auth.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login / Signup — Pencilwood</title>
+
+  <meta name="description"content="Explore Pencilwood Leather's collection of wallets, belts, card holders, and accessories. Premium genuine leather products. Free delivery in Dhaka.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  
+  <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="css/home.css?v=2">
+  <link rel="stylesheet" href="css/products.css?v=2">
+  <link rel="stylesheet" href="css/product.css?v=2">
 </head>
+
 <body>
+  <!-- Components placeholders -->
+  <div id="toast-container"></div>
+  <div id="float-wa"></div>
+  <div id="drawer-container"></div>
 
-<div id="toast-container"></div>
-<div id="topnavbar-container"></div>
+  <div id="topnavbar-container"></div>
+  <div id="subnavbar-container"></div>
+  <div id="bc-br" class="bc-br-section"></div>
 
-<div class="auth-page">
+  <div class="auth-page">
 
-  <div class="auth-box">
+    <div class="auth-box">
 
-    <!-- TOGGLE -->
-    <div class="auth-tabs">
-      <button class="tab on" onclick="switchAuth('login')">Login</button>
-      <button class="tab" onclick="switchAuth('signup')">Signup</button>
-    </div>
+      <!-- TOGGLE -->
+      <div class="auth-tabs">
+        <button class="tab on" onclick="switchAuth('login')">Login</button>
+        <button class="tab" onclick="switchAuth('signup')">Signup</button>
+      </div>
 
-    <!-- LOGIN -->
-    <div id="loginForm" class="auth-form">
-      <input type="text" placeholder="Phone / Email">
-      <input type="password" placeholder="Password">
-      <button onclick="login()">Login</button>
-    </div>
+      <!-- LOGIN -->
+      <div id="loginForm" class="auth-form">
+        <input type="text" placeholder="Phone / Email">
+        <input type="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+      </div>
 
-    <!-- SIGNUP -->
-    <div id="signupForm" class="auth-form" style="display:none">
-      <input type="text" placeholder="Full Name">
-      <input type="text" placeholder="Phone">
-      <input type="password" placeholder="Password">
-      <button onclick="signup()">Create Account</button>
+      <!-- SIGNUP -->
+      <div id="signupForm" class="auth-form" style="display:none">
+        <input type="text" placeholder="Full Name">
+        <input type="text" placeholder="Phone">
+        <input type="password" placeholder="Password">
+        <button onclick="signup()">Create Account</button>
+      </div>
+
     </div>
 
   </div>
 
-</div>
-
-<!-- <div id="footer-container"></div> -->
-<div id="eco-container"></div>
+  <!-- <div id="footer-container"></div> -->
+  <div id="eco-container"></div>
 
 
-<script src="js/loadComponents.js"></script>
-<script>
-function switchAuth(type){
-    const loginForm = document.getElementById('loginForm');
-    const signupForm = document.getElementById('signupForm');
+  <script src="js/loadComponents.js"></script>
+  <script>
+    function switchAuth(type) {
+      const loginForm = document.getElementById('loginForm');
+      const signupForm = document.getElementById('signupForm');
 
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
 
-    if(type==='login'){
+      if (type === 'login') {
         document.querySelectorAll('.tab')[0].classList.add('on');
-        loginForm.style.display='flex';   // use flex for consistent layout
-        signupForm.style.display='none';
-    } else {
+        loginForm.style.display = 'flex';   // use flex for consistent layout
+        signupForm.style.display = 'none';
+      } else {
         document.querySelectorAll('.tab')[1].classList.add('on');
-        loginForm.style.display='none';
-        signupForm.style.display='flex';
+        loginForm.style.display = 'none';
+        signupForm.style.display = 'flex';
+      }
     }
-}
 
-function login(){
-  toast("Logged in!");
-  window.location.href="profile.html";
-}
+    function login() {
+      toast("Logged in!");
+      window.location.href = "profile.html";
+    }
 
-function signup(){
-  toast("Account created!");
-  window.location.href="profile.html";
-}
-</script>
+    function signup() {
+      toast("Account created!");
+      window.location.href = "profile.html";
+    }
+  </script>
 
 </body>
+
 </html>
