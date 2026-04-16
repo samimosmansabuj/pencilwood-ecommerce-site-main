@@ -10,7 +10,6 @@ body {
 }
 
 /* ───────────── TITLE ───────────── */
-/* ───────────── PAGE TITLE ───────────── */
 .cart-title {
   font-size: 20px;
   font-weight: 700;
@@ -23,7 +22,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding-bottom: 12px;
+  padding: 0 14px 12px;
 }
 
 /* ───────────── CART ITEM (DESKTOP) ───────────── */
@@ -37,15 +36,6 @@ body {
   padding: 12px;
 }
 
-.cart-border {
-  padding: 10px 80px;
-}
-
-.cart-item:hover {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
-}
-
-/* IMAGE */
 .item-img {
   width: 70px;
   height: 70px;
@@ -104,6 +94,7 @@ body {
 
 /* ───────────── SUMMARY (DESKTOP) ───────────── */
 .cart-summary {
+  margin: 14px;
   padding: 16px;
   background: #fff;
   border-radius: 12px;
@@ -127,8 +118,7 @@ body {
 /* ───────────── MOBILE FIX (FINAL CLEAN) ───────────── */
 @media (max-width: 600px) {
 
-  body,
-  html {
+  body, html {
     overflow-x: hidden;
   }
 
@@ -143,10 +133,6 @@ body {
 
   .cart-items {
     padding: 0 10px 10px;
-  }
-
-  .cart-border {
-    padding: 0px;
   }
 
   /* ✅ PERFECT STRUCTURE */
@@ -177,123 +163,6 @@ body {
     font-size: 14px;
   }
 
-  /* BOTTOM ACTION ROW */
-  .cart-item-bottom {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  /* REMOVE RIGHT */
-  .item-remove {
-    align-self: flex-end;
-  }
-
-  /* FULL WIDTH BUTTON LOOK */
-  .btn-checkout {
-    width: 100%;
-  }
-}
-
-/* ───────────── STICKY CHECKOUT BAR (BIG BOOST) ───────────── */
-@media (max-width: 600px) {
-
-  .cart-summary {
-    display: none;
-  }
-
-  .cart-sticky {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: #fff;
-    border-top: 1px solid var(--border-l);
-    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    z-index: 999;
-  }
-
-  .sticky-price {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--text);
-  }
-
-  .sticky-btn {
-    flex: 1;
-    height: 46px;
-    border-radius: 10px;
-    border: none;
-    background: var(--br);
-    color: #fff;
-    font-weight: 700;
-    font-size: 14px;
-  }
-
-  body {
-    padding-bottom: 70px;
-  }
-}
-
-@media (max-width: 600px) {
-
-  .cart-item {
-    display: grid;
-    grid-template-columns: 70px 1fr;
-    grid-template-rows: auto auto;
-    gap: 10px;
-    align-items: center;
-  }
-
-  .item-img {
-    grid-row: span 2;
-  }
-
-  .item-info {
-    grid-column: 2;
-  }
-
-  .item-qty {
-    grid-column: 2;
-    justify-content: flex-start;
-  }
-
-  .cart-item > button {
-    grid-column: 2;
-    justify-self: end;
-  }
-}
-
-/* ───────── MOBILE FIX PATCH (IMPORTANT) ───────── */
-@media (max-width: 600px) {
-
-  body,
-  html {
-    overflow-x: hidden;
-  }
-
-  .cart-item {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 60px 1fr auto;
-    grid-template-rows: auto auto;
-    gap: 10px;
-    align-items: center;
-  }
-
-  .item-img {
-    width: 60px;
-    height: 60px;
-  }
-
-  .item-info {
-    grid-column: 2;
-  }
-
   .item-price {
     font-size: 13px;
   }
@@ -317,10 +186,12 @@ body {
     margin-top: 4px;
   }
 
+  /* ❌ hide desktop summary */
   .cart-summary {
     display: none;
   }
 
+  /* ✅ STICKY CHECKOUT (FIXED LIKE YOU WANT) */
   .cart-sticky {
     position: fixed;
     bottom: 0;
