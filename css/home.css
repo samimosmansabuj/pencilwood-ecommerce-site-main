@@ -1016,10 +1016,17 @@ img {
     background: rgba(75, 46, 30, .06)
 }
 
-.btn-cart.added {
+.btn-cart.added,
+.s-cart.added {
     background: var(--green);
     color: white;
-    border-color: var(--green)
+    border-color: var(--green);
+}
+
+.btn-cart.added::before,
+.s-cart.added::before {
+    content: "✔";
+    margin-right: 6px;
 }
 
 .btn-sec-row {

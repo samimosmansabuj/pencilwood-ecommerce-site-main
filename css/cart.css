@@ -1,4 +1,15 @@
-/* ───────────── PAGE TITLE ───────────── */
+/* ───────────── GLOBAL ───────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ───────────── TITLE ───────────── */
 .cart-title {
   font-size: 20px;
   font-weight: 700;
@@ -6,35 +17,25 @@
   color: var(--text);
 }
 
-/* ───────────── CART ITEMS ───────────── */
+/* ───────────── CART LIST ───────────── */
 .cart-items {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding-bottom: 12px;
+  padding: 0 14px 12px;
 }
 
-/* SINGLE ITEM */
+/* ───────────── CART ITEM ───────────── */
 .cart-item {
   display: flex;
   gap: 12px;
+  align-items: center;
   background: #fff;
   border: 1px solid var(--border-l);
   border-radius: 12px;
   padding: 12px;
-  align-items: center;
-  transition: all var(--t);
 }
 
-.cart-border {
-  padding: 10px 80px;
-}
-
-.cart-item:hover {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
-}
-
-/* IMAGE */
 .item-img {
   width: 70px;
   height: 70px;
@@ -44,11 +45,9 @@
   align-items: center;
   justify-content: center;
   font-size: 24px;
-  flex-shrink: 0;
 }
 
-/* INFO */
-.item-info {
+.item-content {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -58,26 +57,16 @@
 .item-name {
   font-size: 14px;
   font-weight: 600;
-  color: var(--text);
-  line-height: 1.4;
-}
-
-.item-variant {
-  font-size: 12px;
-  color: var(--lighter);
 }
 
 .item-price {
   font-size: 14px;
   font-weight: 700;
   color: var(--br);
-  margin-top: 2px;
 }
 
-/* ───────────── QTY CONTROL ───────────── */
 .item-qty {
   display: flex;
-  align-items: center;
   gap: 6px;
   margin-top: 4px;
 }
@@ -88,273 +77,112 @@
   border: 1px solid var(--border);
   background: #fff;
   border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
   font-weight: 600;
-  transition: all 0.2s;
-}
-
-.item-qty button:active {
-  transform: scale(0.95);
 }
 
 .item-qty input {
   width: 40px;
-  height: 34px;
   text-align: center;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  background: #fafafa;
 }
 
-/* ───────────── REMOVE BTN ───────────── */
-.item-remove button {
-  font-size: 12px;
-  color: #E53935;
+.remove-btn {
+  color: red;
   background: none;
   border: none;
-  cursor: pointer;
-  font-weight: 600;
+  font-size: 16px;
 }
 
-/* ✅ FIX: also support your actual HTML (button without wrapper) */
-.cart-item > button {
-  font-size: 12px;
-  color: #E53935;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-/* ───────────── SUMMARY ───────────── */
+/* ───────────── CART SUMMARY (DESKTOP DEFAULT) ───────────── */
 .cart-summary {
+  margin: 14px;
   padding: 16px;
   background: #fff;
-  border: 1px solid var(--border-l);
   border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  border: 1px solid var(--border-l);
 }
 
-/* ROW */
-.summary-row {
+/* product list inside summary */
+#cartSummaryList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+/* each row */
+.summary-item {
   display: flex;
   justify-content: space-between;
   font-size: 14px;
-  color: var(--mid);
+  padding: 6px 0;
+  border-bottom: 1px dashed #eee;
 }
 
-.summary-row.total {
-  font-size: 16px;
+/* subtotal row */
+.summary-row.subtotal {
+  display: flex;
+  justify-content: space-between;
   font-weight: 700;
-  color: var(--text);
-  border-top: 1px solid var(--border-l);
+  margin-top: 10px;
   padding-top: 10px;
+  border-top: 1px solid #eee;
 }
 
-/* CHECKOUT BUTTON */
+/* checkout button */
 .btn-checkout {
-  margin-top: 8px;
+  width: 100%;
   height: 48px;
+  background: var(--br);
+  color: #fff;
   border: none;
   border-radius: 10px;
-  background: var(--br);
-  color: #fff;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-checkout:active {
-  transform: scale(0.97);
-}
-
-/* ───────────── EMPTY STATE ───────────── */
-.cart-empty {
-  text-align: center;
-  padding: 50px 20px;
-  color: var(--lighter);
-}
-
-.cart-empty button {
   margin-top: 12px;
-  padding: 10px 18px;
-  border: none;
-  background: var(--br);
-  color: #fff;
-  border-radius: 8px;
-  cursor: pointer;
 }
 
-/* ───────────── MOBILE UX BOOST ───────────── */
+/* ───────────── MOBILE FIX ───────────── */
 @media (max-width: 600px) {
+
+  body, html {
+    overflow-x: hidden;
+  }
+
+  .page {
+    padding: 10px;
+  }
 
   .cart-title {
     font-size: 18px;
     padding: 12px;
   }
 
-  .cart-border {
-    padding: 0px;
+  .cart-items {
+    padding: 0 10px 10px;
   }
 
-  /* STACK ITEM LIKE APP UI */
+  /* cart item grid for mobile */
   .cart-item {
-    flex-direction: column;
-    align-items: stretch;
+    display: grid;
+    grid-template-columns: 20px 60px 1fr 20px;
     gap: 10px;
+    align-items: start;
+    padding: 12px;
   }
 
-  /* TOP ROW */
-  .cart-item-top {
-    display: flex;
-    gap: 10px;
+  .cart-check {
+    margin-top: 6px;
   }
 
-  /* IMAGE + INFO */
   .item-img {
-    width: 65px;
-    height: 65px;
+    width: 60px;
+    height: 60px;
   }
 
   .item-name {
     font-size: 14px;
   }
 
-  /* BOTTOM ACTION ROW */
-  .cart-item-bottom {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  /* REMOVE RIGHT */
-  .item-remove {
-    align-self: flex-end;
-  }
-
-  /* FULL WIDTH BUTTON LOOK */
-  .btn-checkout {
-    width: 100%;
-  }
-}
-
-/* ───────────── STICKY CHECKOUT BAR (BIG BOOST) ───────────── */
-@media (max-width: 600px) {
-
-  .cart-summary {
-    display: none;
-  }
-
-  .cart-sticky {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: #fff;
-    border-top: 1px solid var(--border-l);
-    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    z-index: 999;
-  }
-
-  .sticky-price {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--text);
-  }
-
-  .sticky-btn {
-    flex: 1;
-    height: 46px;
-    border-radius: 10px;
-    border: none;
-    background: var(--br);
-    color: #fff;
-    font-weight: 700;
-    font-size: 14px;
-  }
-
-  body {
-    padding-bottom: 70px;
-  }
-}
-
-@media (max-width: 600px) {
-
-  .cart-item {
-    display: grid;
-    grid-template-columns: 70px 1fr;
-    grid-template-rows: auto auto;
-    gap: 10px;
-    align-items: center;
-  }
-
-  .item-img {
-    grid-row: span 2;
-  }
-
-  .item-info {
-    grid-column: 2;
-  }
-
-  .item-qty {
-    grid-column: 2;
-    justify-content: flex-start;
-  }
-
-  .cart-item > button {
-    grid-column: 2;
-    justify-self: end;
-  }
-}
-
-/* ───────── MOBILE FIX PATCH (IMPORTANT) ───────── */
-@media (max-width: 600px) {
-
-  /* prevent horizontal overflow */
-  body, html {
-    overflow-x: hidden;
-  }
-
-  /* cart card full width clean layout */
-  .cart-item {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 60px 1fr auto;
-    grid-template-rows: auto auto;
-    gap: 10px;
-    align-items: center;
-  }
-
-  /* image fixed */
-  .item-img {
-    width: 60px;
-    height: 60px;
-  }
-
-  /* name + price better stacking */
-  .item-info {
-    grid-column: 2;
-  }
-
   .item-price {
     font-size: 13px;
-  }
-
-  /* qty controls cleaner */
-  .item-qty {
-    grid-column: 2;
-    justify-content: flex-start;
-    flex-wrap: wrap;
   }
 
   .item-qty button {
@@ -367,15 +195,27 @@
     height: 30px;
   }
 
-  /* remove button alignment fix */
-  .cart-item > button {
-    grid-column: 3;
-    grid-row: 1 / span 2;
-    align-self: center;
+  .remove-btn {
+    font-size: 16px;
+    margin-top: 4px;
   }
 
-  /* checkbox alignment fix */
-  .cart-check {
-    transform: scale(1.1);
+  /* ⭐ MOBILE STICKY SUMMARY */
+  .cart-summary {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    margin: 0;
+    border-radius: 12px 12px 0 0;
+
+    z-index: 999;
+    border-top: 1px solid var(--border-l);
+    background: #fff;
+  }
+
+  body {
+    padding-bottom: 120px;
   }
 }

@@ -309,3 +309,30 @@ body {
     padding-bottom: 75px;
   }
 }
+
+.sum-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  padding: 6px 0;
+  color: var(--mid);
+}
+
+.sum-row span:first-child {
+  text-align: left;
+}
+
+.sum-row span:last-child {
+  text-align: right;
+  font-weight: 500;
+}
+
+.sum-total {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  border-top: 1px solid var(--border-l);
+  margin-top: 6px;
+  padding-top: 10px;
+}
