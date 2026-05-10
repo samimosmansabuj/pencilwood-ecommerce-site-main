@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>All Products — Pencilwood Leather Bangladesh</title>
+  <meta name="description"
+    content="Explore Pencilwood Leather's collection of wallets, belts, card holders, and accessories. Premium genuine leather products. Free delivery in Dhaka.">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
@@ -19,6 +21,7 @@
 
 <body>
 
+  <!-- Components placeholders -->
   <div id="toast-container"></div>
   <div id="float-wa"></div>
   <div id="drawer-container"></div>
@@ -27,13 +30,15 @@
   <div id="subnavbar-container"></div>
   <div id="bc-br" class="bc-br-section"></div>
 
+  <!-- PAGE CONTENT -->
   <div class="page">
 
-    <!-- HERO (UNCHANGED) -->
+    <!-- 🔥 HERO SLIDER -->
     <div class="hero-slider">
 
-      <div class="slide active">
+      <div class="slide active" onclick="window.open('https://cradle.pencilwoodbd.com/', '_blank')">
         <div class="slide-content">
+
           <div class="slide-text">
             <h2>Cradle Collection</h2>
             <p>Elegant • Premium • Signature Design</p>
@@ -41,25 +46,53 @@
               Shop Now
             </button>
           </div>
-          <div class="slide-img">👜</div>
+
+          <div class="slide-img">
+            <img src="https://cradle.pencilwoodbd.com/path-to-main-image.jpg" alt="Cradle Product" />
+          </div>
+
         </div>
       </div>
 
+      <div class="slide" onclick="window.location.href='product-details.html'">
+        <div class="slide-content">
+          <div class="slide-text">
+            <h2>Premium Leather Wallet</h2>
+            <p>Elegant • Minimal • Everyday Use</p>
+            <button>Shop Now</button>
+          </div>
+          <div class="slide-img">💼</div>
+        </div>
+      </div>
+
+      <div class="slide" onclick="window.location.href='belt.html'">
+        <div class="slide-content">
+          <div class="slide-text">
+            <h2>Classic Leather Belt</h2>
+            <p>Strong & Durable</p>
+            <button>Explore</button>
+          </div>
+          <div class="slide-img">👔</div>
+        </div>
+      </div>
+
+      <!-- arrows -->
       <button class="slide-prev" onclick="prevSlide()">‹</button>
       <button class="slide-next" onclick="nextSlide()">›</button>
 
+      <!-- dots -->
       <div class="slider-dots">
-        <span class="active"></span>
+        <span onclick="goSlide(0)" class="active"></span>
+        <span onclick="goSlide(1)"></span>
+        <span onclick="goSlide(2)"></span>
       </div>
 
     </div>
 
-    <!-- FILTER -->
+    <!-- FILTER / SORT -->
     <div class="filter-bar">
-
       <div class="filter-left">
-        <label>
-          <span>Category:</span>
+        <label><span>Category:</span>
           <select id="filterCategory" onchange="applyFilters()">
             <option value="all">All</option>
             <option value="wallet">Wallet</option>
@@ -70,27 +103,60 @@
           </select>
         </label>
 
-        <label>
-          <span>Sort by:</span>
+        <label><span>Sort by:</span>
           <select id="sortBy" onchange="applyFilters()">
             <option value="popularity">Popularity</option>
             <option value="price-low-high">Price: Low to High</option>
             <option value="price-high-low">Price: High to Low</option>
+            <option value="newest">Newest</option>
           </select>
         </label>
       </div>
 
       <div class="filter-right">
-        <span id="totalProducts">Loading...</span>
+        <span id="totalProducts">Showing 12 products</span>
+      </div>
+    </div>
+
+    <!-- PRODUCT GRID -->
+    <div class="products-grid" id="productsGrid">
+
+      <div class="prod-card" data-category="wallet" data-price="2500" data-popularity="340">
+        <div class="prod-img" style="background:linear-gradient(135deg,#F0E8DC,#E0D0BC)">💼<span class="prod-badge">Top</span></div>
+        <div class="prod-name" onclick="window.location.href='product-details.html'">Premium Leather Wallet</div>
+        <div class="prod-price">৳ 2,500 <span class="prod-orig">৳ 3,000</span></div>
+        <div class="prod-stars">★★★★★ (340)</div>
+        <button class="prod-cart" onclick="toast('Added to cart')">+ Cart</button>
+      </div>
+
+      <div class="prod-card" data-category="belt" data-price="1200" data-popularity="62">
+        <div class="prod-img" style="background:linear-gradient(135deg,#EDE5D5,#DDD0B8)">👔</div>
+        <div class="prod-name" onclick="window.location.href='product-details.html'">Classic Leather Belt</div>
+        <div class="prod-price">৳ 1,200</div>
+        <div class="prod-stars">★★★★☆ (62)</div>
+        <button class="prod-cart" onclick="toast('Added to cart')">+ Cart</button>
+      </div>
+
+      <div class="prod-card" data-category="card-holder" data-price="750" data-popularity="29">
+        <div class="prod-img" style="background:linear-gradient(135deg,#EDE5D5,#DDD0B8)">💼</div>
+        <div class="prod-name" onclick="window.location.href='product-details.html'">Leather Card Holder</div>
+        <div class="prod-price">৳ 750</div>
+        <div class="prod-stars">★★★★★ (29)</div>
+        <button class="prod-cart" onclick="toast('Added to cart')">+ Cart</button>
+      </div>
+
+      <div class="prod-card" data-category="passport-holder" data-price="1650" data-popularity="87">
+        <div class="prod-img" style="background:linear-gradient(135deg,#F5EDE5,#EDD9C8)">✈️<span class="prod-badge">New</span></div>
+        <div class="prod-name" onclick="window.location.href='product-details.html'">Premium Passport Holder</div>
+        <div class="prod-price">৳ 1,650 <span class="prod-orig">৳ 2,000</span></div>
+        <div class="prod-stars">★★★★★ (87)</div>
+        <button class="prod-cart" onclick="toast('Added to cart')">+ Cart</button>
       </div>
 
     </div>
 
-    <!-- PRODUCT GRID (NOW DYNAMIC) -->
-    <div class="products-grid" id="productsGrid"></div>
-
-     <!-- PAGINATION -->
-     <div class="pagination">
+    <!-- PAGINATION -->
+    <div class="pagination">
       <button onclick="goPage(1)">« First</button>
       <button onclick="prevPage()">‹ Prev</button>
       <span id="pageNumbers"></span>
@@ -179,6 +245,29 @@
   <script src="js/main.js"></script>
   <script src="js/loadComponents.js"></script>
 
+  <script>
+    function applyFilters() {
+      const category = document.getElementById('filterCategory').value;
+      const sort = document.getElementById('sortBy').value;
+      const products = [...document.querySelectorAll('.prod-card')];
+
+      let filtered = products.filter(p => category === 'all' || p.dataset.category === category);
+
+      if (sort === 'price-low-high') filtered.sort((a, b) => a.dataset.price - b.dataset.price);
+      if (sort === 'price-high-low') filtered.sort((a, b) => b.dataset.price - a.dataset.price);
+      if (sort === 'popularity') filtered.sort((a, b) => b.dataset.popularity - a.dataset.popularity);
+
+      const grid = document.getElementById('productsGrid');
+      grid.innerHTML = '';
+      filtered.forEach(p => grid.appendChild(p));
+
+      document.getElementById('totalProducts').innerText =
+        `Showing ${filtered.length} products`;
+    }
+
+    applyFilters();
+  </script>
 
 </body>
+
 </html>
