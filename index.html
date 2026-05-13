@@ -95,7 +95,9 @@
       <button onclick="prevPage()">‹ Prev</button>
       <span id="pageNumbers"></span>
       <button onclick="nextPage()">Next ›</button>
-      <button onclick="goPage(5)">Last »</button>
+      <button onclick="goPage(Math.ceil(filteredProducts.length / perPage))">
+        Last »
+      </button>
     </div>
 
     <!-- SOCIAL PROOF -->
