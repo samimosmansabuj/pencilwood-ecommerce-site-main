@@ -191,6 +191,7 @@ function openProduct(slug) {
         `product-details.html?slug=${slug}`;
 }
 
+
 /* =========================
    TOAST
 ========================= */

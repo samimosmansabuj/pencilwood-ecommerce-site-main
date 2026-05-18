@@ -248,6 +248,7 @@ function toast(message) {
 
     container.appendChild(toastEl);
 
+    
     setTimeout(() => {
         toastEl.classList.add("show");
     }, 50);

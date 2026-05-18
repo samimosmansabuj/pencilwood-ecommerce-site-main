@@ -41,8 +41,7 @@
           <!-- GALLERY -->
           <div class="gal-col">
             <div class="gal-main" id="galMain" onclick="zoomToggle()">
-              <div class="gal-top-badges"><span class="g-badge g-sale">-17% OFF</span><span
-                  class="g-badge g-best">Bestseller</span></div>
+              <div class="gal-top-badges" id="productBadges"></div>
               <div class="gal-top-right">
                 <div class="g-act" id="wishIco" onclick="event.stopPropagation();wishToggle()" title="Wishlist">♡</div>
                 <div class="g-act" onclick="event.stopPropagation();shareIt()" title="Share">🔗</div>
@@ -50,13 +49,7 @@
               <img id="productImage" src="" alt="product">
               <span class="gal-zoom-hint">🔍 Tap to zoom</span>
             </div>
-            <div class="thumbs" id="thumbGrid">
-              <div class="thumb on" onclick="setThumb(this,'👜')">👜</div>
-              <div class="thumb" onclick="setThumb(this,'🔍')">🔍</div>
-              <div class="thumb" onclick="setThumb(this,'📐')">📐</div>
-              <div class="thumb" onclick="setThumb(this,'✨')">✨</div>
-              <div class="thumb" onclick="setThumb(this,'🎁')">🎁</div>
-            </div>
+            <div class="thumbs" id="thumbGrid"></div>
             <div class="gal-share">
               <span class="share-lbl">Share:</span>
               <div class="share-ic" style="color:#4267B2" onclick="toast('Shared on Facebook!')">f</div>
@@ -72,13 +65,12 @@
             <div class="brand-row">
               <span class="brand-lnk">Pencilwood Quality</span>
               <span class="v-badge">✔ Verified Brand</span>
-              <span class="sku-lbl">SKU: LTH-W-001</span>
+              <span class="sku-lbl" id="productSKU"></span>
             </div>
 
             <div>
               <div class="prod-title" id="productTitle"></div>
-              <div class="prod-bn bn" style="margin-top:5px">খাঁটি ফুল-গ্রেইন লেদার — টেকসই, স্টাইলিশ, প্রতিদিনের
-                ব্যবহারে আদর্শ</div>
+              <div class="prod-bn bn" id="productShortDescription" style="margin-top:5px"></div>
             </div>
 
             <div class="stars-row">
@@ -87,7 +79,7 @@
               <a class="r-cnt" href="#" onclick="switchTab('reviews')">120 ratings</a>
               <div class="r-sep"></div>
               <span class="r-sold">340+ sold</span>
-              <span class="stock-chip">✔ In Stock</span>
+              <span class="stock-chip" id="stockStatus"></span>
             </div>
 
             <div class="price-box">
@@ -96,7 +88,7 @@
                 <span class="price-orig" id="productOldPrice"></span>
                 <span class="price-disc" id="productDiscount"></span>
               </div>
-              <div class="price-note bn">ঢাকায় ফ্রি ডেলিভারি · ক্যাশ অন ডেলিভারি পাওয়া যায়</div>
+              <div class="price-note bn" id="deliveryNote"></div>
               <div class="deal-timer">
                 <span class="deal-lbl">⚡ Deal ends in:</span>
                 <div class="t-units">
@@ -146,8 +138,7 @@
               <span class="qty-note">Only <span id="stockLeft"></span> left</span>
             </div>
 
-            <div class="bullets">
-              <div class="bullet"><span class="b-ico">✔</span><span class="b-txt"><strong>100% Full-Grain Genuine
+            <div class="bullets" id="featureBullets">              <div class="bullet"><span class="b-ico">✔</span><span class="b-txt"><strong>100% Full-Grain Genuine
                     Leather</strong> — No synthetic or PU material</span></div>
               <div class="bullet" style="border-top:1px solid var(--border-l);padding-top:4px;margin-top:0"><span
                   class="b-ico">✔</span><span class="b-txt"><strong>RFID Blocking</strong> — Electronic card theft
@@ -270,7 +261,7 @@
             wallet ages beautifully rather than deteriorating.</p>
           <div class="desc-bn-box">এই প্রিমিয়াম লেদার ওয়ালেটটি খাঁটি ফুল-গ্রেইন লেদার দিয়ে তৈরি। স্লিম বাইফোল্ড
             ডিজাইন পকেটে সহজে ধরে। প্রতিটি সেলাই মোমযুক্ত সুতায় মজবুত — সময়ের সাথে লেদারের রঙ আরও সুন্দর হয়।</div>
-          <table class="spec-tbl">
+          <table class="spec-tbl" id="specTable">
             <tr>
               <td>Material</td>
               <td>100% Full-Grain Genuine Leather</td>
@@ -320,7 +311,7 @@
 
         <!-- FEATURES -->
         <div class="tab-pane" id="pane-feat">
-          <div class="feat-grid">
+          <div class="feat-grid" id="featureGrid">
             <div class="feat-card"><span class="feat-icon">🐄</span>
               <div>
                 <div class="feat-name">Full-Grain Leather</div>
@@ -506,7 +497,7 @@
 
         <!-- FAQ -->
         <div class="tab-pane" id="pane-faq">
-          <div class="faq-list">
+          <div class="faq-list" id="faqList">
             <div class="faq-item">
               <div class="faq-q" onclick="faqToggle(this)"><span class="faq-q-txt">Is this 100% genuine
                   leather?</span><i class="faq-ico">+</i></div>
@@ -592,7 +583,7 @@
           <div class="lp-title">You May Also Like</div><span onclick="toast('Viewing all...')"
             style="font-size:12px;color:var(--br);font-weight:600;cursor:pointer">See All →</span>
         </div>
-        <div class="related-grid">
+        <div class="related-grid" id="relatedProducts">
           <div class="rel-item" data-brand="buyolexleather" data-product-id="lth-002" data-category="passport-holder">
             <div class="rel-img" style="background:linear-gradient(135deg,#F5EDE5,#EDD9C8)"><span
                 class="rel-badge">New</span>✈️</div>
@@ -664,7 +655,7 @@
     <!-- JS -->
     <script src="js/main.js"></script>
     <script src="js/loadComponents.js"></script>
-    <script src="js/loadComponents.js"></script>
+    <script src="js/product-details.js"></script>
   </body>
 
 </html>

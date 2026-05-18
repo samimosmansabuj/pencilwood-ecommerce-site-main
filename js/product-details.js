@@ -33,12 +33,47 @@ async function loadProductDetails() {
 
         CURRENT_PRODUCT = product;
 
+        // =========================
+        // BASIC DATA
+        // =========================
+
         const name = product.name || "";
-        const price = Number(product.price || 0);
-        const discountPrice = product.discount_price || null;
+
+        const price =
+            Number(product.price || 0);
+
+        const discountPrice =
+            product.discount_price
+                ? Number(product.discount_price)
+                : null;
 
         const finalPrice =
             discountPrice || price;
+
+        const stock =
+            Number(product.stock || 0);
+
+        const brand =
+            product.brand_name || "Pencilwood";
+
+        const sku =
+            product.sku || "";
+
+        const shortDescription =
+            product.short_description || "";
+
+        const rating =
+            product.rating || "4.8";
+
+        const reviewCount =
+            product.review_count || 0;
+
+        const soldCount =
+            product.sold_count || 0;
+
+        // =========================
+        // MAIN IMAGE
+        // =========================
 
         let image = "";
 
@@ -50,11 +85,16 @@ async function loadProductDetails() {
             image = API_BASE + image;
         }
 
-        const img = document.getElementById("productImage");
+        const img =
+            document.getElementById("productImage");
 
         if (img) {
             img.src = image;
         }
+
+        // =========================
+        // TITLE
+        // =========================
 
         const title =
             document.getElementById("productTitle");
@@ -63,12 +103,56 @@ async function loadProductDetails() {
             title.textContent = name;
         }
 
+        // =========================
+        // SHORT DESCRIPTION
+        // =========================
+
+        const shortDesc =
+            document.querySelector(".prod-bn");
+
+        if (shortDesc && shortDescription) {
+            shortDesc.textContent =
+                shortDescription;
+        }
+
+        // =========================
+        // BRAND
+        // =========================
+
+        const brandEl =
+            document.querySelector(".brand-lnk");
+
+        if (brandEl) {
+            brandEl.textContent = brand;
+        }
+
+        // =========================
+        // SKU
+        // =========================
+
+        const skuEl =
+            document.querySelector(".sku-lbl");
+
+        if (skuEl) {
+            skuEl.textContent =
+                `SKU: ${sku}`;
+        }
+
+        // =========================
+        // PRICE
+        // =========================
+
         const priceEl =
             document.getElementById("productPrice");
 
         if (priceEl) {
-            priceEl.textContent = `৳ ${finalPrice}`;
+            priceEl.textContent =
+                `৳ ${finalPrice}`;
         }
+
+        // =========================
+        // OLD PRICE
+        // =========================
 
         const oldPriceEl =
             document.getElementById("productOldPrice");
@@ -76,10 +160,15 @@ async function loadProductDetails() {
         if (oldPriceEl) {
 
             oldPriceEl.textContent =
-                discountPrice && price > discountPrice
+                discountPrice &&
+                price > discountPrice
                     ? `৳ ${price}`
                     : "";
         }
+
+        // =========================
+        // STICKY PRICE
+        // =========================
 
         const stickyPrice =
             document.getElementById("stickyPrice");
@@ -89,16 +178,25 @@ async function loadProductDetails() {
                 `৳ ${finalPrice}`;
         }
 
+        // =========================
+        // STICKY OLD PRICE
+        // =========================
+
         const stickyOldPrice =
             document.getElementById("stickyOldPrice");
 
         if (stickyOldPrice) {
 
             stickyOldPrice.textContent =
-                discountPrice && price > discountPrice
+                discountPrice &&
+                price > discountPrice
                     ? `৳ ${price}`
                     : "";
         }
+
+        // =========================
+        // DISCOUNT
+        // =========================
 
         const discountEl =
             document.getElementById("productDiscount");
@@ -115,6 +213,146 @@ async function loadProductDetails() {
 
             discountEl.textContent =
                 `${off}% OFF`;
+
+        } else if (discountEl) {
+
+            discountEl.textContent = "";
+        }
+
+        // =========================
+        // TOP SALE BADGE
+        // =========================
+
+        const saleBadge =
+            document.querySelector(".g-sale");
+
+        if (
+            saleBadge &&
+            discountPrice &&
+            price > discountPrice
+        ) {
+
+            const off = Math.round(
+                ((price - discountPrice) / price) * 100
+            );
+
+            saleBadge.textContent =
+                `-${off}% OFF`;
+
+        } else if (saleBadge) {
+
+            saleBadge.style.display = "none";
+        }
+
+        // =========================
+        // RATING
+        // =========================
+
+        const scoreEl =
+            document.querySelector(".r-score");
+
+        if (scoreEl) {
+            scoreEl.textContent = rating;
+        }
+
+        // =========================
+        // REVIEW COUNT
+        // =========================
+
+        const reviewEl =
+            document.querySelector(".r-cnt");
+
+        if (reviewEl) {
+            reviewEl.textContent =
+                `${reviewCount} ratings`;
+        }
+
+        // =========================
+        // SOLD COUNT
+        // =========================
+
+        const soldEl =
+            document.querySelector(".r-sold");
+
+        if (soldEl) {
+            soldEl.textContent =
+                `${soldCount}+ sold`;
+        }
+
+        // =========================
+        // STOCK
+        // =========================
+
+        const stockLeft =
+            document.getElementById("stockLeft");
+
+        if (stockLeft) {
+            stockLeft.textContent = stock;
+        }
+
+        const stockChip =
+            document.querySelector(".stock-chip");
+
+        if (stockChip) {
+
+            if (stock > 0) {
+
+                stockChip.innerHTML =
+                    "✔ In Stock";
+
+            } else {
+
+                stockChip.innerHTML =
+                    "✖ Out of Stock";
+            }
+        }
+
+        // =========================
+        // DESCRIPTION
+        // =========================
+
+        const descBody =
+            document.querySelector(".desc-body");
+
+        if (
+            descBody &&
+            product.description
+        ) {
+
+            descBody.textContent =
+                product.description;
+        }
+
+        // =========================
+        // BUY NOW BUTTON
+        // =========================
+
+        const buyBtn =
+            document.getElementById("buyBtn");
+
+        if (buyBtn) {
+
+            buyBtn.onclick = () => {
+
+                window.location.href =
+                    `checkout.html?slug=${slug}`;
+            };
+        }
+
+        // =========================
+        // STICKY BUY BUTTON
+        // =========================
+
+        const stickyBuyBtn =
+            document.getElementById("stickyBuyBtn");
+
+        if (stickyBuyBtn) {
+
+            stickyBuyBtn.onclick = () => {
+
+                window.location.href =
+                    `checkout.html?slug=${slug}`;
+            };
         }
 
     } catch (err) {
@@ -125,6 +363,7 @@ async function loadProductDetails() {
         );
     }
 }
+
 
 window.addEventListener("DOMContentLoaded", () => {
 
