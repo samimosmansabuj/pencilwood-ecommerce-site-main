@@ -23,8 +23,11 @@ window.addEventListener("DOMContentLoaded", () => {
 ========================= */
 async function loadProducts(page = 1) {
 
-    const grid = document.getElementById("productsGrid");
-    const totalText = document.getElementById("totalProducts");
+    const grid =
+        document.getElementById("productsGrid");
+
+    const totalText =
+        document.getElementById("totalProducts");
 
     try {
 
@@ -32,12 +35,15 @@ async function loadProducts(page = 1) {
 
         params.append("page", page);
 
-        // category filter
+        // CATEGORY
         if (currentCategory !== "all") {
-            params.append("category", currentCategory);
+            params.append(
+                "category",
+                currentCategory
+            );
         }
 
-        // sort mapping (FIXED)
+        // SORT
         if (currentSort === "price-low-high") {
             params.append("sort", "price_low");
         }
@@ -58,9 +64,12 @@ async function loadProducts(page = 1) {
 
         console.log("PRODUCT LIST:", data);
 
-        const products = data?.results?.data || [];
+        const products =
+            data?.results?.data || [];
 
-        totalPages = Math.ceil((data?.count || 0) / 10);
+        totalPages = Math.ceil(
+            (data?.count || 0) / 10
+        );
 
         currentPage = page;
 
@@ -69,15 +78,19 @@ async function loadProducts(page = 1) {
         renderPagination();
 
         if (totalText) {
+
             totalText.innerText =
                 `Showing ${products.length} products (Page ${currentPage} of ${totalPages})`;
         }
 
     } catch (err) {
+
         console.error("LOAD ERROR:", err);
 
         grid.innerHTML = `
-            <p style="color:red">Failed to load products</p>
+            <p style="color:red">
+                Failed to load products
+            </p>
         `;
     }
 }
@@ -98,29 +111,92 @@ function renderProducts(products) {
 
     products.forEach(p => {
 
-        const slug = p.name
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, "-");
+        const slug = p.slug ||
+            p.name
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "-");
+
+        const price = Number(p.price || 0);
+
+        const discountPrice =
+            p.discount_price || null;
+
+        const finalPrice =
+            discountPrice || price;
+
+        let image = "";
+
+        if (p.image) {
+            image = p.image;
+        }
+
+        if (image && !image.startsWith("http")) {
+            image = API_BASE + image;
+        }
+
+        let oldPriceHTML = "";
+
+        if (
+            discountPrice &&
+            price > discountPrice
+        ) {
+
+            oldPriceHTML = `
+                <span class="rel-orig">
+                    ৳ ${price}
+                </span>
+            `;
+        }
 
         grid.innerHTML += `
-        <div class="prod-card">
+        <div class="rel-item">
 
-            <div class="prod-img">
-                <img src="${p.image ? API_BASE + p.image : ''}" />
+            <div class="rel-img"
+                 onclick="openProduct('${slug}')">
+
+                <img
+                    src="${image}"
+                    alt="${p.name}"
+                    style="
+                        width:100%;
+                        height:100%;
+                        object-fit:cover;
+                    "
+                >
             </div>
 
-            <div class="prod-name"
+            <div class="rel-name"
                  onclick="openProduct('${slug}')">
+
                 ${p.name}
             </div>
 
-            <div class="prod-price">
-                ৳ ${p.discount_price || p.price}
+            <div>
+                <span class="rel-price">
+                    ৳ ${finalPrice}
+                </span>
+
+                ${oldPriceHTML}
             </div>
 
-            <button onclick="toast('Added 🛒')">
-                + Cart
-            </button>
+            <div class="btn-group"
+                 style="margin-top:10px">
+
+                <button
+                    class="btn-cart"
+                    onclick="addToCart('${slug}')">
+
+                    + Cart
+                </button>
+
+                <button
+                    class="btn-buy"
+                    onclick="buyNow('${slug}')">
+
+                    🛒 Buy Now
+                </button>
+
+            </div>
 
         </div>
         `;
@@ -128,17 +204,21 @@ function renderProducts(products) {
 }
 
 /* =========================
-   FILTER (FIXED - IMPORTANT)
+   FILTER
 ========================= */
 function applyFilters() {
 
     currentCategory =
-        document.getElementById("filterCategory").value;
+        document.getElementById(
+            "filterCategory"
+        ).value;
 
     currentSort =
-        document.getElementById("sortBy").value;
+        document.getElementById(
+            "sortBy"
+        ).value;
 
-    loadProducts(1); // reset page
+    loadProducts(1);
 }
 
 /* =========================
@@ -146,19 +226,30 @@ function applyFilters() {
 ========================= */
 function renderPagination() {
 
-    const el = document.getElementById("pageNumbers");
+    const el =
+        document.getElementById("pageNumbers");
 
     if (!el) return;
 
     let html = "";
 
-    for (let i = 1; i <= totalPages; i++) {
+    for (
+        let i = 1;
+        i <= totalPages;
+        i++
+    ) {
 
         html += `
             <button
                 onclick="goPage(${i})"
-                class="${i === currentPage ? 'active' : ''}">
+                class="${
+                    i === currentPage
+                        ? "active"
+                        : ""
+                }">
+
                 ${i}
+
             </button>
         `;
     }
@@ -167,19 +258,32 @@ function renderPagination() {
 }
 
 function goPage(page) {
-    if (page < 1 || page > totalPages) return;
+
+    if (
+        page < 1 ||
+        page > totalPages
+    ) return;
+
     loadProducts(page);
 }
 
 function nextPage() {
+
     if (currentPage < totalPages) {
-        loadProducts(currentPage + 1);
+
+        loadProducts(
+            currentPage + 1
+        );
     }
 }
 
 function prevPage() {
+
     if (currentPage > 1) {
-        loadProducts(currentPage - 1);
+
+        loadProducts(
+            currentPage - 1
+        );
     }
 }
 
@@ -187,29 +291,65 @@ function prevPage() {
    OPEN PRODUCT
 ========================= */
 function openProduct(slug) {
+
     window.location.href =
-        `product-details.html?slug=${slug}`;
+        `product-detail.html?slug=${slug}`;
 }
 
+/* =========================
+   BUY NOW
+========================= */
+function buyNow(slug) {
+
+    window.location.href =
+        `checkout.html?slug=${slug}`;
+}
+
+/* =========================
+   ADD TO CART
+========================= */
+function addToCart(slug) {
+
+    toast("Added to cart 🛒");
+
+    console.log(
+        "ADD TO CART:",
+        slug
+    );
+}
 
 /* =========================
    TOAST
 ========================= */
 function toast(msg) {
 
-    const c = document.getElementById("toast-container");
+    const c =
+        document.getElementById(
+            "toast-container"
+        );
 
-    const el = document.createElement("div");
+    if (!c) return;
+
+    const el =
+        document.createElement("div");
 
     el.className = "toast";
+
     el.innerText = msg;
 
     c.appendChild(el);
 
-    setTimeout(() => el.classList.add("show"), 50);
+    setTimeout(() => {
+        el.classList.add("show");
+    }, 50);
 
     setTimeout(() => {
+
         el.classList.remove("show");
-        setTimeout(() => el.remove(), 300);
+
+        setTimeout(() => {
+            el.remove();
+        }, 300);
+
     }, 2000);
 }

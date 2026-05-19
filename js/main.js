@@ -1,7 +1,7 @@
 /* =========================
    🔗 BACKEND CONFIG
 ========================= */
-const API_BASE = "http://127.0.0.1:8000";
+window.API_BASE
 
 /* =========================
    ── GLOBAL DATA
@@ -225,7 +225,7 @@ function renderProducts(products) {
                 ৳ ${p.discount_price || p.price}
             </div>
 
-            <button onclick="quickAddCart(${p.id}, '${p.name}', ${p.price})">
+            <button onclick="quickAddCart(${p.id})">
                 + Cart
             </button>
 
@@ -342,18 +342,99 @@ function updateCartCount() {
     dot.textContent = total;
 }
 
-function quickAddCart(id, name, price) {
+async function quickAddCart(productId) {
 
-    let cart = getCart();
+    try {
 
-    const exist = cart.find(i => i.id === id);
+        const token =
+            localStorage.getItem("access") ||
+            localStorage.getItem("token");
 
-    if (exist) exist.qty += 1;
-    else cart.push({ id, name, price, qty: 1 });
+        if (!token) {
 
-    setCart(cart);
-    updateCartCount();
-    toast("Added 🛒");
+            toast("Please login first");
+
+            return;
+        }
+
+        const response = await fetch(
+            `${API_BASE}/cart/add/`,
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Token ${token}`
+                },
+
+                body: JSON.stringify({
+                    product_id: productId,
+                    quantity: 1
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        console.log("ADD CART:", data);
+
+        if (data.status) {
+
+            toast("Added to cart 🛒");
+
+            updateCartCountFromBackend();
+
+        } else {
+
+            toast(
+                data.message ||
+                "Failed to add cart"
+            );
+        }
+
+    } catch (err) {
+
+        console.error(err);
+
+        toast("Something went wrong");
+    }
+}
+
+function updateCartCountFromBackend() {
+
+    const token =
+        localStorage.getItem("access") ||
+        localStorage.getItem("token");
+
+    if (!token) return;
+
+    fetch(`${window.API_BASE}/cart/`, {
+        headers: {
+            "Authorization": `Token ${token}`
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        const dot = document.getElementById("cartDot");
+        if (!dot) return;
+
+        const items =
+            data.data ||
+            data.results ||
+            data.cart_items ||
+            [];
+
+        let total = 0;
+
+        items.forEach(i => {
+            total += i.quantity || 0;
+        });
+
+        dot.textContent = total;
+
+    })
+    .catch(console.error);
 }
 
 /* =========================
@@ -385,6 +466,6 @@ function toast(msg) {
 ========================= */
 window.addEventListener("DOMContentLoaded", () => {
 
-    updateCartCount();
+    updateCartCountFromBackend();
     loadProducts();
 });

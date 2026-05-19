@@ -1,17 +1,10 @@
-/* =========================
-   CONFIG
-========================= */
-const API_BASE = "http://127.0.0.1:8000";
 
-/* =========================
-   INIT
-========================= */
 document.addEventListener("DOMContentLoaded", () => {
     loadCartItems();
 });
 
 /* =========================
-   AUTH TOKEN
+   TOKEN
 ========================= */
 function getToken() {
     return (
@@ -30,139 +23,98 @@ async function loadCartItems() {
     const summaryList = document.getElementById("cartSummaryList");
     const subtotalEl = document.getElementById("cartSubtotal");
 
+    if (!container) return;
+
     container.innerHTML = `<p>Loading cart...</p>`;
 
     try {
 
-        const response = await fetch(`${API_BASE}/cart/`, {
+        const res = await fetch(`${API_BASE}/cart/`, {
             method: "GET",
             headers: {
-                "Content-Type": "application/json",
                 "Authorization": `Token ${getToken()}`
             }
         });
 
-        const data = await response.json();
+        const data = await res.json();
 
-        console.log("CART DATA:", data);
+        console.log("CART RESPONSE:", data);
 
-        if (!data.status) {
-            container.innerHTML = `
-                <p>Your cart is empty 🛒</p>
-            `;
+        if (!data.status || !data.data?.length) {
+
+            container.innerHTML = `<p>Your cart is empty 🛒</p>`;
             summaryList.innerHTML = "";
             subtotalEl.innerText = "৳ 0";
             return;
         }
 
-        const items = data.data || [];
-
-        if (!items.length) {
-            container.innerHTML = `
-                <p>Your cart is empty 🛒</p>
-            `;
-            summaryList.innerHTML = "";
-            subtotalEl.innerText = "৳ 0";
-            return;
-        }
+        const items = data.data;
 
         container.innerHTML = "";
         summaryList.innerHTML = "";
 
+        let total = 0;
+
         items.forEach(item => {
 
-            const itemHTML = `
+            total += item.total || (item.price * item.quantity);
+
+            container.innerHTML += `
                 <div class="cart-item">
 
                     <div class="cart-item-left">
 
-                        <input 
-                            type="checkbox"
-                            class="cart-check"
-                            data-id="${item.id}"
-                            checked
-                        >
-
                         <div class="cart-item-info">
                             <h3>${item.product}</h3>
 
-                            ${
-                                item.variant
-                                ? `<p>${item.variant}</p>`
-                                : ""
-                            }
+                            ${item.variant ? `<p>${item.variant}</p>` : ""}
 
                             <div class="cart-price">
                                 ৳ ${item.price}
                             </div>
 
                             <div class="cart-qty">
-
-                                <button onclick="changeQty(${item.id}, ${item.quantity - 1})">
-                                    -
-                                </button>
-
+                                <button onclick="changeQty(${item.id}, ${item.quantity - 1})">-</button>
                                 <span>${item.quantity}</span>
-
-                                <button onclick="changeQty(${item.id}, ${item.quantity + 1})">
-                                    +
-                                </button>
-
+                                <button onclick="changeQty(${item.id}, ${item.quantity + 1})">+</button>
                             </div>
 
                         </div>
-
                     </div>
 
                     <div class="cart-item-right">
-
                         <div class="cart-total">
                             ৳ ${item.total}
                         </div>
 
-                        <button 
-                            class="remove-btn"
-                            onclick="removeCartItem(${item.id})"
-                        >
+                        <button onclick="removeCartItem(${item.id})">
                             Remove
                         </button>
-
                     </div>
 
                 </div>
             `;
 
-            container.innerHTML += itemHTML;
-
             summaryList.innerHTML += `
                 <div class="summary-row">
-                    <span>
-                        ${item.product} × ${item.quantity}
-                    </span>
-
-                    <span>
-                        ৳ ${item.total}
-                    </span>
+                    <span>${item.product} × ${item.quantity}</span>
+                    <span>৳ ${item.total}</span>
                 </div>
             `;
         });
 
-        subtotalEl.innerText = `৳ ${data.cart_total}`;
+        subtotalEl.innerText = `৳ ${total}`;
 
-    } catch (error) {
+    } catch (err) {
 
-        console.error("CART LOAD ERROR:", error);
+        console.error("CART ERROR:", err);
 
-        container.innerHTML = `
-            <p style="color:red">
-                Failed to load cart
-            </p>
-        `;
+        container.innerHTML = `<p style="color:red">Failed to load cart</p>`;
     }
 }
 
 /* =========================
-   UPDATE QUANTITY
+   UPDATE QTY
 ========================= */
 async function changeQty(cartId, quantity) {
 
@@ -170,77 +122,56 @@ async function changeQty(cartId, quantity) {
 
     try {
 
-        const response = await fetch(
-            `${API_BASE}/cart/update/${cartId}/`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Token ${getToken()}`
-                },
-                body: JSON.stringify({
-                    quantity: quantity
-                })
-            }
-        );
+        const res = await fetch(`${API_BASE}/cart/update/${cartId}/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Token ${getToken()}`
+            },
+            body: JSON.stringify({ quantity })
+        });
 
-        const data = await response.json();
+        const data = await res.json();
 
         if (data.status) {
-
-            toast("Cart updated");
-
+            toast("Updated");
             loadCartItems();
-
         } else {
-
-            toast(data.message || "Update failed");
+            toast(data.message || "Failed");
         }
 
-    } catch (error) {
-
-        console.error(error);
-
-        toast("Something went wrong");
+    } catch (err) {
+        console.error(err);
+        toast("Error updating cart");
     }
 }
 
 /* =========================
-   REMOVE CART ITEM
+   REMOVE ITEM
 ========================= */
 async function removeCartItem(cartId) {
 
     try {
 
-        const response = await fetch(
-            `${API_BASE}/cart/remove/${cartId}/`,
-            {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Token ${getToken()}`
-                }
+        const res = await fetch(`${API_BASE}/cart/remove/${cartId}/`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Token ${getToken()}`
             }
-        );
+        });
 
-        const data = await response.json();
+        const data = await res.json();
 
         if (data.status) {
-
-            toast("Removed from cart");
-
+            toast("Removed");
             loadCartItems();
-
         } else {
-
-            toast(data.message || "Remove failed");
+            toast(data.message || "Failed");
         }
 
-    } catch (error) {
-
-        console.error(error);
-
-        toast("Something went wrong");
+    } catch (err) {
+        console.error(err);
+        toast("Error removing item");
     }
 }
 
@@ -251,15 +182,12 @@ function goToCheckout() {
 
     const selected = [];
 
-    document.querySelectorAll(".cart-check:checked")
-        .forEach(cb => {
-            selected.push(cb.dataset.id);
-        });
+    document.querySelectorAll(".cart-check:checked").forEach(cb => {
+        selected.push(cb.dataset.id);
+    });
 
     if (!selected.length) {
-
-        toast("Select at least one item");
-
+        toast("Select items first");
         return;
     }
 
@@ -274,34 +202,25 @@ function goToCheckout() {
 /* =========================
    TOAST
 ========================= */
-function toast(message) {
+function toast(msg) {
 
-    const container =
-        document.getElementById("toast-container");
+    const c = document.getElementById("toast-container");
 
-    if (!container) {
-        alert(message);
+    if (!c) {
+        alert(msg);
         return;
     }
 
-    const toastEl = document.createElement("div");
+    const el = document.createElement("div");
+    el.className = "toast";
+    el.textContent = msg;
 
-    toastEl.className = "toast";
-    toastEl.innerText = message;
+    c.appendChild(el);
 
-    container.appendChild(toastEl);
-
-    setTimeout(() => {
-        toastEl.classList.add("show");
-    }, 50);
+    setTimeout(() => el.classList.add("show"), 50);
 
     setTimeout(() => {
-
-        toastEl.classList.remove("show");
-
-        setTimeout(() => {
-            toastEl.remove();
-        }, 300);
-
+        el.classList.remove("show");
+        setTimeout(() => el.remove(), 300);
     }, 2000);
 }

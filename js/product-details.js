@@ -355,6 +355,136 @@ async function loadProductDetails() {
             };
         }
 
+        // =========================
+        // ADD TO CART BUTTON
+        // =========================
+
+        const cartBtn =
+            document.getElementById("cartBtn");
+
+        if (cartBtn) {
+
+            cartBtn.onclick = () => {
+
+                quickAddCart(product.id);
+            };
+        }
+
+        // =========================
+        // STICKY CART BUTTON
+        // =========================
+
+        const cartBtnSticky =
+            document.getElementById("cartBtnSticky");
+
+        if (cartBtnSticky) {
+
+            cartBtnSticky.onclick = () => {
+
+                quickAddCart(product.id);
+            };
+        }
+
+        // =========================
+        // WISHLIST BUTTON
+        // =========================
+
+        const wishBtn =
+            document.getElementById("wishBtn");
+
+        const wishIco =
+            document.getElementById("wishIco");
+
+        function updateWishlistUI(saved) {
+
+            if (wishBtn) {
+                wishBtn.innerHTML =
+                    saved
+                        ? "♥ Wishlisted"
+                        : "♡ Wishlist";
+            }
+
+            if (wishIco) {
+                wishIco.innerHTML =
+                    saved
+                        ? "♥"
+                        : "♡";
+            }
+        }
+
+        function getWishlist() {
+
+            return JSON.parse(
+                localStorage.getItem("wishlist")
+            ) || [];
+        }
+
+        function setWishlist(data) {
+
+            localStorage.setItem(
+                "wishlist",
+                JSON.stringify(data)
+            );
+        }
+
+        function toggleWishlist() {
+
+            let wishlist =
+                getWishlist();
+
+            const exists =
+                wishlist.find(
+                    item => item.id === product.id
+                );
+
+            if (exists) {
+
+                wishlist =
+                    wishlist.filter(
+                        item => item.id !== product.id
+                    );
+
+                toast("Removed from wishlist");
+
+                updateWishlistUI(false);
+
+            } else {
+
+                wishlist.push({
+                    id: product.id,
+                    name: product.name,
+                    price: finalPrice,
+                    image: image,
+                    slug: slug
+                });
+
+                toast("Added to wishlist ♥");
+
+                updateWishlistUI(true);
+            }
+
+            setWishlist(wishlist);
+        }
+
+        // INITIAL STATE
+
+        const alreadySaved =
+            getWishlist().find(
+                item => item.id === product.id
+            );
+
+        updateWishlistUI(!!alreadySaved);
+
+        // BUTTON EVENTS
+
+        if (wishBtn) {
+            wishBtn.onclick = toggleWishlist;
+        }
+
+        if (wishIco) {
+            wishIco.onclick = toggleWishlist;
+        }
+
     } catch (err) {
 
         console.error(
@@ -364,10 +494,9 @@ async function loadProductDetails() {
     }
 }
 
-
 window.addEventListener("DOMContentLoaded", () => {
 
     loadProductDetails();
 
-    updateCartCount?.();
+    updateCartCountFromBackend?.();
 });
