@@ -1,12 +1,8 @@
-
-document.addEventListener("DOMContentLoaded", () => {
-    loadCartItems();
-});
-
 /* =========================
-   TOKEN
+   ── TOKEN
 ========================= */
 function getToken() {
+
     return (
         localStorage.getItem("access") ||
         localStorage.getItem("token") ||
@@ -15,179 +11,381 @@ function getToken() {
 }
 
 /* =========================
-   LOAD CART ITEMS
+   ── LOAD CART ITEMS
 ========================= */
 async function loadCartItems() {
 
-    const container = document.getElementById("cartItemsContainer");
-    const summaryList = document.getElementById("cartSummaryList");
-    const subtotalEl = document.getElementById("cartSubtotal");
+    const container =
+        document.getElementById(
+            "cartItemsContainer"
+        );
+
+    const summaryList =
+        document.getElementById(
+            "cartSummaryList"
+        );
+
+    const subtotalEl =
+        document.getElementById(
+            "cartSubtotal"
+        );
+
+    const grandTotalEl =
+        document.getElementById(
+            "cartGrandTotal"
+        );
+
+    const itemCountEl =
+        document.getElementById(
+            "cartItemCount"
+        );
+
+    const emptyBox =
+        document.getElementById(
+            "emptyCartBox"
+        );
 
     if (!container) return;
 
-    container.innerHTML = `<p>Loading cart...</p>`;
+    container.innerHTML = `
+        <p>Loading cart...</p>
+    `;
 
     try {
 
-        const res = await fetch(`${API_BASE}/cart/`, {
-            method: "GET",
-            headers: {
-                "Authorization": `Token ${getToken()}`
+        const res = await fetch(
+            `${API_BASE}/cart/`,
+            {
+                method: "GET",
+
+                headers: {
+                    "Authorization":
+                        `Token ${getToken()}`
+                }
             }
-        });
+        );
 
-        const data = await res.json();
+        const data =
+            await res.json();
 
-        console.log("CART RESPONSE:", data);
+        console.log(
+            "CART RESPONSE:",
+            data
+        );
 
-        if (!data.status || !data.data?.length) {
+        if (
+            !data.status ||
+            !Array.isArray(data.data)
+        ) {
 
-            container.innerHTML = `<p>Your cart is empty 🛒</p>`;
-            summaryList.innerHTML = "";
-            subtotalEl.innerText = "৳ 0";
+            container.innerHTML = `
+                <p>
+                    Failed to load cart
+                </p>
+            `;
+
             return;
         }
 
         const items = data.data;
 
-        container.innerHTML = "";
+        /* EMPTY CART */
+        if (!items.length) {
+
+            document.querySelector(".cart-layout").style.display = "none";
+            
+            summaryList.innerHTML = "";
+
+            subtotalEl.textContent =
+                "৳ 0";
+
+            grandTotalEl.textContent =
+                "৳ 0";
+
+            itemCountEl.textContent =
+                "0 Items";
+
+            emptyBox.style.display =
+                "block";
+
+            return;
+        }
+
+        emptyBox.style.display =
+            "none";
+
+        document.querySelector(".cart-layout").style.display = "grid";
         summaryList.innerHTML = "";
 
-        let total = 0;
+        let totalQty = 0;
 
         items.forEach(item => {
 
-            total += item.total || (item.price * item.quantity);
+            totalQty += Number(
+                item.quantity || 0
+            );
 
             container.innerHTML += `
-                <div class="cart-item">
+            <div class="cart-item">
 
-                    <div class="cart-item-left">
+                <div class="cart-item-left">
 
-                        <div class="cart-item-info">
-                            <h3>${item.product}</h3>
+                    <input
+                        type="checkbox"
+                        class="cart-check"
+                        data-id="${item.id}"
+                        checked>
 
-                            ${item.variant ? `<p>${item.variant}</p>` : ""}
+                    <div class="cart-item-info">
 
-                            <div class="cart-price">
-                                ৳ ${item.price}
-                            </div>
+                        <h3>
+                            ${item.product}
+                        </h3>
 
-                            <div class="cart-qty">
-                                <button onclick="changeQty(${item.id}, ${item.quantity - 1})">-</button>
-                                <span>${item.quantity}</span>
-                                <button onclick="changeQty(${item.id}, ${item.quantity + 1})">+</button>
-                            </div>
+                        ${
+                            item.variant
+                            ? `
+                            <p>
+                                ${
+                                    typeof item.variant === "object"
+                                    ? Object.entries(item.variant)
+                                        .map(([k, v]) => `${k}: ${v}`)
+                                        .join(", ")
+                                    : item.variant
+                                }
+                            </p>
+                            `
+                            : ""
+                        }
+
+                        <div class="cart-price">
+                            ৳ ${item.price}
+                        </div>
+
+                        <div class="cart-qty">
+
+                            <button
+                                onclick="changeQty(${item.id}, ${item.quantity - 1})">
+
+                                −
+
+                            </button>
+
+                            <span>
+                                ${item.quantity}
+                            </span>
+
+                            <button
+                                onclick="changeQty(${item.id}, ${item.quantity + 1})">
+
+                                +
+
+                            </button>
 
                         </div>
-                    </div>
 
-                    <div class="cart-item-right">
-                        <div class="cart-total">
-                            ৳ ${item.total}
-                        </div>
-
-                        <button onclick="removeCartItem(${item.id})">
-                            Remove
-                        </button>
                     </div>
 
                 </div>
+
+                <div class="cart-item-right">
+
+                    <div class="cart-total">
+
+                        ৳ ${item.total}
+
+                    </div>
+
+                    <button
+                        class="remove-btn"
+                        onclick="removeCartItem(${item.id})">
+
+                        Remove
+
+                    </button>
+
+                </div>
+
+            </div>
             `;
 
             summaryList.innerHTML += `
-                <div class="summary-row">
-                    <span>${item.product} × ${item.quantity}</span>
-                    <span>৳ ${item.total}</span>
-                </div>
+            <div class="summary-row">
+
+                <span>
+                    ${item.product}
+                    × ${item.quantity}
+                </span>
+
+                <span>
+                    ৳ ${item.total}
+                </span>
+
+            </div>
             `;
         });
 
-        subtotalEl.innerText = `৳ ${total}`;
+        /* BACKEND TOTAL */
+        subtotalEl.textContent =
+            `৳ ${data.cart_total}`;
+
+        grandTotalEl.textContent =
+            `৳ ${data.cart_total}`;
+
+        itemCountEl.textContent =
+            `${totalQty} Items`;
+
+        updateCartCountFromBackend?.();
 
     } catch (err) {
 
-        console.error("CART ERROR:", err);
+        console.error(
+            "CART ERROR:",
+            err
+        );
 
-        container.innerHTML = `<p style="color:red">Failed to load cart</p>`;
+        container.innerHTML = `
+            <p style="color:red">
+                Failed to load cart
+            </p>
+        `;
     }
 }
 
 /* =========================
-   UPDATE QTY
+   ── UPDATE QTY
 ========================= */
-async function changeQty(cartId, quantity) {
+async function changeQty(
+    cartId,
+    quantity
+) {
 
     if (quantity < 1) return;
 
     try {
 
-        const res = await fetch(`${API_BASE}/cart/update/${cartId}/`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Token ${getToken()}`
-            },
-            body: JSON.stringify({ quantity })
-        });
+        const res = await fetch(
+            `${API_BASE}/cart/update/${cartId}/`,
+            {
+                method: "POST",
 
-        const data = await res.json();
+                headers: {
+                    "Content-Type":
+                        "application/json",
+
+                    "Authorization":
+                        `Token ${getToken()}`
+                },
+
+                body: JSON.stringify({
+                    quantity
+                })
+            }
+        );
+
+        const data =
+            await res.json();
 
         if (data.status) {
-            toast("Updated");
+
+            toast(
+                "Cart updated"
+            );
+
             loadCartItems();
+
         } else {
-            toast(data.message || "Failed");
+
+            toast(
+                data.message ||
+                "Update failed"
+            );
         }
 
     } catch (err) {
+
         console.error(err);
-        toast("Error updating cart");
+
+        toast(
+            "Error updating cart"
+        );
     }
 }
 
 /* =========================
-   REMOVE ITEM
+   ── REMOVE ITEM
 ========================= */
-async function removeCartItem(cartId) {
+async function removeCartItem(
+    cartId
+) {
 
     try {
 
-        const res = await fetch(`${API_BASE}/cart/remove/${cartId}/`, {
-            method: "DELETE",
-            headers: {
-                "Authorization": `Token ${getToken()}`
-            }
-        });
+        const res = await fetch(
+            `${API_BASE}/cart/remove/${cartId}/`,
+            {
+                method: "DELETE",
 
-        const data = await res.json();
+                headers: {
+                    "Authorization":
+                        `Token ${getToken()}`
+                }
+            }
+        );
+
+        const data =
+            await res.json();
 
         if (data.status) {
-            toast("Removed");
+
+            toast(
+                "Removed from cart"
+            );
+
             loadCartItems();
+
         } else {
-            toast(data.message || "Failed");
+
+            toast(
+                data.message ||
+                "Remove failed"
+            );
         }
 
     } catch (err) {
+
         console.error(err);
-        toast("Error removing item");
+
+        toast(
+            "Error removing item"
+        );
     }
 }
 
 /* =========================
-   CHECKOUT
+   ── CHECKOUT
 ========================= */
 function goToCheckout() {
 
     const selected = [];
 
-    document.querySelectorAll(".cart-check:checked").forEach(cb => {
-        selected.push(cb.dataset.id);
-    });
+    document
+        .querySelectorAll(
+            ".cart-check:checked"
+        )
+        .forEach(cb => {
+
+            selected.push(
+                cb.dataset.id
+            );
+        });
 
     if (!selected.length) {
-        toast("Select items first");
+
+        toast(
+            "Select at least one item"
+        );
+
         return;
     }
 
@@ -196,31 +394,19 @@ function goToCheckout() {
         JSON.stringify(selected)
     );
 
-    window.location.href = "checkout.html";
+    window.location.href =
+        "checkout.html";
 }
 
 /* =========================
-   TOAST
+   ── INIT
 ========================= */
-function toast(msg) {
+window.addEventListener(
+    "DOMContentLoaded",
+    () => {
 
-    const c = document.getElementById("toast-container");
+        loadCartItems();
 
-    if (!c) {
-        alert(msg);
-        return;
+        updateCartCountFromBackend?.();
     }
-
-    const el = document.createElement("div");
-    el.className = "toast";
-    el.textContent = msg;
-
-    c.appendChild(el);
-
-    setTimeout(() => el.classList.add("show"), 50);
-
-    setTimeout(() => {
-        el.classList.remove("show");
-        setTimeout(() => el.remove(), 300);
-    }, 2000);
-}
+);

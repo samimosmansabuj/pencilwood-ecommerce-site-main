@@ -17,7 +17,7 @@ async function initComponents() {
     // rest load (no need to wait)
     loadComponent('drawer-container', 'components/drawer.html');
     loadComponent('toast-container', 'components/toast.html');
-    loadComponent('footer-container', 'components/footer.html');
+    // loadComponent('footer-container', 'components/footer.html');
     loadComponent('eco-container', 'components/eco-bar.html');
     loadComponent('bc-br', 'components/breadcrumb.html');
     loadComponent('prod-hero-inner', './product.html');

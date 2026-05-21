@@ -70,12 +70,18 @@
 .prod-img {
   height: 200px;
   border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 26px;
+  overflow: hidden;
+  background: #f8f8f8;
   position: relative;
   margin-bottom: 5px;
+  cursor: pointer;
+}
+
+.prod-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .prod-badge {
@@ -225,7 +231,7 @@
   }
 
   .prod-img {
-    height: 200px;
+    height: 180px;
     font-size: 22px;
     margin-bottom: 3px;
   }

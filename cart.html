@@ -1,84 +1,181 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shopping Cart — Pencilwood</title>
-<meta name="description" content="View all items in your cart. Adjust quantity, remove items, see subtotal and checkout easily.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/home.css">
-<link rel="stylesheet" href="css/cart.css"></head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0">
+
+  <title>
+    Shopping Cart — Pencilwood
+  </title>
+
+  <meta
+    name="description"
+    content="View all items in your cart.">
+
+  <link rel="preconnect"
+    href="https://fonts.googleapis.com">
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <link
+    rel="stylesheet"
+    href="css/home.css?v=2">
+
+  <link
+    rel="stylesheet"
+    href="css/cart.css?v=2">
+
+</head>
+
 <body>
 
-  <!-- Reusable Components -->
+  <!-- COMPONENTS -->
   <div id="toast-container"></div>
+
   <div id="float-wa"></div>
+
   <div id="drawer-container"></div>
-  
+
   <div id="topnavbar-container"></div>
+
   <div id="subnavbar-container"></div>
-  <div id="bc-br"></div>
 
-  <!-- ══ CART PAGE ══ -->
-<div class="page">
+  <div
+    id="bc-br"
+    class="bc-br-section"></div>
 
-  <h1 class="cart-title">My Cart</h1>
+  <!-- PAGE -->
+  <div class="page">
 
-  <!-- CART ITEMS LIST -->
-  <div class="cart-items" id="cartItemsContainer"></div>
+    <div class="cart-head">
 
-<!-- CART SUMMARY (ONLY ONE) -->
-<div class="cart-summary">
-  <div id="cartSummaryList"></div>
+      <h1 class="cart-title">
+        My Cart
+      </h1>
 
-  <div class="summary-row subtotal">
-    <span>Subtotal</span>
-    <span id="cartSubtotal">৳ 0</span>
+      <div
+        class="cart-count"
+        id="cartItemCount">
+
+        0 Items
+
+      </div>
+
+    </div>
+
+    <!-- CART BODY -->
+    <div class="cart-layout">
+
+      <!-- LEFT -->
+      <div class="cart-left">
+
+        <div
+          class="cart-items"
+          id="cartItemsContainer">
+
+          <p>Loading cart...</p>
+
+        </div>
+
+      </div>
+
+      <!-- RIGHT -->
+      <div class="cart-right">
+
+        <div class="cart-summary">
+
+          <div class="summary-title">
+            Order Summary
+          </div>
+
+          <div id="cartSummaryList"></div>
+
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <span id="cartSubtotal">
+              ৳ 0
+            </span>
+          </div>
+
+          <div class="summary-row">
+            <span>Delivery</span>
+            <span>
+              Calculated at checkout
+            </span>
+          </div>
+
+          <div class="summary-row total">
+            <span>Total</span>
+            <span id="cartGrandTotal">
+              ৳ 0
+            </span>
+          </div>
+
+          <button
+            class="btn-checkout"
+            onclick="goToCheckout()">
+
+            Proceed to Checkout
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- EMPTY -->
+    <div
+      class="cart-empty"
+      id="emptyCartBox"
+      style="display:none">
+
+      <div class="empty-icon">
+        🛒
+      </div>
+
+      <div class="empty-title">
+        Your cart is empty
+      </div>
+
+      <div class="empty-sub">
+        Browse premium Pencilwood products
+      </div>
+
+      <button
+        class="btn-checkout"
+        onclick="window.location.href='product-list.html'">
+
+        Continue Shopping
+
+      </button>
+
+    </div>
+
   </div>
 
-  <button class="btn-checkout" onclick="goToCheckout()">
-    Proceed to Checkout
-  </button>
-</div>
+  <!-- FOOTER -->
+  <div id="eco-container"></div>
 
-</div>
-  <!-- /page -->
-
-  <!-- Footer -->
-  <!-- <div id="footer-container"></div> -->
-  <!-- <div id="eco-container"></div> -->
+  <div id="footer-container"></div>
 
   <!-- JS -->
   <script src="js/env.js"></script>
+
   <script src="js/main.js"></script>
+
   <script src="js/loadComponents.js"></script>
+
   <script src="js/cart.js"></script>
-  <script src="js/product-details.js"></script>
-  <script src="js/product_list.js"></script>
 
-  <!-- <script>
-    document.addEventListener('DOMContentLoaded', () => {
-    loadCartItems();
-});
-
-function goToCheckout() {
-    const selected = [];
-
-    document.querySelectorAll('.cart-check:checked').forEach(cb => {
-        const id = cb.dataset.id;
-        const item = getCart().find(i => i.id === id);
-        if (item) selected.push(item);
-    });
-
-    if (selected.length === 0) {
-        toast("Select at least one item ⚠️");
-        return;
-    }
-
-    localStorage.setItem("checkoutItems", JSON.stringify(selected));
-    window.location.href = "checkout.html";
-}
-  </script> -->
 </body>
+
 </html>
