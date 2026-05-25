@@ -22,7 +22,7 @@ function getToken() {
 function getAuthHeaders() {
     return {
         "Content-Type": "application/json",
-        "Authorization": `Token ${getToken()}`
+        "Authorization": `Bearer ${getToken()}`
     };
 }
 

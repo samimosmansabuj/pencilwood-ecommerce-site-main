@@ -597,7 +597,7 @@ function updateCartCountFromBackend() {
     fetch(`${API_BASE}/cart/`, {
 
         headers: {
-            "Authorization": `Token ${token}`
+            "Authorization": `Bearer ${token}`
         }
 
     })
@@ -652,7 +652,7 @@ async function quickAddCart(productId) {
 
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Token ${token}`
+                    "Authorization": `Bearer ${token}`
                 },
 
                 body: JSON.stringify({

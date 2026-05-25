@@ -3,26 +3,60 @@
 ========================= */
 function switchAuth(type) {
 
-    const loginForm = document.getElementById('loginForm');
-    const signupForm = document.getElementById('signupForm');
+    const loginForm =
+        document.getElementById("loginForm");
 
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.classList.remove('on');
+    const signupForm =
+        document.getElementById("signupForm");
+
+    const tabs =
+        document.querySelectorAll(".tab");
+
+    tabs.forEach(tab => {
+        tab.classList.remove("on");
     });
 
-    if (type === 'login') {
+    if (type === "login") {
 
-        document.querySelectorAll('.tab')[0].classList.add('on');
+        tabs[0].classList.add("on");
 
-        loginForm.style.display = 'flex';
-        signupForm.style.display = 'none';
+        loginForm.style.display =
+            "flex";
+
+        signupForm.style.display =
+            "none";
 
     } else {
 
-        document.querySelectorAll('.tab')[1].classList.add('on');
+        tabs[1].classList.add("on");
 
-        loginForm.style.display = 'none';
-        signupForm.style.display = 'flex';
+        loginForm.style.display =
+            "none";
+
+        signupForm.style.display =
+            "flex";
+    }
+}
+
+/* =========================
+   SAVE TOKENS
+========================= */
+function saveAuthData(data) {
+
+    if (data.access) {
+
+        localStorage.setItem(
+            "access",
+            data.access
+        );
+    }
+
+    if (data.refresh) {
+
+        localStorage.setItem(
+            "refresh",
+            data.refresh
+        );
     }
 }
 
@@ -31,76 +65,114 @@ function switchAuth(type) {
 ========================= */
 async function signupUser() {
 
-    const full_name = document.getElementById('signupName')?.value.trim();
-    const phone = document.getElementById('signupPhone')?.value.trim();
-    const email = document.getElementById('signupEmail')?.value.trim();
-    const password = document.getElementById('signupPassword')?.value.trim();
+    const name =
+        document.getElementById("signupName")
+        ?.value
+        .trim();
 
-    if (!full_name || !phone || !password) {
-        toast('সব required field fill korun');
+    const phone =
+        document.getElementById("signupPhone")
+        ?.value
+        .trim();
+
+    const email =
+        document.getElementById("signupEmail")
+        ?.value
+        .trim();
+
+    const password =
+        document.getElementById("signupPassword")
+        ?.value
+        .trim();
+
+    if (!name) {
+        toast("Enter full name");
+        return;
+    }
+
+    if (!phone) {
+        toast("Enter phone number");
+        return;
+    }
+
+    if (!email) {
+        toast("Enter email");
+        return;
+    }
+
+    if (!password) {
+        toast("Enter password");
         return;
     }
 
     try {
 
-        const response = await fetch(`${API_BASE}/api/auth/register/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                full_name,
-                phone,
-                email,
-                password
-            })
-        });
+        const response =
+            await fetch(
+                `${API_BASE}/api/auth/register/`,
+                {
+                    method: "POST",
 
-        const data = await response.json();
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
 
-        console.log('SIGNUP:', data);
+                    body: JSON.stringify({
+                        email,
+                        password,
+                        username: phone,
+                        name,
+                        phone,
+                        whatsapp: phone
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        console.log(
+            "SIGNUP:",
+            data
+        );
 
         if (
-            response.ok ||
-            data.status === true ||
-            data.success === true
+            response.ok &&
+            data.status
         ) {
 
-            toast('Account created successfully ✅');
+            saveAuthData(data);
 
-            if (data.token) {
-                localStorage.setItem('token', data.token);
-            }
-
-            if (data.access) {
-                localStorage.setItem('access', data.access);
-            }
-
-            if (data.refresh) {
-                localStorage.setItem('refresh', data.refresh);
-            }
-
-            if (data.user) {
-                localStorage.setItem('user', JSON.stringify(data.user));
-            }
+            toast(
+                "Account created successfully ✅"
+            );
 
             setTimeout(() => {
-                window.location.href = 'profile.html';
+
+                window.location.href =
+                    "profile.html";
+
             }, 1000);
 
         } else {
 
             toast(
                 data.message ||
-                data.error ||
-                'Signup failed ❌'
+                "Signup failed ❌"
             );
         }
 
     } catch (err) {
 
-        console.error(err);
-        toast('Server error ❌');
+        console.error(
+            "SIGNUP ERROR:",
+            err
+        );
+
+        toast(
+            "Signup failed ❌"
+        );
     }
 }
 
@@ -109,111 +181,165 @@ async function signupUser() {
 ========================= */
 async function loginUser() {
 
-    const phone = document.getElementById('loginPhone')?.value.trim();
-    const password = document.getElementById('loginPassword')?.value.trim();
+    const email =
+        document.getElementById("loginPhone")
+        ?.value
+        .trim();
 
-    if (!phone || !password) {
-        toast('Phone & password required');
+    const password =
+        document.getElementById("loginPassword")
+        ?.value
+        .trim();
+
+    if (!email) {
+        toast("Enter email");
+        return;
+    }
+
+    if (!password) {
+        toast("Enter password");
         return;
     }
 
     try {
 
-        const response = await fetch(`${API_BASE}/api/auth/login/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                phone,
-                password
-            })
-        });
+        const response =
+            await fetch(
+                `${API_BASE}/api/auth/login/`,
+                {
+                    method: "POST",
 
-        const data = await response.json();
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
 
-        console.log('LOGIN:', data);
+                    body: JSON.stringify({
+                        email,
+                        password
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        console.log(
+            "LOGIN:",
+            data
+        );
 
         if (
-            response.ok ||
-            data.status === true ||
-            data.success === true
+            response.ok &&
+            data.status
         ) {
 
-            toast('Login successful ✅');
+            saveAuthData(data);
 
-            if (data.token) {
-                localStorage.setItem('token', data.token);
-            }
-
-            if (data.access) {
-                localStorage.setItem('access', data.access);
-            }
-
-            if (data.refresh) {
-                localStorage.setItem('refresh', data.refresh);
-            }
-
-            if (data.user) {
-                localStorage.setItem('user', JSON.stringify(data.user));
-            }
+            toast(
+                "Login successful ✅"
+            );
 
             setTimeout(() => {
-                window.location.href = 'profile.html';
+
+                window.location.href =
+                    "profile.html";
+
             }, 1000);
 
         } else {
 
             toast(
                 data.message ||
-                data.error ||
-                'Invalid credentials ❌'
+                "Invalid credentials ❌"
             );
         }
 
     } catch (err) {
 
-        console.error(err);
-        toast('Login failed ❌');
+        console.error(
+            "LOGIN ERROR:",
+            err
+        );
+
+        toast(
+            "Login failed ❌"
+        );
     }
 }
 
 /* =========================
-   LOGOUT
+   REQUIRE LOGIN
 ========================= */
-function logoutUser() {
+function requireLogin() {
 
-    localStorage.removeItem('token');
-    localStorage.removeItem('access');
-    localStorage.removeItem('refresh');
-    localStorage.removeItem('user');
+    if (!isLoggedIn()) {
 
-    toast('Logged out');
+        toast(
+            "Please login first"
+        );
+
+        setTimeout(() => {
+
+            window.location.href =
+                "login.html";
+
+        }, 700);
+
+        return false;
+    }
+
+    return true;
+}
+
+/* =========================
+   TOAST
+========================= */
+function toast(msg) {
+
+    const c =
+        document.getElementById(
+            "toast-container"
+        );
+
+    if (!c) {
+
+        alert(msg);
+        return;
+    }
+
+    const el =
+        document.createElement("div");
+
+    el.className =
+        "toast";
+
+    el.innerText =
+        msg;
+
+    c.appendChild(el);
 
     setTimeout(() => {
-        window.location.href = 'login.html';
-    }, 700);
+        el.classList.add("show");
+    }, 50);
+
+    setTimeout(() => {
+
+        el.classList.remove("show");
+
+        setTimeout(() => {
+            el.remove();
+        }, 300);
+
+    }, 2200);
 }
 
-/* =========================
-   CHECK LOGIN
-========================= */
-function isLoggedIn() {
+window.addEventListener(
+    "DOMContentLoaded",
+    () => {
 
-    return !!(
-        localStorage.getItem('token') ||
-        localStorage.getItem('access')
-    );
-}
-/* =========================
-   AUTO REDIRECT
-========================= */
-window.addEventListener('DOMContentLoaded', () => {
-
-    if (
-        window.location.pathname.includes('login.html') &&
-        isLoggedIn()
-    ) {
-        console.log('Already logged in');
+        console.log(
+            "AUTH READY"
+        );
     }
-});
+);

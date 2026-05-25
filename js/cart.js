@@ -60,7 +60,7 @@ async function loadCartItems() {
 
                 headers: {
                     "Authorization":
-                        `Token ${getToken()}`
+                    `Bearer ${getToken()}`
                 }
             }
         );
@@ -274,7 +274,7 @@ async function changeQty(
                         "application/json",
 
                     "Authorization":
-                        `Token ${getToken()}`
+                    `Bearer ${getToken()}`
                 },
 
                 body: JSON.stringify({
@@ -328,7 +328,7 @@ async function removeCartItem(
 
                 headers: {
                     "Authorization":
-                        `Token ${getToken()}`
+                    `Bearer ${getToken()}`
                 }
             }
         );

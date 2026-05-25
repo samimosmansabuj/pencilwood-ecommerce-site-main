@@ -45,7 +45,7 @@ async function loadWishlist() {
 
                 headers: {
                     "Authorization":
-                        `Token ${getToken()}`
+                    `Bearer ${getToken()}`
                 }
             }
         );
@@ -207,7 +207,7 @@ async function removeWishlist(id) {
 
                 headers: {
                     "Authorization":
-                        `Token ${getToken()}`
+                    `Bearer ${getToken()}`
                 }
             }
         );
@@ -260,7 +260,7 @@ async function addToCart(productId) {
                         "application/json",
 
                     "Authorization":
-                        `Token ${getToken()}`
+                    `Bearer ${getToken()}`
                 },
 
                 body: JSON.stringify({

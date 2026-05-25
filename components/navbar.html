@@ -1,4 +1,3 @@
-
 <!-- TOP NAV -->
 <div class="topnav" id="topnavbar-container">
   <div class="topnav-in">
@@ -9,7 +8,10 @@
 
     <a class="logo-wrap" href="/">
       <div class="logo-icon">PW</div>
-      <div class="logo-name">Pencile Wood<small>Premium Goods</small></div>
+      <div class="logo-name">
+        Pencile Wood
+        <small>Premium Goods</small>
+      </div>
     </a>
 
     <div class="search-wrap">
@@ -19,24 +21,44 @@
     </div>
 
     <div class="nav-ics">
+
+      <!-- ACCOUNT -->
       <div class="nav-ic" onclick="window.location.href='profile.html'">
-        <span class="nav-ic-icon">👤</span>Account
+        <span class="nav-ic-icon">👤</span>
+        Account
       </div>
 
+      <!-- LOGIN / LOGOUT -->
+      <div class="nav-ic" id="authNavBtn">
+        <span class="nav-ic-icon">🔑</span>
+        Login
+      </div>
+
+      <!-- WISHLIST -->
       <div class="nav-ic" onclick="window.location.href='wishlist.html'">
-        <span class="nav-ic-icon">❤️<span class="cart-dot" id="wishCount">0</span></span>Wishlist
+        <span class="nav-ic-icon">
+          ❤️
+          <span class="cart-dot" id="wishCount">0</span>
+        </span>
+        Wishlist
       </div>
 
+      <!-- CART -->
       <div class="nav-ic cart-wrap" onclick="window.location.href='cart.html'">
-        <span class="nav-ic-icon">🛒<span class="cart-dot" id="cartDot">0</span></span>Cart
+        <span class="nav-ic-icon">
+          🛒
+          <span class="cart-dot" id="cartDot">0</span>
+        </span>
+        Cart
       </div>
+
     </div>
 
   </div>
 </div>
 
 
-<!-- SUBNAV (DESKTOP ONLY) -->
+<!-- SUBNAV -->
 <div class="subnav" id="subnavbar-container">
   <div class="subnav-in">
     <a href="/">Home</a>
@@ -51,7 +73,7 @@
 </div>
 
 
-<!-- DRAWER (MOBILE MENU) -->
+<!-- DRAWER -->
 <div id="drawerOverlay" class="drawer-overlay" onclick="closeDrw()"></div>
 
 <div id="drawer" class="drawer">
@@ -61,7 +83,6 @@
     <button class="drawer-close" onclick="closeDrw()">×</button>
   </div>
 
-  <!-- 🔥 SUBNAV INSIDE DRAWER -->
   <a href="home.html">Home</a>
   <a href="index.html">All Product</a>
   <a href="product-details.html">Product Details</a>
@@ -71,4 +92,81 @@
   <a href="#">Sale</a>
   <a href="#">Corporate</a>
 
+  <a href="profile.html">👤 Account</a>
+
+  <!-- LOGIN / LOGOUT -->
+  <a href="javascript:void(0)" id="drawerAuthBtn">
+    🔑 Login
+  </a>
+
 </div>
+
+
+<script>
+  /* =========================
+     UPDATE AUTH BUTTONS
+  ========================= */
+  function updateAuthButtons() {
+  
+    const authBtn =
+      document.getElementById("authNavBtn");
+  
+    const drawerAuthBtn =
+      document.getElementById("drawerAuthBtn");
+  
+    if (!authBtn || !drawerAuthBtn) {
+      return;
+    }
+  
+    /* USER LOGGED IN */
+    if (isLoggedIn()) {
+  
+      authBtn.innerHTML = `
+        <span class="nav-ic-icon">🚪</span>
+        Logout
+      `;
+  
+      drawerAuthBtn.innerHTML =
+        "🚪 Logout";
+  
+      authBtn.onclick = async function () {
+  
+        await logoutUser();
+      };
+  
+      drawerAuthBtn.onclick = async function () {
+  
+        await logoutUser();
+      };
+    }
+  
+    /* USER NOT LOGGED IN */
+    else {
+  
+      authBtn.innerHTML = `
+        <span class="nav-ic-icon">🔑</span>
+        Login
+      `;
+  
+      drawerAuthBtn.innerHTML =
+        "🔑 Login";
+  
+      authBtn.onclick = function () {
+  
+        window.location.href =
+          "login.html";
+      };
+  
+      drawerAuthBtn.onclick = function () {
+  
+        window.location.href =
+          "login.html";
+      };
+    }
+  }
+  
+  /* =========================
+     INIT
+  ========================= */
+  updateAuthButtons();
+  </script>

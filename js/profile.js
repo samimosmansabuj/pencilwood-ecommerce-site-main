@@ -2,56 +2,69 @@
    INIT
 ========================= */
 window.addEventListener("DOMContentLoaded", () => {
+
+    if (!isLoggedIn()) {
+
+        window.location.href =
+            "login.html";
+
+        return;
+    }
+
     loadProfile();
 });
 
 /* =========================
-   TOKEN
-========================= */
-function getToken() {
-    return (
-        localStorage.getItem("access") ||
-        localStorage.getItem("token") ||
-        ""
-    );
-}
-
-/* =========================
    LOAD PROFILE
-   (localStorage + backend ready fallback)
 ========================= */
 async function loadProfile() {
 
     try {
 
-        // 👉 FUTURE BACKEND HOOK (if you add API later)
-        // const res = await fetch(`${API_BASE}/profile/`, {
-        //     headers: {
-        //         "Authorization": `Token ${getToken()}`
-        //     }
-        // });
+        const res = await fetch(
+            `${API_BASE}/api/auth/profile/`,
+            {
+                method: "GET",
 
-        // const data = await res.json();
+                headers: getAuthHeaders()
+            }
+        );
 
-        // if (data.status) {
-        //     fillProfile(data.data);
-        //     return;
-        // }
+        const data =
+            await res.json();
 
-        // fallback localStorage
-        const profile =
-            JSON.parse(localStorage.getItem("pw_profile")) || {};
+        console.log(
+            "PROFILE:",
+            data
+        );
 
-        fillProfile(profile);
+        if (
+            !res.ok ||
+            !data.status
+        ) {
+
+            toast(
+                data.message ||
+                "Failed to load profile"
+            );
+
+            return;
+        }
+
+        fillProfile(
+            data.data || {}
+        );
 
     } catch (err) {
 
-        console.error("PROFILE LOAD ERROR:", err);
+        console.error(
+            "PROFILE LOAD ERROR:",
+            err
+        );
 
-        const profile =
-            JSON.parse(localStorage.getItem("pw_profile")) || {};
-
-        fillProfile(profile);
+        toast(
+            "Failed to load profile"
+        );
     }
 }
 
@@ -60,69 +73,120 @@ async function loadProfile() {
 ========================= */
 function fillProfile(profile) {
 
-    document.getElementById("profileFullName").value =
-        profile.full_name || "";
+    document.getElementById(
+        "profileFullName"
+    ).value =
+        profile.name || "";
 
-    document.getElementById("profilePhone").value =
+    document.getElementById(
+        "profilePhone"
+    ).value =
         profile.phone || "";
 
-    document.getElementById("profileWhatsapp").value =
+    document.getElementById(
+        "profileWhatsapp"
+    ).value =
         profile.whatsapp || "";
 
-    document.getElementById("profileEmail").value =
+    document.getElementById(
+        "profileEmail"
+    ).value =
         profile.email || "";
 }
 
 /* =========================
    SAVE PROFILE
 ========================= */
-function saveProfile() {
+async function saveProfile() {
 
-    const full_name =
-        document.getElementById("profileFullName").value.trim();
+    const name =
+        document.getElementById(
+            "profileFullName"
+        ).value.trim();
 
     const phone =
-        document.getElementById("profilePhone").value.trim();
+        document.getElementById(
+            "profilePhone"
+        ).value.trim();
 
     const whatsapp =
-        document.getElementById("profileWhatsapp").value.trim();
+        document.getElementById(
+            "profileWhatsapp"
+        ).value.trim();
 
-    const email =
-        document.getElementById("profileEmail").value.trim();
+    if (!name) {
 
-    if (!full_name) {
-        toast("Enter full name");
+        toast(
+            "Enter full name"
+        );
+
         return;
     }
 
     if (!phone) {
-        toast("Enter phone number");
+
+        toast(
+            "Enter phone number"
+        );
+
         return;
     }
 
-    const profile = {
-        full_name,
-        phone,
-        whatsapp,
-        email
-    };
+    try {
 
-    localStorage.setItem(
-        "pw_profile",
-        JSON.stringify(profile)
-    );
+        const res = await fetch(
+            `${API_BASE}/api/auth/profile/`,
+            {
+                method: "PUT",
 
-    toast("Profile updated ✅");
+                headers: getAuthHeaders(),
 
-    // 👉 FUTURE BACKEND SAVE HOOK
-    // fetch(`${API_BASE}/profile/update/`, {
-    //     method: "POST",
-    //     headers: {
-    //         "Content-Type": "application/json",
-    //         "Authorization": `Token ${getToken()}`
-    //     },
-    //     body: JSON.stringify(profile)
-    // });
+                body: JSON.stringify({
+                    name,
+                    phone,
+                    whatsapp
+                })
+            }
+        );
+
+        const data =
+            await res.json();
+
+        console.log(
+            "PROFILE UPDATE:",
+            data
+        );
+
+        if (
+            res.ok &&
+            data.status
+        ) {
+
+            toast(
+                "Profile updated ✅"
+            );
+
+            loadProfile();
+
+        } else {
+
+            toast(
+                data.message ||
+                "Update failed"
+            );
+        }
+
+    } catch (err) {
+
+        console.error(
+            "PROFILE UPDATE ERROR:",
+            err
+        );
+
+        toast(
+            "Failed to update profile"
+        );
+    }
 }
 
 /* =========================
@@ -130,23 +194,46 @@ function saveProfile() {
 ========================= */
 function toast(msg) {
 
-    const c = document.getElementById("toast-container");
+    const c =
+        document.getElementById(
+            "toast-container"
+        );
 
     if (!c) {
+
         alert(msg);
+
         return;
     }
 
-    const el = document.createElement("div");
-    el.className = "toast";
-    el.innerText = msg;
+    const el =
+        document.createElement("div");
+
+    el.className =
+        "toast";
+
+    el.innerText =
+        msg;
 
     c.appendChild(el);
 
-    setTimeout(() => el.classList.add("show"), 50);
+    setTimeout(() => {
+
+        el.classList.add(
+            "show"
+        );
+
+    }, 50);
 
     setTimeout(() => {
-        el.classList.remove("show");
-        setTimeout(() => el.remove(), 300);
+
+        el.classList.remove(
+            "show"
+        );
+
+        setTimeout(() => {
+            el.remove();
+        }, 300);
+
     }, 2200);
 }

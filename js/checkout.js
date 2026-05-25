@@ -49,7 +49,7 @@ function getAuthHeaders() {
         "Content-Type": "application/json",
 
         "Authorization":
-            `Token ${getToken()}`
+        `Bearer ${getToken()}`
     };
 }
 
