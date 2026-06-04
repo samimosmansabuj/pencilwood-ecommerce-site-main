@@ -61,6 +61,29 @@ function saveAuthData(data) {
 }
 
 /* =========================
+   LOGIN LOADER
+========================= */
+function showLoginLoader() {
+
+    document
+        .getElementById("loginLoader")
+        ?.style.setProperty(
+            "display",
+            "flex"
+        );
+}
+
+function hideLoginLoader() {
+
+    document
+        .getElementById("loginLoader")
+        ?.style.setProperty(
+            "display",
+            "none"
+        );
+}
+
+/* =========================
    SIGNUP
 ========================= */
 async function signupUser() {
@@ -201,6 +224,8 @@ async function loginUser() {
         return;
     }
 
+    showLoginLoader();
+
     try {
 
         const response =
@@ -236,16 +261,8 @@ async function loginUser() {
 
             saveAuthData(data);
 
-            toast(
-                "Login successful ✅"
-            );
-
-            setTimeout(() => {
-
-                window.location.href =
-                    "profile.html";
-
-            }, 1000);
+            window.location.href =
+                "profile.html";
 
         } else {
 
@@ -265,6 +282,11 @@ async function loginUser() {
         toast(
             "Login failed ❌"
         );
+
+    } finally {
+
+        hideLoginLoader();
+
     }
 }
 
@@ -341,5 +363,27 @@ window.addEventListener(
         console.log(
             "AUTH READY"
         );
+
+        const emailInput =
+            document.getElementById("loginPhone");
+
+        const passwordInput =
+            document.getElementById("loginPassword");
+
+        [emailInput, passwordInput].forEach(input => {
+
+            input?.addEventListener(
+                "keypress",
+                e => {
+
+                    if (e.key === "Enter") {
+                        loginUser();
+                    }
+
+                }
+            );
+
+        });
+
     }
 );

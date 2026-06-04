@@ -1,7 +1,7 @@
 /* =========================
    CONFIG
 ========================= */
-window.API_BASE
+window.API_BASE;
 
 /* =========================
    INIT
@@ -21,37 +21,55 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 /* =========================
-   DISTRICTS
+   DISTRICTS API
 ========================= */
-const districts = [
-    "Dhaka",
-    "Narayanganj",
-    "Gazipur",
-    "Chattogram",
-    "Cumilla",
-    "Sylhet",
-    "Rajshahi",
-    "Khulna",
-    "Barishal",
-    "Rangpur",
-    "Mymensingh"
-];
-
-function loadDistricts() {
+async function loadDistricts() {
 
     const select =
         document.getElementById("deliverydistrict");
 
     if (!select) return;
 
-    districts.forEach(d => {
+    try {
 
-        select.innerHTML += `
-            <option value="${d}">
-                ${d}
+        select.innerHTML = `
+            <option value="">
+                Select District
             </option>
         `;
-    });
+
+        const res = await fetch(
+            "https://bdapi.vercel.app/api/v.1/district"
+        );
+
+        const data = await res.json();
+
+        console.log("DISTRICTS:", data);
+
+        if (
+            data.status === 200 &&
+            data.success &&
+            Array.isArray(data.data)
+        ) {
+
+            data.data.forEach(district => {
+
+                select.innerHTML += `
+                    <option
+                        value="${district.name}">
+                        ${district.bn_name}
+                    </option>
+                `;
+            });
+        }
+
+    } catch (err) {
+
+        console.error(
+            "District Load Error:",
+            err
+        );
+    }
 }
 
 /* =========================
@@ -65,7 +83,18 @@ function loadAddresses() {
     if (!list) return;
 
     const addresses =
-        JSON.parse(localStorage.getItem("pw_addresses")) || [];
+        JSON.parse(
+            localStorage.getItem("pw_addresses")
+        ) || [];
+
+    const countEl =
+        document.getElementById("addressCount");
+
+    if (countEl) {
+
+        countEl.textContent =
+            `${addresses.length} Saved`;
+    }
 
     list.innerHTML = "";
 
@@ -83,26 +112,14 @@ function loadAddresses() {
     addresses.forEach((addr, index) => {
 
         list.innerHTML += `
-            <div class="addr-card">
+            <div class="address-card">
 
-                <div class="addr-top">
+                <div class="addr-name">
+                    ${addr.name}
+                </div>
 
-                    <div>
-                        <div class="addr-name">
-                            ${addr.name}
-                        </div>
-
-                        <div class="addr-phone">
-                            ${addr.phone}
-                        </div>
-                    </div>
-
-                    <button
-                        class="addr-delete"
-                        onclick="deleteAddress(${index})">
-                        Delete
-                    </button>
-
+                <div class="addr-phone">
+                    ${addr.phone}
                 </div>
 
                 <div class="addr-district">
@@ -111,6 +128,24 @@ function loadAddresses() {
 
                 <div class="addr-text">
                     ${addr.address}
+                </div>
+
+                <div class="addr-actions">
+
+                    <button
+                        onclick="editAddress(${index})">
+
+                        Edit
+
+                    </button>
+
+                    <button
+                        onclick="deleteAddress(${index})">
+
+                        Delete
+
+                    </button>
+
                 </div>
 
             </div>
@@ -156,7 +191,9 @@ function addAddress() {
     }
 
     const addresses =
-        JSON.parse(localStorage.getItem("pw_addresses")) || [];
+        JSON.parse(
+            localStorage.getItem("pw_addresses")
+        ) || [];
 
     addresses.push({
         name,
@@ -181,12 +218,58 @@ function addAddress() {
 }
 
 /* =========================
+   EDIT ADDRESS
+========================= */
+function editAddress(index) {
+
+    const addresses =
+        JSON.parse(
+            localStorage.getItem("pw_addresses")
+        ) || [];
+
+    const addr =
+        addresses[index];
+
+    if (!addr) return;
+
+    document.getElementById("addrName").value =
+        addr.name || "";
+
+    document.getElementById("addrPhone").value =
+        addr.phone || "";
+
+    document.getElementById("deliverydistrict").value =
+        addr.district || "";
+
+    document.getElementById("addrText").value =
+        addr.address || "";
+
+    addresses.splice(index, 1);
+
+    localStorage.setItem(
+        "pw_addresses",
+        JSON.stringify(addresses)
+    );
+
+    loadAddresses();
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+    toast("Address loaded for editing");
+}
+
+/* =========================
    DELETE ADDRESS
 ========================= */
 function deleteAddress(index) {
 
     const addresses =
-        JSON.parse(localStorage.getItem("pw_addresses")) || [];
+        JSON.parse(
+            localStorage.getItem("pw_addresses")
+        ) || [];
 
     addresses.splice(index, 1);
 
@@ -206,7 +289,9 @@ function deleteAddress(index) {
 function toast(msg) {
 
     const c =
-        document.getElementById("toast-container");
+        document.getElementById(
+            "toast-container"
+        );
 
     if (!c) return;
 
@@ -214,6 +299,7 @@ function toast(msg) {
         document.createElement("div");
 
     el.className = "toast";
+
     el.innerText = msg;
 
     c.appendChild(el);

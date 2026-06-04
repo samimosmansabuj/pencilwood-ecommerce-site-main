@@ -1,5 +1,5 @@
 <!-- TOP NAV -->
-<div class="topnav" id="topnavbar-container">
+<div class="topnav">
   <div class="topnav-in">
 
     <button class="hburg" onclick="openDrw()" aria-label="Menu">
@@ -15,41 +15,63 @@
     </a>
 
     <div class="search-wrap">
-      <input class="search-in" type="text"
-        placeholder="Search Cradle, Mobile Stands, calendar holders...">
+      <input
+        class="search-in"
+        type="text"
+        placeholder="Search Cradle, Mobile Stands, Calendar Holders..."
+      >
       <button class="search-go">🔍</button>
     </div>
 
     <div class="nav-ics">
 
-      <!-- ACCOUNT -->
-      <div class="nav-ic" onclick="window.location.href='profile.html'">
+      <!-- LOGIN -->
+      <div
+        class="nav-ic login-btn"
+        onclick="window.location.href='login.html'">
+
         <span class="nav-ic-icon">👤</span>
-        Account
+        Login
+
       </div>
 
-      <!-- LOGIN / LOGOUT -->
-      <div class="nav-ic" id="authNavBtn">
-        <span class="nav-ic-icon">🔑</span>
-        Login
+      <!-- ACCOUNT -->
+      <div
+        class="nav-ic account-btn"
+        onclick="window.location.href='profile.html'"
+        style="display:none;">
+
+        <span class="nav-ic-icon">👤</span>
+        Account
+
       </div>
 
       <!-- WISHLIST -->
-      <div class="nav-ic" onclick="window.location.href='wishlist.html'">
+      <div
+        class="nav-ic"
+        onclick="openWishlist()">
+
         <span class="nav-ic-icon">
           ❤️
           <span class="cart-dot" id="wishCount">0</span>
         </span>
+
         Wishlist
+
       </div>
 
       <!-- CART -->
-      <div class="nav-ic cart-wrap" onclick="window.location.href='cart.html'">
+      <div
+        class="nav-ic cart-wrap"
+        onclick="openCart()">
+
         <span class="nav-ic-icon">
           🛒
           <span class="cart-dot" id="cartDot">0</span>
         </span>
+
         Cart
+
       </div>
 
     </div>
@@ -57,10 +79,10 @@
   </div>
 </div>
 
-
 <!-- SUBNAV -->
-<div class="subnav" id="subnavbar-container">
+<div class="subnav">
   <div class="subnav-in">
+
     <a href="/">Home</a>
     <a href="product-list.html">All Product</a>
     <a href="product-details.html">Product Details</a>
@@ -69,104 +91,67 @@
     <a href="#">New Arrivals</a>
     <a href="#">Sale</a>
     <a href="#">Corporate</a>
+
   </div>
 </div>
 
-
 <!-- DRAWER -->
-<div id="drawerOverlay" class="drawer-overlay" onclick="closeDrw()"></div>
+<div
+  id="drawerOverlay"
+  class="drawer-overlay"
+  onclick="closeDrw()">
+</div>
 
 <div id="drawer" class="drawer">
 
   <div class="drawer-head">
-    <div class="drawer-title">Menu</div>
-    <button class="drawer-close" onclick="closeDrw()">×</button>
+
+    <div class="drawer-title">
+      Menu
+    </div>
+
+    <button
+      class="drawer-close"
+      onclick="closeDrw()">
+
+      ×
+
+    </button>
+
   </div>
 
   <a href="home.html">Home</a>
-  <a href="index.html">All Product</a>
+  <a href="product-list.html">All Product</a>
   <a href="product-details.html">Product Details</a>
-  <a href="https://cradle.pencilwoodbd.com/" target="_blank">Cradle</a>
+
+  <a
+    href="https://cradle.pencilwoodbd.com/"
+    target="_blank">
+    Cradle
+  </a>
+
   <a href="#">Key Holders</a>
   <a href="#">New Arrivals</a>
   <a href="#">Sale</a>
   <a href="#">Corporate</a>
 
-  <a href="profile.html">👤 Account</a>
+  <!-- LOGIN -->
+  <a
+    href="login.html"
+    class="login-btn">
 
-  <!-- LOGIN / LOGOUT -->
-  <a href="javascript:void(0)" id="drawerAuthBtn">
-    🔑 Login
+    👤 Login
+
+  </a>
+
+  <!-- ACCOUNT -->
+  <a
+    href="profile.html"
+    class="account-btn"
+    style="display:none;">
+
+    👤 Account
+
   </a>
 
 </div>
-
-
-<script>
-  /* =========================
-     UPDATE AUTH BUTTONS
-  ========================= */
-  function updateAuthButtons() {
-  
-    const authBtn =
-      document.getElementById("authNavBtn");
-  
-    const drawerAuthBtn =
-      document.getElementById("drawerAuthBtn");
-  
-    if (!authBtn || !drawerAuthBtn) {
-      return;
-    }
-  
-    /* USER LOGGED IN */
-    if (isLoggedIn()) {
-  
-      authBtn.innerHTML = `
-        <span class="nav-ic-icon">🚪</span>
-        Logout
-      `;
-  
-      drawerAuthBtn.innerHTML =
-        "🚪 Logout";
-  
-      authBtn.onclick = async function () {
-  
-        await logoutUser();
-      };
-  
-      drawerAuthBtn.onclick = async function () {
-  
-        await logoutUser();
-      };
-    }
-  
-    /* USER NOT LOGGED IN */
-    else {
-  
-      authBtn.innerHTML = `
-        <span class="nav-ic-icon">🔑</span>
-        Login
-      `;
-  
-      drawerAuthBtn.innerHTML =
-        "🔑 Login";
-  
-      authBtn.onclick = function () {
-  
-        window.location.href =
-          "login.html";
-      };
-  
-      drawerAuthBtn.onclick = function () {
-  
-        window.location.href =
-          "login.html";
-      };
-    }
-  }
-  
-  /* =========================
-     INIT
-  ========================= */
-  updateAuthButtons();
-  </script>

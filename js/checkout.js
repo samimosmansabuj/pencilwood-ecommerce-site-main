@@ -66,15 +66,10 @@ async function loadDistricts() {
     try {
 
         const res = await fetch(
-            `${API_BASE}/delivery/districts/`
+            "https://bdapi.vercel.app/api/v.1/district"
         );
 
         const data = await res.json();
-
-        console.log(
-            "DISTRICTS:",
-            data
-        );
 
         districtSelect.innerHTML = `
             <option value="">
@@ -83,8 +78,8 @@ async function loadDistricts() {
         `;
 
         if (
-            data.status &&
-            Array.isArray(data.data)
+            data.status === 200 &&
+            data.success
         ) {
 
             districtsData = data.data;
@@ -92,12 +87,10 @@ async function loadDistricts() {
             data.data.forEach(district => {
 
                 districtSelect.innerHTML += `
-                    <option 
-                        value="${district.id}"
-                        data-charge="${district.delivery_charge || 0}">
-
-                        ${district.name}
-
+                    <option
+                        value="${district.name}"
+                        data-id="${district.id}">
+                        ${district.bn_name}
                     </option>
                 `;
             });
@@ -126,18 +119,8 @@ function bindDistrictChange() {
         "change",
         () => {
 
-            const selectedOption =
-                districtSelect.options[
-                    districtSelect.selectedIndex
-                ];
-
             selectedDistrictId =
                 districtSelect.value;
-
-            selectedDeliveryCharge =
-                Number(
-                    selectedOption.dataset.charge || 0
-                );
 
             updateTotals();
         }
@@ -158,16 +141,18 @@ async function loadCheckoutSummary() {
                 )
             ) || [];
 
+        const params =
+            new URLSearchParams();
+
+        selectedCartIds.forEach(id => {
+            params.append("cart_ids", id);
+        });
+
         const res = await fetch(
-            `${API_BASE}/checkout/summary/`,
+            `${API_BASE}/api/checkout/summary/?${params.toString()}`,
             {
-                method: "POST",
-
-                headers: getAuthHeaders(),
-
-                body: JSON.stringify({
-                    cart_ids: selectedCartIds
-                })
+                method: "GET",
+                headers: getAuthHeaders()
             }
         );
 
@@ -189,15 +174,20 @@ async function loadCheckoutSummary() {
             return;
         }
 
-        checkoutData = data;
+        checkoutData = data.data;
+
+        selectedDeliveryCharge =
+            Number(
+                data.data.delivery_charge || 0
+            );
 
         renderCheckoutProducts(
-            data.items || []
+            data.data.items || []
         );
 
         renderSummary(
-            data.items || [],
-            data.subtotal || 0
+            data.data.items || [],
+            data.data.subtotal || 0
         );
 
     } catch (err) {
@@ -242,43 +232,27 @@ function renderCheckoutProducts(items) {
 
         container.innerHTML += `
             <div class="ck-product">
-
-                <div class="ck-product-left">
-
-                    <div class="ck-product-info">
-
-                        <div class="ck-product-name">
-                            ${item.product}
-                        </div>
-
-                        ${
-                            item.variant
-                            ? `
-                            <div class="ck-product-variant">
-                                ${
-                                    typeof item.variant === "object"
-                                    ? Object.entries(item.variant)
-                                        .map(([k, v]) => `${k}: ${v}`)
-                                        .join(", ")
-                                    : item.variant
-                                }
-                            </div>
-                            `
-                            : ""
-                        }
-
-                        <div class="ck-product-meta">
-                            Qty: ${item.quantity}
-                        </div>
-
+    
+                <div class="ck-product-info">
+    
+                    <div class="ck-product-name">
+                        ${item.product}
                     </div>
-
+    
+                    <div class="ck-product-meta">
+                        Qty: ${item.quantity}
+                    </div>
+    
                 </div>
-
-                <div class="ck-product-price">
-                    ৳ ${item.total}
+    
+                <div class="ck-product-right">
+    
+                    <div class="ck-product-price">
+                        ৳ ${item.total}
+                    </div>
+    
                 </div>
-
+    
             </div>
         `;
     });
@@ -435,28 +409,13 @@ function bindAddressSelect() {
                     "ckDistrict"
                 );
 
-            const matchedDistrict =
-                districtsData.find(
-                    d =>
-                        d.name.toLowerCase() ===
-                        selected.district.toLowerCase()
-                );
-
-            if (matchedDistrict) {
-
                 districtSelect.value =
-                    matchedDistrict.id;
+                    selected.district || "";
 
                 selectedDistrictId =
-                    matchedDistrict.id;
-
-                selectedDeliveryCharge =
-                    Number(
-                        matchedDistrict.delivery_charge || 0
-                    );
+                    selected.district || "";
 
                 updateTotals();
-            }
         }
     );
 }
@@ -516,7 +475,7 @@ async function placeOrder() {
             ) || [];
 
         const res = await fetch(
-            `${API_BASE}/checkout/place-order/`,
+            `${API_BASE}/api/checkout/place-order/`,
             {
                 method: "POST",
 
@@ -526,14 +485,14 @@ async function placeOrder() {
 
                     cart_ids:
                         selectedCartIds,
-
+                
                     name,
-
+                
                     phone,
-
+                
                     address,
-
-                    district_id:
+                
+                    district:
                         district
                 })
             }
@@ -549,20 +508,16 @@ async function placeOrder() {
 
         if (data.status) {
 
-            toast(
-                "Order placed successfully ✅"
-            );
-
-            localStorage.removeItem(
-                "checkout_cart_ids"
-            );
-
+            localStorage.removeItem("checkout_cart_ids");
+        
+            showOrderSuccess();
+        
             setTimeout(() => {
-
-                window.location.href =
-                    `order-success.html?order_id=${data.order_id}`;
-
-            }, 1200);
+        
+                window.location.href = "my-orders.html";
+        
+            }, 2500);
+        
 
         } else {
 
@@ -622,4 +577,37 @@ function toast(msg) {
         }, 300);
 
     }, 2200);
+}
+
+/* =========================================
+   SUCESS POP-UP
+========================================= */
+
+function showOrderSuccess() {
+
+    const div = document.createElement("div");
+
+    div.innerHTML = `
+        <div style="
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #16a34a;
+            color: white;
+            padding: 14px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            z-index: 99999;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        ">
+            ✅ Order Placed Successfully!
+        </div>
+    `;
+
+    document.body.appendChild(div);
+
+    setTimeout(() => {
+        div.remove();
+    }, 2300);
 }

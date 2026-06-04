@@ -1,8 +1,4 @@
-/* =========================
-   ── TOKEN
-========================= */
 function getToken() {
-
     return (
         localStorage.getItem("access") ||
         localStorage.getItem("token") ||
@@ -11,402 +7,232 @@ function getToken() {
 }
 
 /* =========================
-   ── LOAD CART ITEMS
+   IMAGE FIX
+========================= */
+function fixImage(img) {
+    if (!img) return "";
+    if (img.startsWith("http")) return img;
+    return API_BASE + img;
+}
+
+/* =========================
+   GLOBAL STATE (NEW)
+========================= */
+let CART_ITEMS_CACHE = [];
+
+/* =========================
+   GET SELECTED ITEMS
+========================= */
+function getSelectedItems() {
+    const checkboxes = document.querySelectorAll(".cart-check:checked");
+
+    const selectedIds = Array.from(checkboxes).map(cb =>
+        Number(cb.dataset.id)
+    );
+
+    return CART_ITEMS_CACHE.filter(item =>
+        selectedIds.includes(item.id)
+    );
+}
+
+/* =========================
+   UPDATE SUMMARY BASED ON CHECKBOX
+========================= */
+function updateSummaryFromSelection() {
+
+    const selected = getSelectedItems();
+
+    const summaryList = document.getElementById("cartSummaryList");
+    const subtotalEl = document.getElementById("cartSubtotal");
+    const itemCountEl = document.getElementById("cartItemCount");
+
+    let totalQty = 0;
+    let subtotal = 0;
+
+    summaryList.innerHTML = "";
+
+    selected.forEach(item => {
+
+        totalQty += Number(item.quantity || 0);
+        subtotal += Number(item.total || 0);
+
+        summaryList.innerHTML += `
+            <div class="summary-row">
+                <span>${item.product} × ${item.quantity}</span>
+                <span>৳ ${item.total}</span>
+            </div>
+        `;
+    });
+
+    subtotalEl.textContent = `৳ ${subtotal}`;
+    itemCountEl.textContent = `${totalQty} Items`;
+}
+
+/* =========================
+   LOAD CART
 ========================= */
 async function loadCartItems() {
 
-    const container =
-        document.getElementById(
-            "cartItemsContainer"
-        );
+    const container = document.getElementById("cartItemsContainer");
+    const emptyBox = document.getElementById("emptyCartBox");
 
-    const summaryList =
-        document.getElementById(
-            "cartSummaryList"
-        );
-
-    const subtotalEl =
-        document.getElementById(
-            "cartSubtotal"
-        );
-
-    const grandTotalEl =
-        document.getElementById(
-            "cartGrandTotal"
-        );
-
-    const itemCountEl =
-        document.getElementById(
-            "cartItemCount"
-        );
-
-    const emptyBox =
-        document.getElementById(
-            "emptyCartBox"
-        );
-
-    if (!container) return;
-
-    container.innerHTML = `
-        <p>Loading cart...</p>
-    `;
+    container.innerHTML = `<p>Loading cart...</p>`;
 
     try {
 
-        const res = await fetch(
-            `${API_BASE}/cart/`,
-            {
-                method: "GET",
-
-                headers: {
-                    "Authorization":
-                    `Bearer ${getToken()}`
-                }
+        const res = await fetch(`${API_BASE}/cart/`, {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`
             }
-        );
+        });
 
-        const data =
-            await res.json();
+        const data = await res.json();
 
-        console.log(
-            "CART RESPONSE:",
-            data
-        );
-
-        if (
-            !data.status ||
-            !Array.isArray(data.data)
-        ) {
-
-            container.innerHTML = `
-                <p>
-                    Failed to load cart
-                </p>
-            `;
-
+        if (!data.status || !Array.isArray(data.data)) {
+            container.innerHTML = `<p>Failed to load cart</p>`;
             return;
         }
 
         const items = data.data;
+        CART_ITEMS_CACHE = items; // 🔥 SAVE GLOBAL
 
-        /* EMPTY CART */
         if (!items.length) {
-
             document.querySelector(".cart-layout").style.display = "none";
-            
-            summaryList.innerHTML = "";
-
-            subtotalEl.textContent =
-                "৳ 0";
-
-            grandTotalEl.textContent =
-                "৳ 0";
-
-            itemCountEl.textContent =
-                "0 Items";
-
-            emptyBox.style.display =
-                "block";
-
+            emptyBox.style.display = "block";
             return;
         }
 
-        emptyBox.style.display =
-            "none";
-
+        emptyBox.style.display = "none";
         document.querySelector(".cart-layout").style.display = "grid";
-        summaryList.innerHTML = "";
+
+        container.innerHTML = "";
 
         let totalQty = 0;
 
         items.forEach(item => {
 
-            totalQty += Number(
-                item.quantity || 0
-            );
+            totalQty += Number(item.quantity || 0);
+
+            const img = fixImage(item.image);
+            const newPrice = item.price;
 
             container.innerHTML += `
-            <div class="cart-item">
-
-                <div class="cart-item-left">
+                <div class="cart-item">
 
                     <input
                         type="checkbox"
                         class="cart-check"
                         data-id="${item.id}"
-                        checked>
+                        checked
+                        onchange="updateSummaryFromSelection()"
+                    >
 
-                    <div class="cart-item-info">
+                    <img class="cart-img" src="${img}" />
 
-                        <h3>
+                    <div class="cart-info">
+
+                        <div class="cart-name">
                             ${item.product}
-                        </h3>
-
-                        ${
-                            item.variant
-                            ? `
-                            <p>
-                                ${
-                                    typeof item.variant === "object"
-                                    ? Object.entries(item.variant)
-                                        .map(([k, v]) => `${k}: ${v}`)
-                                        .join(", ")
-                                    : item.variant
-                                }
-                            </p>
-                            `
-                            : ""
-                        }
-
-                        <div class="cart-price">
-                            ৳ ${item.price}
                         </div>
 
-                        <div class="cart-qty">
+                        <div class="cart-total-price">
+                            ৳ ${item.total}
+                        </div>
 
-                            <button
-                                onclick="changeQty(${item.id}, ${item.quantity - 1})">
-
-                                −
-
-                            </button>
-
-                            <span>
-                                ${item.quantity}
-                            </span>
-
-                            <button
-                                onclick="changeQty(${item.id}, ${item.quantity + 1})">
-
-                                +
-
-                            </button>
-
+                        <div class="cart-subtotal-mini">
+                            ${item.quantity} × ৳ ${newPrice}
                         </div>
 
                     </div>
 
-                </div>
+                    <div class="cart-qty">
 
-                <div class="cart-item-right">
+                        <button onclick="changeQty(${item.id}, ${item.quantity - 1})">−</button>
 
-                    <div class="cart-total">
+                        <span>${item.quantity}</span>
 
-                        ৳ ${item.total}
+                        <button onclick="changeQty(${item.id}, ${item.quantity + 1})">+</button>
 
                     </div>
 
-                    <button
-                        class="remove-btn"
-                        onclick="removeCartItem(${item.id})">
-
-                        Remove
-
-                    </button>
+                    <button class="remove-btn" onclick="removeCartItem(${item.id})">×</button>
 
                 </div>
-
-            </div>
-            `;
-
-            summaryList.innerHTML += `
-            <div class="summary-row">
-
-                <span>
-                    ${item.product}
-                    × ${item.quantity}
-                </span>
-
-                <span>
-                    ৳ ${item.total}
-                </span>
-
-            </div>
             `;
         });
 
-        /* BACKEND TOTAL */
-        subtotalEl.textContent =
-            `৳ ${data.cart_total}`;
-
-        grandTotalEl.textContent =
-            `৳ ${data.cart_total}`;
-
-        itemCountEl.textContent =
-            `${totalQty} Items`;
-
-        updateCartCountFromBackend?.();
+        // initial summary = all selected
+        updateSummaryFromSelection();
 
     } catch (err) {
-
-        console.error(
-            "CART ERROR:",
-            err
-        );
-
-        container.innerHTML = `
-            <p style="color:red">
-                Failed to load cart
-            </p>
-        `;
-    }
-}
-
-/* =========================
-   ── UPDATE QTY
-========================= */
-async function changeQty(
-    cartId,
-    quantity
-) {
-
-    if (quantity < 1) return;
-
-    try {
-
-        const res = await fetch(
-            `${API_BASE}/cart/update/${cartId}/`,
-            {
-                method: "POST",
-
-                headers: {
-                    "Content-Type":
-                        "application/json",
-
-                    "Authorization":
-                    `Bearer ${getToken()}`
-                },
-
-                body: JSON.stringify({
-                    quantity
-                })
-            }
-        );
-
-        const data =
-            await res.json();
-
-        if (data.status) {
-
-            toast(
-                "Cart updated"
-            );
-
-            loadCartItems();
-
-        } else {
-
-            toast(
-                data.message ||
-                "Update failed"
-            );
-        }
-
-    } catch (err) {
-
         console.error(err);
-
-        toast(
-            "Error updating cart"
-        );
+        container.innerHTML = `<p style="color:red">Failed to load cart</p>`;
     }
 }
 
 /* =========================
-   ── REMOVE ITEM
-========================= */
-async function removeCartItem(
-    cartId
-) {
-
-    try {
-
-        const res = await fetch(
-            `${API_BASE}/cart/remove/${cartId}/`,
-            {
-                method: "DELETE",
-
-                headers: {
-                    "Authorization":
-                    `Bearer ${getToken()}`
-                }
-            }
-        );
-
-        const data =
-            await res.json();
-
-        if (data.status) {
-
-            toast(
-                "Removed from cart"
-            );
-
-            loadCartItems();
-
-        } else {
-
-            toast(
-                data.message ||
-                "Remove failed"
-            );
-        }
-
-    } catch (err) {
-
-        console.error(err);
-
-        toast(
-            "Error removing item"
-        );
-    }
-}
-
-/* =========================
-   ── CHECKOUT
+   CHECKOUT BUTTON FIX (IMPORTANT)
 ========================= */
 function goToCheckout() {
 
-    const selected = [];
-
-    document
-        .querySelectorAll(
-            ".cart-check:checked"
-        )
-        .forEach(cb => {
-
-            selected.push(
-                cb.dataset.id
-            );
-        });
+    const selected = getSelectedItems();
 
     if (!selected.length) {
-
-        toast(
-            "Select at least one item"
-        );
-
+        toast("Select at least one product");
         return;
     }
 
+    const selectedIds = selected.map(i => i.id);
+
     localStorage.setItem(
         "checkout_cart_ids",
-        JSON.stringify(selected)
+        JSON.stringify(selectedIds)
     );
 
-    window.location.href =
-        "checkout.html";
+    window.location.href = "checkout.html";
 }
 
 /* =========================
-   ── INIT
+   QTY
 ========================= */
-window.addEventListener(
-    "DOMContentLoaded",
-    () => {
+async function changeQty(cartId, quantity) {
+    if (quantity < 1) return;
 
-        loadCartItems();
+    const res = await fetch(`${API_BASE}/cart/update/${cartId}/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({ quantity })
+    });
 
-        updateCartCountFromBackend?.();
-    }
-);
+    const data = await res.json();
+
+    if (data.status) loadCartItems();
+}
+
+/* =========================
+   REMOVE
+========================= */
+async function removeCartItem(cartId) {
+
+    const res = await fetch(`${API_BASE}/cart/remove/${cartId}/`, {
+        method: "DELETE",
+        headers: {
+            "Authorization": `Bearer ${getToken()}`
+        }
+    });
+
+    const data = await res.json();
+
+    if (data.status) loadCartItems();
+}
+
+/* =========================
+   INIT
+========================= */
+window.addEventListener("DOMContentLoaded", () => {
+    loadCartItems();
+});

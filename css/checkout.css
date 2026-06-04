@@ -128,51 +128,57 @@ body {
 }
 
 /* ───────────── PRODUCT LIST ───────────── */
-.ck-products {
-  margin-bottom: 15px;
+/* ───────────── CHECKOUT PRODUCTS ───────────── */
+
+.ck-products{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin:16px;
 }
 
-.ck-product-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #fff;
-  padding: 10px;
-  border-radius: 10px;
-  margin-bottom: 10px;
+.ck-product{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+
+  background:#fff;
+  border:1px solid var(--border-l);
+  border-radius:12px;
+
+  padding:12px 14px;
 }
 
-.ck-img {
-  width: 55px;
-  height: 55px;
-  background: #f2f2f2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-  font-size: 20px;
+.ck-product-info{
+  flex:1;
+  min-width:0;
 }
 
-.ck-info {
-  flex: 1;
+.ck-product-name{
+  font-size:14px;
+  font-weight:600;
+  color:var(--text);
+
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
-.ck-name {
-  font-size: 14px;
-  font-weight: 500;
+.ck-product-meta{
+  margin-top:3px;
+  font-size:12px;
+  color:var(--mid);
 }
 
-.ck-price {
-  font-size: 13px;
-  color: #666;
+.ck-product-right{
+  flex-shrink:0;
 }
 
-.ck-remove {
-  border: none;
-  background: none;
-  font-size: 20px;
-  cursor: pointer;
-  color: red;
+.ck-product-price{
+  font-size:15px;
+  font-weight:700;
+  color:var(--text);
 }
 
 /* ───────────── SUMMARY ───────────── */
@@ -268,6 +274,25 @@ body {
   }
 }
 
+.ck-products{
+  margin:12px;
+}
+
+.ck-product{
+  padding:10px 12px;
+}
+
+.ck-product-name{
+  font-size:13px;
+}
+
+.ck-product-price{
+  font-size:14px;
+}
+
+.ck-product-meta{
+  font-size:11px;
+}
 /* ───────────── STICKY ORDER BAR (🔥 BOOST) ───────────── */
 @media (max-width: 600px) {
 

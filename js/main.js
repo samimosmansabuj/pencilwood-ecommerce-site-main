@@ -746,9 +746,79 @@ function closeDrw() {
 }
 
 /* =========================
+   AUTH BUTTON TOGGLE
+========================= */
+function updateAuthButtons() {
+
+    const loggedIn =
+        typeof isLoggedIn === "function"
+            ? isLoggedIn()
+            : false;
+
+    const loginBtns =
+        document.querySelectorAll(".login-btn");
+
+    const accountBtns =
+        document.querySelectorAll(".account-btn");
+
+    if (loggedIn) {
+
+        loginBtns.forEach(btn => {
+            btn.style.display = "none";
+        });
+
+        accountBtns.forEach(btn => {
+            btn.style.display = "";
+        });
+
+    } else {
+
+        loginBtns.forEach(btn => {
+            btn.style.display = "";
+        });
+
+        accountBtns.forEach(btn => {
+            btn.style.display = "none";
+        });
+    }
+}
+
+/* =========================
+   GLOBAL NAVIGATION
+========================= */
+
+function openCart() {
+    const token =
+        localStorage.getItem("access") ||
+        localStorage.getItem("token");
+
+    if (!token) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    window.location.href = "cart.html";
+}
+
+function openWishlist() {
+    const token =
+        localStorage.getItem("access") ||
+        localStorage.getItem("token");
+
+    if (!token) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    window.location.href = "wishlist.html";
+}
+
+/* =========================
    ── INIT
 ========================= */
 window.addEventListener("DOMContentLoaded", () => {
+
+    updateAuthButtons();
 
     updateCartCountFromBackend();
 

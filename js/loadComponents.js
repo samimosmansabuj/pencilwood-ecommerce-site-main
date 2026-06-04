@@ -27,27 +27,31 @@ async function loadComponent(id, file) {
 ========================= */
 async function initComponents() {
 
+    // 1. Load navbar FIRST
     await loadComponent(
         "topnavbar-container",
         "components/navbar.html"
     );
 
-    if (
-        typeof updateCartCount ===
-        "function"
-    ) {
+    // 2. small delay to ensure DOM is painted
+    setTimeout(() => {
 
-        updateCartCount();
-    }
+        /* AUTH BUTTON UPDATE */
+        if (typeof updateAuthButtons === "function") {
+            updateAuthButtons();
+        }
 
-    if (
-        typeof updateWishlistCount ===
-        "function"
-    ) {
+        if (typeof updateCartCount === "function") {
+            updateCartCount();
+        }
 
-        updateWishlistCount();
-    }
+        if (typeof updateWishlistCount === "function") {
+            updateWishlistCount();
+        }
 
+    }, 50);
+
+    // 3. other components (parallel ok)
     loadComponent(
         "drawer-container",
         "components/drawer.html"
