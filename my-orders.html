@@ -26,9 +26,13 @@
     <!-- FILTER -->
     <div class="orders-filter">
       <button class="of-btn active" onclick="filterOrders('all', this)">All</button>
-      <button class="of-btn" onclick="filterOrders('pending', this)">Pending</button>
+      <button class="of-btn" onclick="filterOrders('new', this)">Pending</button>
+      <button class="of-btn" onclick="filterOrders('follow_up', this)">Follow Up</button>
+      <button class="of-btn" onclick="filterOrders('confirmed', this)">Confirmed</button>
+      <button class="of-btn" onclick="filterOrders('shipped', this)">Shipped</button>
       <button class="of-btn" onclick="filterOrders('delivered', this)">Delivered</button>
       <button class="of-btn" onclick="filterOrders('cancelled', this)">Cancelled</button>
+      <button class="of-btn" onclick="filterOrders('returned', this)">Returned</button>
     </div>
 
     <!-- LIST -->

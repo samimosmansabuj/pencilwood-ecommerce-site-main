@@ -117,12 +117,12 @@ function bindDistrictChange() {
 
     districtSelect.addEventListener(
         "change",
-        () => {
-
+        async () => {
+    
             selectedDistrictId =
                 districtSelect.value;
-
-            updateTotals();
+    
+            await loadCheckoutSummary();
         }
     );
 }
@@ -147,6 +147,19 @@ async function loadCheckoutSummary() {
         selectedCartIds.forEach(id => {
             params.append("cart_ids", id);
         });
+
+        const district =
+            document.getElementById(
+                "ckDistrict"
+            )?.value;
+
+        if (district) {
+
+            params.append(
+                "district",
+                district
+            );
+        }
 
         const res = await fetch(
             `${API_BASE}/api/checkout/summary/?${params.toString()}`,
@@ -180,6 +193,17 @@ async function loadCheckoutSummary() {
             Number(
                 data.data.delivery_charge || 0
             );
+
+            const deliveryText =
+            document.getElementById(
+                "deliveryChargeText"
+            );
+        
+        if (deliveryText) {
+        
+            deliveryText.innerText =
+                `৳ ${selectedDeliveryCharge}`;
+        }
 
         renderCheckoutProducts(
             data.data.items || []
@@ -275,6 +299,8 @@ function renderSummary(
 
     summaryBox.innerHTML = "";
 
+    let breakdownHtml = "";
+
     items.forEach(item => {
 
         summaryBox.innerHTML += `
@@ -291,15 +317,51 @@ function renderSummary(
 
             </div>
         `;
+
+        if (
+            Number(item.delivery_charge || 0) > 0
+        ) {
+
+            breakdownHtml += `
+                <div class="delivery-item">
+
+                    <span
+                        class="delivery-item-name">
+                        ${item.product}
+                    </span>
+
+                    <span
+                        class="delivery-item-charge">
+                        ৳ ${item.delivery_charge}
+                    </span>
+
+                </div>
+            `;
+        }
     });
 
     document.getElementById(
         "ckSubtotal"
     ).innerText = subtotal;
 
+    const breakdown =
+        document.getElementById(
+            "deliveryBreakdown"
+        );
+
+    if (breakdown) {
+
+        breakdown.innerHTML =
+            breakdownHtml ||
+            `
+            <div class="delivery-item">
+                No delivery charge
+            </div>
+            `;
+    }
+
     updateTotals();
 }
-
 /* =========================================
    UPDATE TOTALS
 ========================================= */
@@ -414,8 +476,8 @@ function bindAddressSelect() {
 
                 selectedDistrictId =
                     selected.district || "";
-
-                updateTotals();
+                
+                loadCheckoutSummary();
         }
     );
 }
@@ -508,13 +570,16 @@ async function placeOrder() {
 
         if (data.status) {
 
-            localStorage.removeItem("checkout_cart_ids");
+            localStorage.removeItem(
+                "checkout_cart_ids"
+            );
         
             showOrderSuccess();
         
             setTimeout(() => {
         
-                window.location.href = "my-orders.html";
+                window.location.href =
+                    "my-orders.html";
         
             }, 2500);
         
@@ -585,29 +650,65 @@ function toast(msg) {
 
 function showOrderSuccess() {
 
-    const div = document.createElement("div");
+    const overlay = document.createElement("div");
 
-    div.innerHTML = `
-        <div style="
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #16a34a;
-            color: white;
-            padding: 14px 20px;
-            border-radius: 10px;
-            font-weight: 600;
-            z-index: 99999;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        ">
-            ✅ Order Placed Successfully!
+    overlay.id = "orderSuccessModal";
+
+    overlay.innerHTML = `
+        <div class="success-modal">
+
+            <div class="success-icon">
+                ✓
+            </div>
+
+            <h2>
+                Order Placed Successfully
+            </h2>
+
+            <p>
+                Thank you for your order.
+                We have received your order and
+                will contact you soon.
+            </p>
+
+            <div class="success-order-text">
+                Redirecting to My Orders...
+            </div>
+
         </div>
     `;
 
-    document.body.appendChild(div);
+    document.body.appendChild(overlay);
 
     setTimeout(() => {
-        div.remove();
-    }, 2300);
+        overlay.remove();
+    }, 2400);
+}
+
+function toggleDeliveryBreakdown() {
+
+    const box =
+        document.getElementById(
+            "deliveryBreakdown"
+        );
+
+    const arrow =
+        document.getElementById(
+            "deliveryArrow"
+        );
+
+    if (!box) return;
+
+    box.classList.toggle("show");
+
+    if (
+        box.classList.contains("show")
+    ) {
+
+        arrow.innerText = "▲";
+
+    } else {
+
+        arrow.innerText = "▼";
+    }
 }

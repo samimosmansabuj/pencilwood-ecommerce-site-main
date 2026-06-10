@@ -10,6 +10,8 @@ let ALL_PRODUCTS = [];
 let filteredProducts = [];
 let SLIDES = [];
 let currentSlide = 0;
+let sliderInterval = null;
+let sliderPaused = false;
 
 /* PAGINATION */
 let currentPage = 1;
@@ -83,9 +85,25 @@ async function loadProducts() {
 
     try {
 
-        const res = await fetch(
-            `${API_BASE}/api/ecom/products/`
-        );
+        const params = new URLSearchParams(window.location.search);
+
+        const search = params.get("search");
+        const category = params.get("category");
+        const sort = params.get("sort");
+
+        let apiUrl = `${API_BASE}/api/ecom/products/`;
+
+        const queryParams = new URLSearchParams();
+
+        if (search) queryParams.append("search", search);
+        if (category) queryParams.append("category", category);
+        if (sort) queryParams.append("sort", sort);
+
+        if (queryParams.toString()) {
+            apiUrl += `?${queryParams.toString()}`;
+        }
+
+        const res = await fetch(apiUrl);
 
         const data = await res.json();
 
@@ -197,30 +215,27 @@ function loadCategories(products) {
 ========================= */
 function renderSlider() {
 
-    const slider =
-        document.querySelector(".hero-slider");
+    const slider = document.querySelector(".hero-slider");
 
     if (!slider || SLIDES.length === 0) return;
+
+    currentSlide = 0; // ✅ IMPORTANT FIX
 
     let dots = "";
 
     const slidesHTML = SLIDES.map((p, i) => {
 
         dots += `
-            <span
-                onclick="goSlide(${i})"
+            <span onclick="goSlide(${i})"
                 class="${i === 0 ? "active" : ""}">
             </span>
         `;
 
-        let image = "";
-
-        if (p.image) {
-
-            image = p.image.startsWith("http")
+        let image = p.image
+            ? (p.image.startsWith("http")
                 ? p.image
-                : API_BASE + p.image;
-        }
+                : API_BASE + p.image)
+            : "";
 
         return `
         <div class="slide ${i === 0 ? "active" : ""}">
@@ -231,57 +246,57 @@ function renderSlider() {
 
                     <h2>${p.name}</h2>
 
-                    <p>
-                        ৳ ${p.discount_price || p.price}
-                    </p>
+                    <p>৳ ${p.discount_price || p.price}</p>
 
-                    <button
-                        onclick="openProduct('${p.slug || makeSlug(p.name)}')">
-
+                    <button onclick="openProduct('${p.slug || makeSlug(p.name)}')">
                         View Product
-
                     </button>
 
                 </div>
 
                 <div class="slide-img">
-
-                    <img
-                        src="${image}"
-                        alt="${p.name}">
-
+                    <img src="${image}" alt="${p.name}">
                 </div>
 
             </div>
 
         </div>
         `;
-
     }).join("");
 
     slider.innerHTML = `
         ${slidesHTML}
 
-        <button
-            class="slide-prev"
-            onclick="prevSlide()">
-
-            ‹
-
-        </button>
-
-        <button
-            class="slide-next"
-            onclick="nextSlide()">
-
-            ›
-
-        </button>
+        <button class="slide-prev" onclick="prevSlide()">‹</button>
+        <button class="slide-next" onclick="nextSlide()">›</button>
 
         <div class="slider-dots">
             ${dots}
         </div>
     `;
+
+    startSliderAuto(); // ✅ IMPORTANT
+}
+
+function startSliderAuto() {
+
+    if (sliderInterval) {
+        clearInterval(sliderInterval);
+    }
+
+    const sliderEl = document.querySelector(".hero-slider");
+
+    if (!sliderEl) return;
+
+    sliderInterval = setInterval(() => {
+
+        if (sliderPaused) return;
+
+        if (SLIDES.length > 0) {
+            nextSlide();
+        }
+
+    }, 3000);
 }
 
 /* =========================
@@ -289,31 +304,20 @@ function renderSlider() {
 ========================= */
 function showSlide(i) {
 
-    const slides =
-        document.querySelectorAll(".slide");
-
-    const dots =
-        document.querySelectorAll(".slider-dots span");
+    const slides = document.querySelectorAll(".slide");
+    const dots = document.querySelectorAll(".slider-dots span");
 
     if (!slides.length) return;
 
-    slides.forEach(s =>
-        s.classList.remove("active")
-    );
+    slides.forEach(s => s.classList.remove("active"));
+    dots.forEach(d => d.classList.remove("active"));
 
-    dots.forEach(d =>
-        d.classList.remove("active")
-    );
+    currentSlide = (i + slides.length) % slides.length;
 
-    currentSlide =
-        (i + slides.length) % slides.length;
-
-    slides[currentSlide]
-        .classList.add("active");
+    slides[currentSlide].classList.add("active");
 
     if (dots[currentSlide]) {
-        dots[currentSlide]
-            .classList.add("active");
+        dots[currentSlide].classList.add("active");
     }
 }
 
@@ -628,6 +632,61 @@ function updateCartCountFromBackend() {
 }
 
 /* =========================
+   ── WISHLIST COUNT
+========================= */
+async function updateWishlistCount() {
+
+    const token =
+        localStorage.getItem("access") ||
+        localStorage.getItem("token");
+
+    const dot =
+        document.getElementById("wishCount");
+
+    if (!dot) return;
+
+    if (!token) {
+        dot.textContent = "0";
+        return;
+    }
+
+    try {
+
+        const res = await fetch(
+            `${API_BASE}/wishlist/`,
+            {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            }
+        );
+
+        const data = await res.json();
+
+        if (
+            data.status &&
+            Array.isArray(data.data)
+        ) {
+            dot.textContent =
+                data.data.length;
+        }
+        else {
+            dot.textContent = "0";
+        }
+
+    }
+    catch (err) {
+
+        console.error(
+            "Wishlist Count Error:",
+            err
+        );
+
+        dot.textContent = "0";
+    }
+}
+
+/* =========================
    ── QUICK ADD CART
 ========================= */
 async function quickAddCart(productId) {
@@ -813,6 +872,88 @@ function openWishlist() {
     window.location.href = "wishlist.html";
 }
 
+function openSearch() {
+    document.getElementById("searchOverlay")
+        ?.classList.add("on");
+
+    setTimeout(() => {
+        document.getElementById("mobileSearchInput")?.focus();
+    }, 100);
+}
+
+function closeSearch() {
+    document.getElementById("searchOverlay")
+        ?.classList.remove("on");
+}
+
+function applySearch(query) {
+
+    query = query.toLowerCase().trim();
+
+    if (!query) {
+        filteredProducts = [...ALL_PRODUCTS];
+    } else {
+        filteredProducts = ALL_PRODUCTS.filter(p => {
+            return (
+                (p.name || "").toLowerCase().includes(query) ||
+                (p.category?.name || p.category || "")
+                    .toString()
+                    .toLowerCase()
+                    .includes(query)
+            );
+        });
+    }
+
+    goPage(1);
+}
+
+function goSearch(query) {
+    if (!query) return;
+
+    // page reload with query
+    window.location.href =
+        `product-list.html?search=${encodeURIComponent(query)}`;
+}
+
+function bindSearch() {
+
+    const searchInput = document.querySelector(".search-in");
+
+    const mobileInput = document.getElementById("mobileSearchInput");
+    const mobileBtn = document.getElementById("mobileSearchBtn");
+    const closeBtn = document.getElementById("closeSearch");
+
+    // desktop input ENTER only
+    if (searchInput) {
+        searchInput.onkeypress = (e) => {
+            if (e.key === "Enter") {
+                const q = searchInput.value.trim();
+                if (q) goSearch(q);
+            }
+        };
+    }
+
+    // mobile search
+    if (mobileBtn && mobileInput) {
+
+        mobileBtn.onclick = () => {
+            const q = mobileInput.value.trim();
+            if (q) goSearch(q);
+        };
+
+        mobileInput.onkeypress = (e) => {
+            if (e.key === "Enter") {
+                const q = mobileInput.value.trim();
+                if (q) goSearch(q);
+            }
+        };
+    }
+
+    // close overlay
+    if (closeBtn) {
+        closeBtn.onclick = closeSearch;
+    }
+}
 /* =========================
    ── INIT
 ========================= */
@@ -822,9 +963,24 @@ window.addEventListener("DOMContentLoaded", () => {
 
     updateCartCountFromBackend();
 
+    updateWishlistCount();
+
     if (
         document.getElementById("productsGrid")
     ) {
         loadProducts();
+    }
+
+    const sliderEl = document.querySelector(".hero-slider");
+
+    if (sliderEl) {
+
+        sliderEl.addEventListener("mouseenter", () => {
+            sliderPaused = true;
+        });
+
+        sliderEl.addEventListener("mouseleave", () => {
+            sliderPaused = false;
+        });
     }
 });

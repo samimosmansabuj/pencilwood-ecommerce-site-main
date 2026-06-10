@@ -2,10 +2,12 @@
 <div class="topnav">
   <div class="topnav-in">
 
+    <!-- HAMBURGER -->
     <button class="hburg" onclick="openDrw()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
 
+    <!-- LOGO -->
     <a class="logo-wrap" href="/">
       <div class="logo-icon">PW</div>
       <div class="logo-name">
@@ -14,64 +16,54 @@
       </div>
     </a>
 
+    <!-- SEARCH WRAP (DESKTOP ONLY) -->
     <div class="search-wrap">
-      <input
-        class="search-in"
-        type="text"
-        placeholder="Search Cradle, Mobile Stands, Calendar Holders..."
-      >
+
+      <input class="search-in" type="text"
+        placeholder="Search Cradle, Mobile Stands, Calendar Holders...">
+
       <button class="search-go">🔍</button>
+
     </div>
 
-    <div class="nav-ics">
+    <!-- SEARCH ACTIONS (MOBILE ONLY) -->
+    <div class="search-actions">
+
+      <!-- mobile open overlay -->
+      <button class="mobile-search-open" onclick="openSearch()">
+        🔍
+      </button>
+
+    </div>
 
       <!-- LOGIN -->
-      <div
-        class="nav-ic login-btn"
-        onclick="window.location.href='login.html'">
-
+      <div class="nav-ic login-btn" onclick="window.location.href='login.html'">
         <span class="nav-ic-icon">👤</span>
         Login
-
       </div>
 
       <!-- ACCOUNT -->
-      <div
-        class="nav-ic account-btn"
-        onclick="window.location.href='profile.html'"
-        style="display:none;">
-
+      <div class="nav-ic account-btn" onclick="window.location.href='profile.html'" style="display:none;">
         <span class="nav-ic-icon">👤</span>
         Account
-
       </div>
 
       <!-- WISHLIST -->
-      <div
-        class="nav-ic"
-        onclick="openWishlist()">
-
+      <div class="nav-ic" onclick="openWishlist()">
         <span class="nav-ic-icon">
           ❤️
           <span class="cart-dot" id="wishCount">0</span>
         </span>
-
         Wishlist
-
       </div>
 
       <!-- CART -->
-      <div
-        class="nav-ic cart-wrap"
-        onclick="openCart()">
-
+      <div class="nav-ic cart-wrap" onclick="openCart()">
         <span class="nav-ic-icon">
           🛒
           <span class="cart-dot" id="cartDot">0</span>
         </span>
-
         Cart
-
       </div>
 
     </div>
@@ -95,63 +87,46 @@
   </div>
 </div>
 
-<!-- DRAWER -->
-<div
-  id="drawerOverlay"
-  class="drawer-overlay"
-  onclick="closeDrw()">
+<!-- SEARCH OVERLAY -->
+<div id="searchOverlay" class="search-overlay">
+
+  <div class="search-box">
+
+    <input type="text" id="mobileSearchInput" placeholder="Search products...">
+
+    <button id="mobileSearchBtn">🔍</button>
+    <button id="closeSearch">✕</button>
+
+  </div>
+
+  <div id="searchSuggestions" class="search-suggestions"></div>
+
 </div>
+
+<!-- DRAWER -->
+<div id="drawerOverlay" class="drawer-overlay" onclick="closeDrw()"></div>
 
 <div id="drawer" class="drawer">
 
   <div class="drawer-head">
 
-    <div class="drawer-title">
-      Menu
-    </div>
+    <div class="drawer-title">Menu</div>
 
-    <button
-      class="drawer-close"
-      onclick="closeDrw()">
-
-      ×
-
-    </button>
+    <button class="drawer-close" onclick="closeDrw()">×</button>
 
   </div>
 
-  <a href="home.html">Home</a>
+  <a href="/">Home</a>
   <a href="product-list.html">All Product</a>
   <a href="product-details.html">Product Details</a>
 
-  <a
-    href="https://cradle.pencilwoodbd.com/"
-    target="_blank">
-    Cradle
-  </a>
-
+  <a href="https://cradle.pencilwoodbd.com/" target="_blank">Cradle</a>
   <a href="#">Key Holders</a>
   <a href="#">New Arrivals</a>
   <a href="#">Sale</a>
   <a href="#">Corporate</a>
 
-  <!-- LOGIN -->
-  <a
-    href="login.html"
-    class="login-btn">
-
-    👤 Login
-
-  </a>
-
-  <!-- ACCOUNT -->
-  <a
-    href="profile.html"
-    class="account-btn"
-    style="display:none;">
-
-    👤 Account
-
-  </a>
+  <a href="login.html" class="login-btn">👤 Login</a>
+  <a href="profile.html" class="account-btn" style="display:none;">👤 Account</a>
 
 </div>

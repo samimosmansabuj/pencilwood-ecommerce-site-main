@@ -40,11 +40,17 @@ function getSelectedItems() {
 ========================= */
 function updateSummaryFromSelection() {
 
-    const selected = getSelectedItems();
-
     const summaryList = document.getElementById("cartSummaryList");
     const subtotalEl = document.getElementById("cartSubtotal");
     const itemCountEl = document.getElementById("cartItemCount");
+
+    // Element na pele crash korbe na
+    if (!summaryList || !subtotalEl || !itemCountEl) {
+        console.warn("Cart summary elements not found");
+        return;
+    }
+
+    const selected = getSelectedItems();
 
     let totalQty = 0;
     let subtotal = 0;
@@ -97,14 +103,24 @@ async function loadCartItems() {
         const items = data.data;
         CART_ITEMS_CACHE = items; // 🔥 SAVE GLOBAL
 
-        if (!items.length) {
-            document.querySelector(".cart-layout").style.display = "none";
+        const cartLayout =
+            document.querySelector(".cart-layout");
+
+            if (!items.length) {
+
+            if (cartLayout) {
+                cartLayout.style.display = "none";
+            }
+
             emptyBox.style.display = "block";
             return;
-        }
+            }
 
-        emptyBox.style.display = "none";
-        document.querySelector(".cart-layout").style.display = "grid";
+            emptyBox.style.display = "none";
+
+            if (cartLayout) {
+            cartLayout.style.display = "grid";
+            }
 
         container.innerHTML = "";
 
@@ -163,7 +179,9 @@ async function loadCartItems() {
         });
 
         // initial summary = all selected
-        updateSummaryFromSelection();
+        setTimeout(() => {
+            updateSummaryFromSelection();
+        }, 100);
 
     } catch (err) {
         console.error(err);

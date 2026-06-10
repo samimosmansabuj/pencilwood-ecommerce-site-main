@@ -114,68 +114,72 @@ async function loadWishlist() {
             const slug =
                 item.slug || "";
 
-            container.innerHTML += `
-            <div class="prod-card">
-
-                <div
-                    class="prod-img"
-                    onclick="openProduct('${slug}')">
-
-                    <img
-                        src="${image}"
-                        alt="${item.name}">
-
+                container.innerHTML += `
+                <div class="wishlist-row">
+                
+                    <div
+                        class="wishlist-image"
+                        onclick="openProduct('${slug}')">
+                
+                        <img
+                            src="${image}"
+                            alt="${item.name}">
+                    </div>
+                
+                    <div class="wishlist-info">
+                
+                        <div
+                            class="wishlist-name"
+                            onclick="openProduct('${slug}')">
+                
+                            ${item.name}
+                
+                        </div>
+                
+                        <div class="wishlist-price">
+                
+                            ৳ ${
+                                item.discount_price ||
+                                item.price
+                            }
+                
+                            ${
+                                item.discount_price
+                                ? `
+                                <span class="wishlist-old">
+                                    ৳ ${item.price}
+                                </span>
+                                `
+                                : ""
+                            }
+                
+                        </div>
+                
+                    </div>
+                
+                    <div class="wishlist-actions">
+                
+                        <button
+                            class="icon-btn cart-btn"
+                            onclick="addToCart(${item.product_id})"
+                            title="Add to Cart">
+                
+                            🛒
+                
+                        </button>
+                
+                        <button
+                            class="icon-btn remove-btn"
+                            onclick="removeWishlist(${item.id})"
+                            title="Remove">
+                
+                            ✕
+                        </button>
+                
+                    </div>
+                
                 </div>
-
-                <div
-                    class="prod-name"
-                    onclick="openProduct('${slug}')">
-
-                    ${item.name}
-
-                </div>
-
-                <div class="prod-price">
-
-                    ৳ ${
-                        item.discount_price ||
-                        item.price
-                    }
-
-                    ${
-                        item.discount_price
-                        ? `
-                        <span class="prod-orig">
-                            ৳ ${item.price}
-                        </span>
-                        `
-                        : ""
-                    }
-
-                </div>
-
-                <div class="wishlist-actions">
-
-                    <button
-                        class="prod-cart"
-                        onclick="addToCart(${item.product_id})">
-
-                        + Cart
-
-                    </button>
-
-                    <button
-                        class="remove-btn"
-                        onclick="removeWishlist(${item.id})">
-
-                        Remove
-
-                    </button>
-
-                </div>
-
-            </div>
-            `;
+                `;
         });
 
     } catch (error) {

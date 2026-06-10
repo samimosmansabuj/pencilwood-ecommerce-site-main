@@ -31,11 +31,12 @@ function getAuthHeaders() {
 ========================= */
 async function loadOrders() {
 
-    const container = document.getElementById("ordersList");
+    const ordersList = document.getElementById("ordersList");
 
-    if (!container) return;
+    if (!ordersList) return;
 
-    container.innerHTML = `<p style="text-align:center">Loading orders...</p>`;
+    ordersList.innerHTML =
+        `<p style="text-align:center">Loading orders...</p>`;
 
     try {
 
@@ -47,53 +48,107 @@ async function loadOrders() {
             }
         );
 
-        const data = await res.json();
+        const response = await res.json();
 
-        console.log("ORDERS:", data);
-
-        if (!data.status) {
-            container.innerHTML = `<p style="text-align:center">Failed to load orders</p>`;
+        if (!response.status) {
+            ordersList.innerHTML =
+                `<p style="text-align:center">Failed to load orders</p>`;
             return;
         }
 
-        const orders = data.data || [];
+        const orders = response.data || [];
 
         if (!orders.length) {
-            container.innerHTML = `<p style="text-align:center">No orders yet 😢</p>`;
+            ordersList.innerHTML =
+                `<p style="text-align:center">No orders yet 😢</p>`;
             return;
         }
 
-        container.innerHTML = "";
+        ordersList.innerHTML = "";
 
         orders.forEach(order => {
 
-            const status = (order.status || "pending").toLowerCase();
+            let itemsHtml = "";
 
-            container.innerHTML += `
-                <div class="order-card" data-status="${status}">
+            order.items.forEach(item => {
+
+                itemsHtml += `
+                    <div class="order-item">
+
+                        <div class="oi-img">
+
+                            ${
+                                item.image
+                                ? `<img src="${item.image}" alt="${item.product_name}">`
+                                : "👜"
+                            }
+
+                        </div>
+
+                        <div class="oi-info">
+
+                            <div class="oi-name">
+                                ${item.name}
+                            </div>
+
+                            <div class="oi-meta">
+                                Qty: ${item.qty}
+                            </div>
+
+                        </div>
+
+                    </div>
+                `;
+            });
+
+            ordersList.innerHTML += `
+
+                <div class="order-card"
+                     data-status="${order.status}">
 
                     <div class="order-top">
-                        <div class="order-id">
-                            Order #${order.order_id}
+
+                        <div>
+
+                            <div class="order-id">
+                                Order #${order.order_id}
+                            </div>
+
+                            <div class="order-date">
+                                Placed on:
+                                ${new Date(order.date).toLocaleDateString()}
+                            </div>
+
                         </div>
 
-                        <div class="order-status ${status}">
-                            ${capitalize(status)}
+                        <div class="order-status ${order.status}">
+                            ${getStatusLabel(order.status)}
                         </div>
+
                     </div>
 
-                    <div class="order-meta">
-                        <div>Total: ৳ ${order.total}</div>
+                    <div class="order-items">
+                        ${itemsHtml}
                     </div>
 
                     <div class="order-bottom">
-                        <button class="btn-view"
+
+                        <div class="order-total">
+                            Total: ৳ ${order.total}
+                        </div>
+
+                        <button
+                            class="btn-view"
                             onclick="viewOrder('${order.order_id}')">
+
                             View Details →
+
                         </button>
+
                     </div>
 
                 </div>
+
             `;
         });
 
@@ -101,7 +156,9 @@ async function loadOrders() {
 
         console.error(err);
 
-        container.innerHTML = `<p style="text-align:center">Failed to load orders</p>`;
+        ordersList.innerHTML =
+            `<p style="text-align:center">Failed to load orders</p>`;
+
         toast("Failed to load orders");
     }
 }
@@ -119,11 +176,15 @@ function filterOrders(status, btn) {
     document.querySelectorAll(".order-card")
         .forEach(card => {
 
-            if (status === "all" || card.dataset.status === status) {
+            if (
+                status === "all" ||
+                card.dataset.status === status
+            ) {
                 card.style.display = "block";
             } else {
                 card.style.display = "none";
             }
+
         });
 }
 
@@ -135,11 +196,21 @@ function viewOrder(orderId) {
 }
 
 /* =========================
-   CAPITALIZE
+   STATUS
 ========================= */
-function capitalize(str) {
-    if (!str) return "";
-    return str.charAt(0).toUpperCase() + str.slice(1);
+function getStatusLabel(status) {
+    const map = {
+        new: "Pending",
+        follow_up: "Follow Up",
+        confirmed: "Confirmed",
+        shipped: "Shipped",
+        delivered: "Delivered",
+        cancelled: "Cancelled",
+        returned: "Returned",
+        refunded: "Refunded"
+    };
+
+    return map[status] || status;
 }
 
 /* =========================
@@ -155,6 +226,7 @@ function toast(msg) {
     }
 
     const el = document.createElement("div");
+
     el.className = "toast";
     el.innerText = msg;
 
@@ -163,7 +235,10 @@ function toast(msg) {
     setTimeout(() => el.classList.add("show"), 50);
 
     setTimeout(() => {
+
         el.classList.remove("show");
+
         setTimeout(() => el.remove(), 300);
+
     }, 2200);
 }
