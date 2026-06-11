@@ -697,12 +697,12 @@ async function quickAddCart(productId) {
             localStorage.getItem("access") ||
             localStorage.getItem("token");
 
-        if (!token) {
+            if (!token) {
 
-            toast("Please login first");
-
-            return;
-        }
+                showLoginPopup();
+            
+                return;
+            }
 
         const response = await fetch(
             `${API_BASE}/cart/add/`,
@@ -847,12 +847,14 @@ function updateAuthButtons() {
 ========================= */
 
 function openCart() {
+
     const token =
         localStorage.getItem("access") ||
         localStorage.getItem("token");
 
     if (!token) {
-        window.location.href = "login.html";
+
+        showLoginPopup();
         return;
     }
 

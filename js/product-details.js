@@ -430,11 +430,11 @@ function setupButtons(product, slug) {
                     localStorage.getItem("access") ||
                     localStorage.getItem("token");
     
-                if (!token) {
-    
-                    alert("Please login first");
-                    return;
-                }
+                    if (!token) {
+
+                        showLoginPopup();
+                        return;
+                    }
     
                 // ADD TO CART
                 const addRes = await fetch(
@@ -701,13 +701,11 @@ async function toggleWishlist(productId) {
         localStorage.getItem("access") ||
         localStorage.getItem("token");
 
-    if (!token) {
+        if (!token) {
 
-        window.location.href =
-            "login.html";
-
-        return;
-    }
+            showLoginPopup();
+            return;
+        }
 
     try {
 

@@ -356,6 +356,66 @@ function toast(msg) {
     }, 2200);
 }
 
+/* =========================
+   LOGIN REQUIRED POPUP
+========================= */
+function showLoginPopup() {
+
+    const oldPopup =
+        document.getElementById("loginRequiredPopup");
+
+    if (oldPopup) {
+        oldPopup.remove();
+    }
+
+    const popup =
+        document.createElement("div");
+
+    popup.id = "loginRequiredPopup";
+
+    popup.innerHTML = `
+        <div class="login-popup-overlay">
+            <div class="login-popup-box">
+
+                <div class="login-popup-icon">
+                    🔐
+                </div>
+
+                <h3>Login Required</h3>
+
+                <p>
+                    Please login first to use this feature.
+                </p>
+
+                <div class="login-popup-actions">
+
+                    <button
+                        class="popup-cancel-btn">
+                        Later
+                    </button>
+
+                    <button
+                        class="popup-login-btn">
+                        Login Now
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(popup);
+
+    popup.querySelector(".popup-cancel-btn")
+        .onclick = () => popup.remove();
+
+    popup.querySelector(".popup-login-btn")
+        .onclick = () => {
+            window.location.href = "login.html";
+        };
+}
+
 window.addEventListener(
     "DOMContentLoaded",
     () => {
