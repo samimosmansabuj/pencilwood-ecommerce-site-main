@@ -1,179 +1,519 @@
-/* =========================
-   CONFIG
-========================= */
-const API_BASE = "http://127.0.0.1:8000";
-
-/* =========================
+/* =========================================
    STATE
-========================= */
+========================================= */
 let checkoutData = null;
-let deliveryCharge = 60;
 
-/* =========================
+let selectedDistrictId = null;
+
+let selectedDeliveryCharge = 0;
+
+let districtsData = [];
+
+/* =========================================
    INIT
-========================= */
-window.addEventListener("DOMContentLoaded", () => {
-    loadCheckoutSummary();
-});
+========================================= */
+window.addEventListener(
+    "DOMContentLoaded",
+    async () => {
 
-/* =========================
-   AUTH HEADER
-========================= */
-function getAuthHeaders() {
+        await loadDistricts();
 
-    const token =
+        await loadSavedAddresses();
+
+        await loadCheckoutSummary();
+
+        bindDistrictChange();
+
+        bindAddressSelect();
+    }
+);
+
+/* =========================================
+   TOKEN
+========================================= */
+function getToken() {
+
+    return (
         localStorage.getItem("access") ||
-        localStorage.getItem("token");
+        localStorage.getItem("token") ||
+        ""
+    );
+}
+
+/* =========================================
+   AUTH HEADERS
+========================================= */
+function getAuthHeaders() {
 
     return {
         "Content-Type": "application/json",
-        "Authorization": `Token ${token}`
+
+        "Authorization":
+        `Bearer ${getToken()}`
     };
 }
 
-/* =========================
-   LOAD CHECKOUT SUMMARY
-========================= */
-async function loadCheckoutSummary() {
+/* =========================================
+   LOAD DISTRICTS FROM BACKEND API
+========================================= */
+async function loadDistricts() {
+
+    const districtSelect =
+        document.getElementById("ckDistrict");
+
+    if (!districtSelect) return;
 
     try {
 
         const res = await fetch(
-            `${API_BASE}/api/checkout/summary/`,
-            {
-                headers: getAuthHeaders()
-            }
+            "https://bdapi.vercel.app/api/v.1/district"
         );
 
         const data = await res.json();
 
-        console.log("CHECKOUT:", data);
+        districtSelect.innerHTML = `
+            <option value="">
+                Select District
+            </option>
+        `;
+
+        if (
+            data.status === 200 &&
+            data.success
+        ) {
+
+            districtsData = data.data;
+
+            data.data.forEach(district => {
+
+                districtSelect.innerHTML += `
+                    <option
+                        value="${district.name}"
+                        data-id="${district.id}">
+                        ${district.bn_name}
+                    </option>
+                `;
+            });
+        }
+
+    } catch (err) {
+
+        console.error(
+            "DISTRICT ERROR:",
+            err
+        );
+    }
+}
+
+/* =========================================
+   DISTRICT CHANGE
+========================================= */
+function bindDistrictChange() {
+
+    const districtSelect =
+        document.getElementById("ckDistrict");
+
+    if (!districtSelect) return;
+
+    districtSelect.addEventListener(
+        "change",
+        async () => {
+    
+            selectedDistrictId =
+                districtSelect.value;
+    
+            await loadCheckoutSummary();
+        }
+    );
+}
+
+/* =========================================
+   LOAD CHECKOUT SUMMARY
+========================================= */
+async function loadCheckoutSummary() {
+
+    try {
+
+        const selectedCartIds =
+            JSON.parse(
+                localStorage.getItem(
+                    "checkout_cart_ids"
+                )
+            ) || [];
+
+        const params =
+            new URLSearchParams();
+
+        selectedCartIds.forEach(id => {
+            params.append("cart_ids", id);
+        });
+
+        const district =
+            document.getElementById(
+                "ckDistrict"
+            )?.value;
+
+        if (district) {
+
+            params.append(
+                "district",
+                district
+            );
+        }
+
+        const res = await fetch(
+            `${API_BASE}/api/checkout/summary/?${params.toString()}`,
+            {
+                method: "GET",
+                headers: getAuthHeaders()
+            }
+        );
+
+        const data =
+            await res.json();
+
+        console.log(
+            "CHECKOUT:",
+            data
+        );
 
         if (!data.status) {
-            toast(data.message || "Failed to load checkout");
+
+            toast(
+                data.message ||
+                "Checkout failed"
+            );
+
             return;
         }
 
         checkoutData = data.data;
 
-        renderCheckoutProducts(checkoutData.items);
+        selectedDeliveryCharge =
+            Number(
+                data.data.delivery_charge || 0
+            );
 
-        renderSummary(checkoutData);
+            const deliveryText =
+            document.getElementById(
+                "deliveryChargeText"
+            );
+        
+        if (deliveryText) {
+        
+            deliveryText.innerText =
+                `৳ ${selectedDeliveryCharge}`;
+        }
+
+        renderCheckoutProducts(
+            data.data.items || []
+        );
+
+        renderSummary(
+            data.data.items || [],
+            data.data.subtotal || 0
+        );
 
     } catch (err) {
 
-        console.error(err);
+        console.error(
+            "CHECKOUT ERROR:",
+            err
+        );
 
-        toast("Checkout load failed");
+        toast(
+            "Failed to load checkout"
+        );
     }
 }
 
-/* =========================
+/* =========================================
    RENDER PRODUCTS
-========================= */
+========================================= */
 function renderCheckoutProducts(items) {
 
     const container =
-        document.getElementById("checkoutProducts");
+        document.getElementById(
+            "checkoutProducts"
+        );
 
     if (!container) return;
 
     container.innerHTML = "";
 
+    if (!items.length) {
+
+        container.innerHTML = `
+            <div class="empty-checkout">
+                No checkout items found
+            </div>
+        `;
+
+        return;
+    }
+
     items.forEach(item => {
 
         container.innerHTML += `
             <div class="ck-product">
-
+    
                 <div class="ck-product-info">
-
+    
                     <div class="ck-product-name">
                         ${item.product}
                     </div>
-
+    
                     <div class="ck-product-meta">
                         Qty: ${item.quantity}
                     </div>
-
+    
                 </div>
-
-                <div class="ck-product-price">
-                    ৳ ${item.total}
+    
+                <div class="ck-product-right">
+    
+                    <div class="ck-product-price">
+                        ৳ ${item.total}
+                    </div>
+    
                 </div>
-
+    
             </div>
         `;
     });
 }
 
-/* =========================
-   SUMMARY
-========================= */
-function renderSummary(data) {
+/* =========================================
+   RENDER SUMMARY
+========================================= */
+function renderSummary(
+    items,
+    subtotal
+) {
+
+    const summaryBox =
+        document.getElementById(
+            "checkoutSummaryItems"
+        );
+
+    if (!summaryBox) return;
+
+    summaryBox.innerHTML = "";
+
+    let breakdownHtml = "";
+
+    items.forEach(item => {
+
+        summaryBox.innerHTML += `
+            <div class="sum-row">
+
+                <span>
+                    ${item.product}
+                    × ${item.quantity}
+                </span>
+
+                <span>
+                    ৳ ${item.total}
+                </span>
+
+            </div>
+        `;
+
+        if (
+            Number(item.delivery_charge || 0) > 0
+        ) {
+
+            breakdownHtml += `
+                <div class="delivery-item">
+
+                    <span
+                        class="delivery-item-name">
+                        ${item.product}
+                    </span>
+
+                    <span
+                        class="delivery-item-charge">
+                        ৳ ${item.delivery_charge}
+                    </span>
+
+                </div>
+            `;
+        }
+    });
+
+    document.getElementById(
+        "ckSubtotal"
+    ).innerText = subtotal;
+
+    const breakdown =
+        document.getElementById(
+            "deliveryBreakdown"
+        );
+
+    if (breakdown) {
+
+        breakdown.innerHTML =
+            breakdownHtml ||
+            `
+            <div class="delivery-item">
+                No delivery charge
+            </div>
+            `;
+    }
+
+    updateTotals();
+}
+/* =========================================
+   UPDATE TOTALS
+========================================= */
+function updateTotals() {
 
     const subtotal =
-        parseFloat(data.subtotal);
+        Number(
+            document.getElementById(
+                "ckSubtotal"
+            ).innerText || 0
+        );
 
     const shipping =
-        parseFloat(data.delivery_charge);
+        Number(
+            selectedDeliveryCharge || 0
+        );
 
     const total =
-        parseFloat(data.grand_total);
+        subtotal + shipping;
 
-    document.getElementById("ckSubtotal").innerText =
-        subtotal;
+    document.getElementById(
+        "ckShipping"
+    ).innerText = shipping;
 
-    document.getElementById("ckShipping").innerText =
-        shipping;
+    document.getElementById(
+        "ckTotal"
+    ).innerText = total;
+}
 
-    document.getElementById("ckTotal").innerText =
-        total;
+/* =========================================
+   LOAD SAVED ADDRESSES
+========================================= */
+async function loadSavedAddresses() {
 
-    const summaryItems =
-        document.getElementById("checkoutSummaryItems");
+    const select =
+        document.getElementById(
+            "ckAddressSelect"
+        );
 
-    summaryItems.innerHTML = "";
+    if (!select) return;
 
-    data.items.forEach(item => {
+    const addresses =
+        JSON.parse(
+            localStorage.getItem(
+                "pw_addresses"
+            )
+        ) || [];
 
-        summaryItems.innerHTML += `
-            <div class="sum-row">
-                <span>
-                    ${item.product} × ${item.quantity}
-                </span>
+    select.innerHTML = `
+        <option value="">
+            Select Saved Address
+        </option>
+    `;
 
-                <span>
-                    ৳ ${item.total}
-                </span>
-            </div>
+    addresses.forEach((addr, index) => {
+
+        select.innerHTML += `
+            <option value="${index}">
+                ${addr.name} — ${addr.district}
+            </option>
         `;
     });
 }
 
-/* =========================
+/* =========================================
+   ADDRESS SELECT
+========================================= */
+function bindAddressSelect() {
+
+    const select =
+        document.getElementById(
+            "ckAddressSelect"
+        );
+
+    if (!select) return;
+
+    select.addEventListener(
+        "change",
+        () => {
+
+            const addresses =
+                JSON.parse(
+                    localStorage.getItem(
+                        "pw_addresses"
+                    )
+                ) || [];
+
+            const selected =
+                addresses[select.value];
+
+            if (!selected) return;
+
+            document.getElementById(
+                "ckName"
+            ).value = selected.name || "";
+
+            document.getElementById(
+                "ckPhone"
+            ).value = selected.phone || "";
+
+            document.getElementById(
+                "ckAddress"
+            ).value = selected.address || "";
+
+            const districtSelect =
+                document.getElementById(
+                    "ckDistrict"
+                );
+
+                districtSelect.value =
+                    selected.district || "";
+
+                selectedDistrictId =
+                    selected.district || "";
+                
+                loadCheckoutSummary();
+        }
+    );
+}
+
+/* =========================================
    PLACE ORDER
-========================= */
+========================================= */
 async function placeOrder() {
 
-    const address =
-        document.getElementById("ckAddress").value.trim();
-
-    const district =
-        document.getElementById("ckDistrict").value;
-
     const name =
-        document.getElementById("ckName").value.trim();
+        document.getElementById(
+            "ckName"
+        ).value.trim();
 
     const phone =
-        document.getElementById("ckPhone").value.trim();
+        document.getElementById(
+            "ckPhone"
+        ).value.trim();
+
+    const address =
+        document.getElementById(
+            "ckAddress"
+        ).value.trim();
+
+    const district =
+        document.getElementById(
+            "ckDistrict"
+        ).value;
 
     if (!name) {
-        toast("Enter your name");
+        toast("Enter name");
         return;
     }
 
     if (!phone) {
-        toast("Enter phone number");
+        toast("Enter phone");
         return;
     }
 
@@ -189,6 +529,13 @@ async function placeOrder() {
 
     try {
 
+        const selectedCartIds =
+            JSON.parse(
+                localStorage.getItem(
+                    "checkout_cart_ids"
+                )
+            ) || [];
+
         const res = await fetch(
             `${API_BASE}/api/checkout/place-order/`,
             {
@@ -197,55 +544,87 @@ async function placeOrder() {
                 headers: getAuthHeaders(),
 
                 body: JSON.stringify({
-                    address: address,
-                    district: district,
-                    upazila: ""
+
+                    cart_ids:
+                        selectedCartIds,
+                
+                    name,
+                
+                    phone,
+                
+                    address,
+                
+                    district:
+                        district
                 })
             }
         );
 
-        const data = await res.json();
+        const data =
+            await res.json();
 
-        console.log("ORDER:", data);
+        console.log(
+            "PLACE ORDER:",
+            data
+        );
 
         if (data.status) {
 
-            toast("Order placed successfully ✅");
-
+            localStorage.removeItem(
+                "checkout_cart_ids"
+            );
+        
+            showOrderSuccess();
+        
             setTimeout(() => {
-
+        
                 window.location.href =
-                    `order-success.html?order_id=${data.order_id}`;
-
-            }, 1200);
+                    "my-orders.html";
+        
+            }, 2500);
+        
 
         } else {
 
-            toast(data.message || "Order failed");
+            toast(
+                data.message ||
+                "Order failed"
+            );
         }
 
     } catch (err) {
 
-        console.error(err);
+        console.error(
+            "ORDER ERROR:",
+            err
+        );
 
-        toast("Order failed");
+        toast(
+            "Something went wrong"
+        );
     }
 }
 
-/* =========================
+/* =========================================
    TOAST
-========================= */
+========================================= */
 function toast(msg) {
 
     const c =
-        document.getElementById("toast-container");
+        document.getElementById(
+            "toast-container"
+        );
 
-    if (!c) return;
+    if (!c) {
+        alert(msg);
+        return;
+    }
 
     const el =
         document.createElement("div");
 
     el.className = "toast";
+
     el.innerText = msg;
 
     c.appendChild(el);
@@ -263,4 +642,73 @@ function toast(msg) {
         }, 300);
 
     }, 2200);
+}
+
+/* =========================================
+   SUCESS POP-UP
+========================================= */
+
+function showOrderSuccess() {
+
+    const overlay = document.createElement("div");
+
+    overlay.id = "orderSuccessModal";
+
+    overlay.innerHTML = `
+        <div class="success-modal">
+
+            <div class="success-icon">
+                ✓
+            </div>
+
+            <h2>
+                Order Placed Successfully
+            </h2>
+
+            <p>
+                Thank you for your order.
+                We have received your order and
+                will contact you soon.
+            </p>
+
+            <div class="success-order-text">
+                Redirecting to My Orders...
+            </div>
+
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    setTimeout(() => {
+        overlay.remove();
+    }, 2400);
+}
+
+function toggleDeliveryBreakdown() {
+
+    const box =
+        document.getElementById(
+            "deliveryBreakdown"
+        );
+
+    const arrow =
+        document.getElementById(
+            "deliveryArrow"
+        );
+
+    if (!box) return;
+
+    box.classList.toggle("show");
+
+    if (
+        box.classList.contains("show")
+    ) {
+
+        arrow.innerText = "▲";
+
+    } else {
+
+        arrow.innerText = "▼";
+    }
 }

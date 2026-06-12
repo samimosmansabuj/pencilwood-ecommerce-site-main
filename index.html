@@ -2,112 +2,204 @@
 <html lang="en">
 
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0">
 
-  <title>All Products — Pencilwood Leather Bangladesh</title>
+  <title>
+    Pencilwood Leather Bangladesh
+  </title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect"
+    href="https://fonts.googleapis.com">
+
   <link
     href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap"
     rel="stylesheet">
 
-  <link rel="stylesheet" href="css/home.css?v=2">
-  <link rel="stylesheet" href="css/products.css?v=2">
-  <link rel="stylesheet" href="css/product.css?v=2">
+  <link
+    rel="stylesheet"
+    href="css/home.css?v=2">
+
+  <link
+    rel="stylesheet"
+    href="css/products.css?v=2">
+
+  <link
+    rel="stylesheet"
+    href="css/product.css?v=2">
+
 </head>
 
 <body>
 
   <div id="toast-container"></div>
+
   <div id="float-wa"></div>
+
   <div id="drawer-container"></div>
 
   <div id="topnavbar-container"></div>
+
   <div id="subnavbar-container"></div>
-  <div id="bc-br" class="bc-br-section"></div>
+
+  <div
+    id="bc-br"
+    class="bc-br-section"></div>
 
   <div class="page">
 
-    <!-- HERO (UNCHANGED) -->
-    <div class="hero-slider">
-
-      <div class="slide active">
-        <div class="slide-content">
-          <div class="slide-text">
-            <h2>Cradle Collection</h2>
-            <p>Elegant • Premium • Signature Design</p>
-            <button onclick="window.open('https://cradle.pencilwoodbd.com/', '_blank')">
-              Shop Now
-            </button>
-          </div>
-          <div class="slide-img">👜</div>
-        </div>
-      </div>
-
-      <button class="slide-prev" onclick="prevSlide()">‹</button>
-      <button class="slide-next" onclick="nextSlide()">›</button>
-
-      <div class="slider-dots">
-        <span class="active"></span>
-      </div>
-
-    </div>
+    <!-- HERO -->
+    <div class="hero-slider"></div>
 
     <!-- FILTER -->
     <div class="filter-bar">
 
       <div class="filter-left">
+
         <label>
+
           <span>Category:</span>
-          <select id="filterCategory" onchange="applyFilters()">
-            <option value="all">All</option>
-            <option value="wallet">Wallet</option>
-            <option value="belt">Belt</option>
-            <option value="card-holder">Card Holder</option>
-            <option value="accessories">Accessories</option>
-            <option value="passport-holder">Passport Holder</option>
+
+          <select
+            id="filterCategory"
+            onchange="applyFilters()">
+
+            <option value="all">
+              All
+            </option>
+
+            <option value="wallet">
+              Wallet
+            </option>
+
+            <option value="belt">
+              Belt
+            </option>
+
+            <option value="card-holder">
+              Card Holder
+            </option>
+
+            <option value="accessories">
+              Accessories
+            </option>
+
+            <option value="passport-holder">
+              Passport Holder
+            </option>
+
           </select>
+
         </label>
 
         <label>
+
           <span>Sort by:</span>
-          <select id="sortBy" onchange="applyFilters()">
-            <option value="popularity">Popularity</option>
-            <option value="price-low-high">Price: Low to High</option>
-            <option value="price-high-low">Price: High to Low</option>
+
+          <select
+            id="sortBy"
+            onchange="applyFilters()">
+
+            <option value="popularity">
+              Popularity
+            </option>
+
+            <option value="price-low-high">
+              Price: Low to High
+            </option>
+
+            <option value="price-high-low">
+              Price: High to Low
+            </option>
+
+            <option value="newest">
+              Newest
+            </option>
+
           </select>
+
         </label>
+
       </div>
 
       <div class="filter-right">
-        <span id="totalProducts">Loading...</span>
+
+        <span id="totalProducts">
+          Loading...
+        </span>
+
       </div>
 
     </div>
 
-    <!-- PRODUCT GRID (NOW DYNAMIC) -->
-    <div class="products-grid" id="productsGrid"></div>
+    <!-- PRODUCTS -->
+    <div
+      class="products-grid"
+      id="productsGrid"></div>
 
-     <!-- PAGINATION -->
-     <div class="pagination">
-      <button onclick="goPage(1)">« First</button>
-      <button onclick="prevPage()">‹ Prev</button>
-      <span id="pageNumbers"></span>
-      <button onclick="nextPage()">Next ›</button>
-      <button onclick="goPage(Math.ceil(filteredProducts.length / perPage))">
-        Last »
+    <!-- PAGINATION -->
+    <div class="pagination">
+
+      <button onclick="goPage(1)">
+        « First
       </button>
+
+      <button onclick="prevPage()">
+        ‹ Prev
+      </button>
+
+      <span id="pageNumbers"></span>
+
+      <button onclick="nextPage()">
+        Next ›
+      </button>
+
+      <button
+        onclick="goPage(Math.ceil(filteredProducts.length / perPage))">
+
+        Last »
+
+      </button>
+
     </div>
 
     <!-- SOCIAL PROOF -->
     <div class="proof-banner">
-      <div class="proof-stat"><div class="proof-num">500+</div><div class="proof-lbl">Happy Customers</div></div>
-      <div class="proof-stat"><div class="proof-num">4.8★</div><div class="proof-lbl">Average Rating</div></div>
-      <div class="proof-stat"><div class="proof-num">100%</div><div class="proof-lbl">Genuine Leather</div></div>
-      <div class="proof-stat"><div class="proof-num">0%</div><div class="proof-lbl">Return Rate</div></div>
+
+      <div class="proof-stat">
+        <div class="proof-num">500+</div>
+        <div class="proof-lbl">
+          Happy Customers
+        </div>
+      </div>
+
+      <div class="proof-stat">
+        <div class="proof-num">4.8★</div>
+        <div class="proof-lbl">
+          Average Rating
+        </div>
+      </div>
+
+      <div class="proof-stat">
+        <div class="proof-num">100%</div>
+        <div class="proof-lbl">
+          Genuine Leather
+        </div>
+      </div>
+
+      <div class="proof-stat">
+        <div class="proof-num">0%</div>
+        <div class="proof-lbl">
+          Return Rate
+        </div>
+      </div>
+
     </div>
 
+    
     <!-- WHY SECTION -->
     <div class="lp-section">
       <div class="lp-head">
@@ -178,9 +270,13 @@
 
   </div>
 
-  <script src="js/main.js"></script>
-  <script src="js/loadComponents.js"></script>
+  <script src="js/env.js"></script>
 
+  <script src="js/auth.js"></script>
+
+  <script src="js/main.js"></script>
+
+  <script src="js/loadComponents.js"></script>
 
 </body>
 </html>

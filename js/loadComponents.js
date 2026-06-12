@@ -1,26 +1,43 @@
-// loadComponents.js
 async function loadComponent(id, file) {
+    const el = document.getElementById(id);
+
+    if (!el) {
+        console.warn("Missing container:", id);
+        return;
+    }
+
     const resp = await fetch(file);
     const html = await resp.text();
-    document.getElementById(id).innerHTML = html;
+
+    el.innerHTML = html;
 }
 
-/* 🔥 IMPORTANT: wait for navbar → then update count */
+/* =========================
+   INIT COMPONENTS
+========================= */
 async function initComponents() {
 
-    await loadComponent('topnavbar-container', 'components/navbar.html');
+    // 1. navbar load
+    await loadComponent("topnavbar-container", "components/navbar.html");
 
-    // ✅ AFTER navbar loads → update count
-    if (typeof updateCartCount === "function") updateCartCount();
-    if (typeof updateWishlistCount === "function") updateWishlistCount();
+    // 2. other components
+    loadComponent("drawer-container", "components/drawer.html");
+    loadComponent("toast-container", "components/toast.html");
+    loadComponent("eco-container", "components/eco-bar.html");
+    loadComponent("bc-br", "components/breadcrumb.html");
 
-    // rest load (no need to wait)
-    loadComponent('drawer-container', 'components/drawer.html');
-    loadComponent('toast-container', 'components/toast.html');
-    loadComponent('footer-container', 'components/footer.html');
-    loadComponent('eco-container', 'components/eco-bar.html');
-    loadComponent('bc-br', 'components/breadcrumb.html');
-    loadComponent('prod-hero-inner', './product.html');
+    // 3. wait DOM injection complete
+    setTimeout(() => {
+
+        if (typeof bindSearch === "function") {
+            bindSearch();
+        }
+
+        if (typeof updateAuthButtons === "function") updateAuthButtons();
+        if (typeof updateCartCountFromBackend === "function") updateCartCountFromBackend();
+        if (typeof updateWishlistCount === "function") updateWishlistCount();
+
+    }, 100);
 }
 
 initComponents();

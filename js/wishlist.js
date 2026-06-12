@@ -1,19 +1,8 @@
 /* =========================
-   CONFIG
-========================= */
-const API_BASE = "http://127.0.0.1:8000";
-
-/* =========================
-   INIT
-========================= */
-document.addEventListener("DOMContentLoaded", () => {
-    loadWishlist();
-});
-
-/* =========================
-   TOKEN
+   ── TOKEN
 ========================= */
 function getToken() {
+
     return (
         localStorage.getItem("access") ||
         localStorage.getItem("token") ||
@@ -22,12 +11,26 @@ function getToken() {
 }
 
 /* =========================
-   LOAD WISHLIST
+   ── LOAD WISHLIST
 ========================= */
 async function loadWishlist() {
 
     const container =
-        document.getElementById("wishlistContainer");
+        document.getElementById(
+            "wishlistContainer"
+        );
+
+    const emptyBox =
+        document.getElementById(
+            "emptyWishlist"
+        );
+
+    const countText =
+        document.getElementById(
+            "wishlistCountText"
+        );
+
+    if (!container) return;
 
     container.innerHTML = `
         <p>Loading wishlist...</p>
@@ -39,97 +42,152 @@ async function loadWishlist() {
             `${API_BASE}/wishlist/`,
             {
                 method: "GET",
+
                 headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Token ${getToken()}`
+                    "Authorization":
+                    `Bearer ${getToken()}`
                 }
             }
         );
 
-        const data = await response.json();
+        const data =
+            await response.json();
 
-        console.log("WISHLIST:", data);
+        console.log(
+            "WISHLIST RESPONSE:",
+            data
+        );
 
-        if (!data.status || !data.data.length) {
+        if (
+            !data.status ||
+            !Array.isArray(data.data)
+        ) {
 
             container.innerHTML = `
-                <p>Your wishlist is empty ❤️</p>
+                <p>
+                    Failed to load wishlist
+                </p>
             `;
 
             return;
         }
 
+        const items = data.data;
+
+        /* EMPTY */
+        if (!items.length) {
+
+            container.style.display =
+                "none";
+
+            emptyBox.style.display =
+                "flex";
+
+            countText.textContent =
+                "0 Items";
+
+            return;
+        }
+
+        container.style.display =
+            "grid";
+
+        emptyBox.style.display =
+            "none";
+
         container.innerHTML = "";
 
-        data.data.forEach(item => {
+        countText.textContent =
+            `${items.length} Item${items.length > 1 ? "s" : ""}`;
 
-            const slug = item.name
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, "-");
+        items.forEach(item => {
 
-            container.innerHTML += `
-                <div class="prod-card">
+            const image =
+                item.image
+                    ? (
+                        item.image.startsWith("http")
+                            ? item.image
+                            : API_BASE + item.image
+                    )
+                    : "";
 
-                    <div class="prod-img"
-                         onclick="openProduct('${slug}')">
+            const slug =
+                item.slug || "";
 
-                        <img 
-                            src="${item.image ? API_BASE + item.image : ''}"
-                            alt="${item.name}"
-                        >
-
+                container.innerHTML += `
+                <div class="wishlist-row">
+                
+                    <div
+                        class="wishlist-image"
+                        onclick="openProduct('${slug}')">
+                
+                        <img
+                            src="${image}"
+                            alt="${item.name}">
                     </div>
-
-                    <div class="prod-name"
-                         onclick="openProduct('${slug}')">
-
-                        ${item.name}
-
+                
+                    <div class="wishlist-info">
+                
+                        <div
+                            class="wishlist-name"
+                            onclick="openProduct('${slug}')">
+                
+                            ${item.name}
+                
+                        </div>
+                
+                        <div class="wishlist-price">
+                
+                            ৳ ${
+                                item.discount_price ||
+                                item.price
+                            }
+                
+                            ${
+                                item.discount_price
+                                ? `
+                                <span class="wishlist-old">
+                                    ৳ ${item.price}
+                                </span>
+                                `
+                                : ""
+                            }
+                
+                        </div>
+                
                     </div>
-
-                    <div class="prod-price">
-
-                        ৳ ${item.discount_price || item.price}
-
-                        ${
-                            item.discount_price
-                            ? `
-                            <span class="prod-orig">
-                                ৳ ${item.price}
-                            </span>
-                            `
-                            : ""
-                        }
-
-                    </div>
-
+                
                     <div class="wishlist-actions">
-
+                
                         <button
-                            class="prod-cart"
-                            onclick="addToCart(${item.product_id})">
-
-                            + Cart
-
+                            class="icon-btn cart-btn"
+                            onclick="addToCart(${item.product_id})"
+                            title="Add to Cart">
+                
+                            🛒
+                
                         </button>
-
+                
                         <button
-                            class="remove-btn"
-                            onclick="removeWishlist(${item.id})">
-
-                            Remove
-
+                            class="icon-btn remove-btn"
+                            onclick="removeWishlist(${item.id})"
+                            title="Remove">
+                
+                            ✕
                         </button>
-
+                
                     </div>
-
+                
                 </div>
-            `;
+                `;
         });
 
     } catch (error) {
 
-        console.error("WISHLIST ERROR:", error);
+        console.error(
+            "WISHLIST ERROR:",
+            error
+        );
 
         container.innerHTML = `
             <p style="color:red">
@@ -140,7 +198,7 @@ async function loadWishlist() {
 }
 
 /* =========================
-   REMOVE WISHLIST
+   ── REMOVE WISHLIST
 ========================= */
 async function removeWishlist(id) {
 
@@ -150,36 +208,47 @@ async function removeWishlist(id) {
             `${API_BASE}/wishlist/remove/${id}/`,
             {
                 method: "DELETE",
+
                 headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Token ${getToken()}`
+                    "Authorization":
+                    `Bearer ${getToken()}`
                 }
             }
         );
 
-        const data = await response.json();
+        const data =
+            await response.json();
 
         if (data.status) {
 
-            toast("Removed from wishlist");
+            toast?.(
+                "Removed from wishlist"
+            );
 
             loadWishlist();
 
+            updateWishlistCount?.();
+
         } else {
 
-            toast(data.message || "Remove failed");
+            toast?.(
+                data.message ||
+                "Remove failed"
+            );
         }
 
     } catch (error) {
 
         console.error(error);
 
-        toast("Something went wrong");
+        toast?.(
+            "Something went wrong"
+        );
     }
 }
 
 /* =========================
-   ADD TO CART
+   ── ADD TO CART
 ========================= */
 async function addToCart(productId) {
 
@@ -189,10 +258,15 @@ async function addToCart(productId) {
             `${API_BASE}/cart/add/`,
             {
                 method: "POST",
+
                 headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Token ${getToken()}`
+                    "Content-Type":
+                        "application/json",
+
+                    "Authorization":
+                    `Bearer ${getToken()}`
                 },
+
                 body: JSON.stringify({
                     product_id: productId,
                     quantity: 1
@@ -200,65 +274,57 @@ async function addToCart(productId) {
             }
         );
 
-        const data = await response.json();
+        const data =
+            await response.json();
 
         if (data.status) {
 
-            toast("Added to cart 🛒");
+            toast?.(
+                "Added to cart 🛒"
+            );
+
+            updateCartCountFromBackend?.();
 
         } else {
 
-            toast(data.message || "Failed to add");
+            toast?.(
+                data.message ||
+                "Failed to add"
+            );
         }
 
     } catch (error) {
 
         console.error(error);
 
-        toast("Something went wrong");
+        toast?.(
+            "Something went wrong"
+        );
     }
 }
 
 /* =========================
-   OPEN PRODUCT
+   ── OPEN PRODUCT
 ========================= */
 function openProduct(slug) {
+
+    if (!slug) return;
 
     window.location.href =
         `product-details.html?slug=${slug}`;
 }
 
 /* =========================
-   TOAST
+   ── INIT
 ========================= */
-function toast(message) {
+window.addEventListener(
+    "DOMContentLoaded",
+    () => {
 
-    const container =
-        document.getElementById("toast-container");
+        loadWishlist();
 
-    if (!container) {
-        alert(message);
-        return;
+        updateCartCountFromBackend?.();
+
+        updateWishlistCount?.();
     }
-
-    const toastEl = document.createElement("div");
-
-    toastEl.className = "toast";
-    toastEl.innerText = message;
-
-    container.appendChild(toastEl);
-
-    setTimeout(() => {
-        toastEl.classList.add("show");
-    }, 50);
-
-    setTimeout(() => {
-
-        toastEl.classList.remove("show");
-
-        setTimeout(() => {
-            toastEl.remove();
-        }, 300);
-
-    }, 2000);
-}
+);

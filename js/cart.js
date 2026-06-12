@@ -1,18 +1,3 @@
-/* =========================
-   CONFIG
-========================= */
-const API_BASE = "http://127.0.0.1:8000";
-
-/* =========================
-   INIT
-========================= */
-document.addEventListener("DOMContentLoaded", () => {
-    loadCartItems();
-});
-
-/* =========================
-   AUTH TOKEN
-========================= */
 function getToken() {
     return (
         localStorage.getItem("access") ||
@@ -22,286 +7,250 @@ function getToken() {
 }
 
 /* =========================
-   LOAD CART ITEMS
+   IMAGE FIX
+========================= */
+function fixImage(img) {
+    if (!img) return "";
+    if (img.startsWith("http")) return img;
+    return API_BASE + img;
+}
+
+/* =========================
+   GLOBAL STATE (NEW)
+========================= */
+let CART_ITEMS_CACHE = [];
+
+/* =========================
+   GET SELECTED ITEMS
+========================= */
+function getSelectedItems() {
+    const checkboxes = document.querySelectorAll(".cart-check:checked");
+
+    const selectedIds = Array.from(checkboxes).map(cb =>
+        Number(cb.dataset.id)
+    );
+
+    return CART_ITEMS_CACHE.filter(item =>
+        selectedIds.includes(item.id)
+    );
+}
+
+/* =========================
+   UPDATE SUMMARY BASED ON CHECKBOX
+========================= */
+function updateSummaryFromSelection() {
+
+    const summaryList = document.getElementById("cartSummaryList");
+    const subtotalEl = document.getElementById("cartSubtotal");
+    const itemCountEl = document.getElementById("cartItemCount");
+
+    // Element na pele crash korbe na
+    if (!summaryList || !subtotalEl || !itemCountEl) {
+        console.warn("Cart summary elements not found");
+        return;
+    }
+
+    const selected = getSelectedItems();
+
+    let totalQty = 0;
+    let subtotal = 0;
+
+    summaryList.innerHTML = "";
+
+    selected.forEach(item => {
+
+        totalQty += Number(item.quantity || 0);
+        subtotal += Number(item.total || 0);
+
+        summaryList.innerHTML += `
+            <div class="summary-row">
+                <span>${item.product} × ${item.quantity}</span>
+                <span>৳ ${item.total}</span>
+            </div>
+        `;
+    });
+
+    subtotalEl.textContent = `৳ ${subtotal}`;
+    itemCountEl.textContent = `${totalQty} Items`;
+}
+
+/* =========================
+   LOAD CART
 ========================= */
 async function loadCartItems() {
 
     const container = document.getElementById("cartItemsContainer");
-    const summaryList = document.getElementById("cartSummaryList");
-    const subtotalEl = document.getElementById("cartSubtotal");
+    const emptyBox = document.getElementById("emptyCartBox");
 
     container.innerHTML = `<p>Loading cart...</p>`;
 
     try {
 
-        const response = await fetch(`${API_BASE}/cart/`, {
+        const res = await fetch(`${API_BASE}/cart/`, {
             method: "GET",
             headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Token ${getToken()}`
+                "Authorization": `Bearer ${getToken()}`
             }
         });
 
-        const data = await response.json();
+        const data = await res.json();
 
-        console.log("CART DATA:", data);
-
-        if (!data.status) {
-            container.innerHTML = `
-                <p>Your cart is empty 🛒</p>
-            `;
-            summaryList.innerHTML = "";
-            subtotalEl.innerText = "৳ 0";
+        if (!data.status || !Array.isArray(data.data)) {
+            container.innerHTML = `<p>Failed to load cart</p>`;
             return;
         }
 
-        const items = data.data || [];
+        const items = data.data;
+        CART_ITEMS_CACHE = items; // 🔥 SAVE GLOBAL
 
-        if (!items.length) {
-            container.innerHTML = `
-                <p>Your cart is empty 🛒</p>
-            `;
-            summaryList.innerHTML = "";
-            subtotalEl.innerText = "৳ 0";
+        const cartLayout =
+            document.querySelector(".cart-layout");
+
+            if (!items.length) {
+
+            if (cartLayout) {
+                cartLayout.style.display = "none";
+            }
+
+            emptyBox.style.display = "block";
             return;
-        }
+            }
+
+            emptyBox.style.display = "none";
+
+            if (cartLayout) {
+            cartLayout.style.display = "grid";
+            }
 
         container.innerHTML = "";
-        summaryList.innerHTML = "";
+
+        let totalQty = 0;
 
         items.forEach(item => {
 
-            const itemHTML = `
+            totalQty += Number(item.quantity || 0);
+
+            const img = fixImage(item.image);
+            const newPrice = item.price;
+
+            container.innerHTML += `
                 <div class="cart-item">
 
-                    <div class="cart-item-left">
+                    <input
+                        type="checkbox"
+                        class="cart-check"
+                        data-id="${item.id}"
+                        checked
+                        onchange="updateSummaryFromSelection()"
+                    >
 
-                        <input 
-                            type="checkbox"
-                            class="cart-check"
-                            data-id="${item.id}"
-                            checked
-                        >
+                    <img class="cart-img" src="${img}" />
 
-                        <div class="cart-item-info">
-                            <h3>${item.product}</h3>
+                    <div class="cart-info">
 
-                            ${
-                                item.variant
-                                ? `<p>${item.variant}</p>`
-                                : ""
-                            }
-
-                            <div class="cart-price">
-                                ৳ ${item.price}
-                            </div>
-
-                            <div class="cart-qty">
-
-                                <button onclick="changeQty(${item.id}, ${item.quantity - 1})">
-                                    -
-                                </button>
-
-                                <span>${item.quantity}</span>
-
-                                <button onclick="changeQty(${item.id}, ${item.quantity + 1})">
-                                    +
-                                </button>
-
-                            </div>
-
+                        <div class="cart-name">
+                            ${item.product}
                         </div>
 
-                    </div>
-
-                    <div class="cart-item-right">
-
-                        <div class="cart-total">
+                        <div class="cart-total-price">
                             ৳ ${item.total}
                         </div>
 
-                        <button 
-                            class="remove-btn"
-                            onclick="removeCartItem(${item.id})"
-                        >
-                            Remove
-                        </button>
+                        <div class="cart-subtotal-mini">
+                            ${item.quantity} × ৳ ${newPrice}
+                        </div>
 
                     </div>
 
-                </div>
-            `;
+                    <div class="cart-qty">
 
-            container.innerHTML += itemHTML;
+                        <button onclick="changeQty(${item.id}, ${item.quantity - 1})">−</button>
 
-            summaryList.innerHTML += `
-                <div class="summary-row">
-                    <span>
-                        ${item.product} × ${item.quantity}
-                    </span>
+                        <span>${item.quantity}</span>
 
-                    <span>
-                        ৳ ${item.total}
-                    </span>
+                        <button onclick="changeQty(${item.id}, ${item.quantity + 1})">+</button>
+
+                    </div>
+
+                    <button class="remove-btn" onclick="removeCartItem(${item.id})">×</button>
+
                 </div>
             `;
         });
 
-        subtotalEl.innerText = `৳ ${data.cart_total}`;
+        // initial summary = all selected
+        setTimeout(() => {
+            updateSummaryFromSelection();
+        }, 100);
 
-    } catch (error) {
-
-        console.error("CART LOAD ERROR:", error);
-
-        container.innerHTML = `
-            <p style="color:red">
-                Failed to load cart
-            </p>
-        `;
+    } catch (err) {
+        console.error(err);
+        container.innerHTML = `<p style="color:red">Failed to load cart</p>`;
     }
 }
 
 /* =========================
-   UPDATE QUANTITY
-========================= */
-async function changeQty(cartId, quantity) {
-
-    if (quantity < 1) return;
-
-    try {
-
-        const response = await fetch(
-            `${API_BASE}/cart/update/${cartId}/`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Token ${getToken()}`
-                },
-                body: JSON.stringify({
-                    quantity: quantity
-                })
-            }
-        );
-
-        const data = await response.json();
-
-        if (data.status) {
-
-            toast("Cart updated");
-
-            loadCartItems();
-
-        } else {
-
-            toast(data.message || "Update failed");
-        }
-
-    } catch (error) {
-
-        console.error(error);
-
-        toast("Something went wrong");
-    }
-}
-
-/* =========================
-   REMOVE CART ITEM
-========================= */
-async function removeCartItem(cartId) {
-
-    try {
-
-        const response = await fetch(
-            `${API_BASE}/cart/remove/${cartId}/`,
-            {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Token ${getToken()}`
-                }
-            }
-        );
-
-        const data = await response.json();
-
-        if (data.status) {
-
-            toast("Removed from cart");
-
-            loadCartItems();
-
-        } else {
-
-            toast(data.message || "Remove failed");
-        }
-
-    } catch (error) {
-
-        console.error(error);
-
-        toast("Something went wrong");
-    }
-}
-
-/* =========================
-   CHECKOUT
+   CHECKOUT BUTTON FIX (IMPORTANT)
 ========================= */
 function goToCheckout() {
 
-    const selected = [];
-
-    document.querySelectorAll(".cart-check:checked")
-        .forEach(cb => {
-            selected.push(cb.dataset.id);
-        });
+    const selected = getSelectedItems();
 
     if (!selected.length) {
-
-        toast("Select at least one item");
-
+        toast("Select at least one product");
         return;
     }
 
+    const selectedIds = selected.map(i => i.id);
+
     localStorage.setItem(
         "checkout_cart_ids",
-        JSON.stringify(selected)
+        JSON.stringify(selectedIds)
     );
 
     window.location.href = "checkout.html";
 }
 
 /* =========================
-   TOAST
+   QTY
 ========================= */
-function toast(message) {
+async function changeQty(cartId, quantity) {
+    if (quantity < 1) return;
 
-    const container =
-        document.getElementById("toast-container");
+    const res = await fetch(`${API_BASE}/cart/update/${cartId}/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({ quantity })
+    });
 
-    if (!container) {
-        alert(message);
-        return;
-    }
+    const data = await res.json();
 
-    const toastEl = document.createElement("div");
-
-    toastEl.className = "toast";
-    toastEl.innerText = message;
-
-    container.appendChild(toastEl);
-
-    setTimeout(() => {
-        toastEl.classList.add("show");
-    }, 50);
-
-    setTimeout(() => {
-
-        toastEl.classList.remove("show");
-
-        setTimeout(() => {
-            toastEl.remove();
-        }, 300);
-
-    }, 2000);
+    if (data.status) loadCartItems();
 }
+
+/* =========================
+   REMOVE
+========================= */
+async function removeCartItem(cartId) {
+
+    const res = await fetch(`${API_BASE}/cart/remove/${cartId}/`, {
+        method: "DELETE",
+        headers: {
+            "Authorization": `Bearer ${getToken()}`
+        }
+    });
+
+    const data = await res.json();
+
+    if (data.status) loadCartItems();
+}
+
+/* =========================
+   INIT
+========================= */
+window.addEventListener("DOMContentLoaded", () => {
+    loadCartItems();
+});

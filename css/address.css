@@ -193,6 +193,29 @@ body {
     font-size: 14px;
 }
 
+.address-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    margin-bottom:20px;
+}
+
+.address-count{
+    background:#fff;
+    padding:8px 14px;
+    border-radius:999px;
+    font-size:14px;
+    font-weight:600;
+    box-shadow:0 4px 12px rgba(0,0,0,.06);
+}
+
+.addr-district{
+    font-size:14px;
+    font-weight:600;
+    color:#333;
+}
+
 /* ====== RESPONSIVE (TABLET) ====== */
 @media (max-width: 768px) {
 

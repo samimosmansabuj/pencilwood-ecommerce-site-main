@@ -2,93 +2,164 @@
 <html lang="en">
 
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login / Signup — Pencilwood</title>
 
-  <meta name="description"content="Explore Pencilwood Leather's collection of wallets, belts, card holders, and accessories. Premium genuine leather products. Free delivery in Dhaka.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0">
 
-  
-  <link rel="stylesheet" href="css/auth.css">
-  <link rel="stylesheet" href="css/home.css?v=2">
-  <link rel="stylesheet" href="css/products.css?v=2">
-  <link rel="stylesheet" href="css/product.css?v=2">
+  <title>
+    Login / Signup — Pencilwood
+  </title>
+
+  <meta
+    name="description"
+    content="Explore Pencilwood Leather's collection of wallets, belts, card holders, and accessories.">
+
+  <link rel="preconnect"
+    href="https://fonts.googleapis.com">
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <link
+    rel="stylesheet"
+    href="css/auth.css">
+
+  <link
+    rel="stylesheet"
+    href="css/home.css?v=2">
+
+  <link
+    rel="stylesheet"
+    href="css/products.css?v=2">
+
+  <link
+    rel="stylesheet"
+    href="css/product.css?v=2">
+
 </head>
 
 <body>
-  <!-- Components placeholders -->
+
+  <!-- COMPONENTS -->
   <div id="toast-container"></div>
+
   <div id="float-wa"></div>
+
   <div id="drawer-container"></div>
 
   <div id="topnavbar-container"></div>
-  <div id="subnavbar-container"></div>
-  <div id="bc-br" class="bc-br-section"></div>
 
+  <div id="subnavbar-container"></div>
+
+  <div
+    id="bc-br"
+    class="bc-br-section"></div>
+
+  <!-- AUTH PAGE -->
   <div class="auth-page">
 
     <div class="auth-box">
 
-      <!-- TOGGLE -->
+      <!-- TABS -->
       <div class="auth-tabs">
-        <button class="tab on" onclick="switchAuth('login')">Login</button>
-        <button class="tab" onclick="switchAuth('signup')">Signup</button>
+
+        <button
+          class="tab on"
+          onclick="switchAuth('login')">
+
+          Login
+
+        </button>
+
+        <button
+          class="tab"
+          onclick="switchAuth('signup')">
+
+          Signup
+
+        </button>
+
       </div>
 
       <!-- LOGIN -->
-      <div id="loginForm" class="auth-form">
-        <input type="text" placeholder="Phone / Email">
-        <input type="password" placeholder="Password">
-        <button onclick="login()">Login</button>
+      <div
+        id="loginForm"
+        class="auth-form">
+
+        <input
+          type="email"
+          id="loginPhone"
+          placeholder="Email Address">
+
+        <input
+          type="password"
+          id="loginPassword"
+          placeholder="Password">
+
+        <button onclick="loginUser()">
+          Login
+        </button>
+
       </div>
 
       <!-- SIGNUP -->
-      <div id="signupForm" class="auth-form" style="display:none">
-        <input type="text" placeholder="Full Name">
-        <input type="text" placeholder="Phone">
-        <input type="password" placeholder="Password">
-        <button onclick="signup()">Create Account</button>
+      <div
+        id="signupForm"
+        class="auth-form"
+        style="display:none">
+
+        <input
+          type="text"
+          id="signupName"
+          placeholder="Full Name">
+
+        <input
+          type="text"
+          id="signupPhone"
+          placeholder="Phone Number">
+
+        <input
+          type="email"
+          id="signupEmail"
+          placeholder="Email Address">
+
+        <input
+          type="password"
+          id="signupPassword"
+          placeholder="Password">
+
+        <button onclick="signupUser()">
+          Create Account
+        </button>
+
       </div>
 
     </div>
 
   </div>
 
-  <!-- <div id="footer-container"></div> -->
+  <!-- FOOTER -->
   <div id="eco-container"></div>
 
+  <!-- JS -->
+  <script src="js/env.js"></script>
 
   <script src="js/loadComponents.js"></script>
-  <script>
-    function switchAuth(type) {
-      const loginForm = document.getElementById('loginForm');
-      const signupForm = document.getElementById('signupForm');
 
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  <script src="js/main.js"></script>
 
-      if (type === 'login') {
-        document.querySelectorAll('.tab')[0].classList.add('on');
-        loginForm.style.display = 'flex';   // use flex for consistent layout
-        signupForm.style.display = 'none';
-      } else {
-        document.querySelectorAll('.tab')[1].classList.add('on');
-        loginForm.style.display = 'none';
-        signupForm.style.display = 'flex';
-      }
-    }
+  <script src="js/auth.js"></script>
 
-    function login() {
-      toast("Logged in!");
-      window.location.href = "profile.html";
-    }
-
-    function signup() {
-      toast("Account created!");
-      window.location.href = "profile.html";
-    }
-  </script>
+  <div id="loginLoader" class="login-loader">
+    <div class="loader-box">
+      <div class="spinner"></div>
+      <p>Logging in...</p>
+    </div>
+  </div>
 
 </body>
 
