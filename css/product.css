@@ -164,7 +164,22 @@
   gap: 12px;
   animation: pop .25s ease;
 }
-
+.variant-group { margin-bottom: 14px; }
+.variant-group-label { font-weight: 600; margin-bottom: 6px; font-size: 14px; }
+.variant-options { display: flex; gap: 8px; flex-wrap: wrap; }
+.variant-option {
+    padding: 6px 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 14px;
+}
+.variant-option.active {
+    border-color: wheat;
+    background: #C9963A;;
+    color: #fff;
+}
 /* CLOSE */
 .share-close {
   position: absolute;
