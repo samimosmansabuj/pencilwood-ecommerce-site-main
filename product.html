@@ -15,66 +15,67 @@
 
   <!-- Components placeholders -->
   <div id="toast-container"></div>
-  <div id ="float-wa"></div>
+  <div id="float-wa"></div>
   <div id="drawer-container"></div>
-  
+
   <!-- Reusable navigation bars -->
   <div id="topnavbar-container"></div>
   <div id="subnavbar-container"></div>
-  <div id="bc-br"></div>
+  <div id="bc-br" class="bc-br-section"></div>
 
   <!-- ══ PRODUCT PAGE CONTENT ══ -->
   <div class="page">
 
     <!-- PRODUCT HERO + GALLERY + INFO + DELIVERY -->
     <div class="prod-hero" data-brand="buyolexleather" data-product-id="lth-w-001" data-category="wallet">
-       
-
-    
-    <!-- LIFESTYLE -->
-    <div class="lp-section lifestyle"></div>
-
-    <!-- TABS: Description / Features / Reviews / FAQ -->
-    <div class="lp-section" id="tabsSection"></div>
-
-    
-    <!-- RELATED PRODUCTS -->
-    <div class="lp-section related-products"></div>
-
-    <!-- ECO / Other Components -->
-    <div id="eco-container"></div>
-
-  </div>
-  <!-- /page -->
-
-  <!-- STICKY BAR (mobile) -->
-  <div class="sticky-bar"></div>
-
-  <!-- Footer Component -->
-  <div id="footer-container"></div>
-
-  <!-- JS -->
-  <script src="js/env.js"></script>
-  <script src="js/main.js"></script>
-  <script src="js/loadComponents.js"></script>
-  <script>
-    function buyNow() {
-    const product = {
-        id: "lth-w-001",
-        name: "Premium Leather Wallet",
-        price: 2500,
-        qty: qty
-    };
-
-    // 🔥 ALWAYS overwrite fresh
-    localStorage.setItem("checkoutItems", JSON.stringify([product]));
-
-    window.location.href = "checkout.html";
 
 
-    localStorage.setItem("checkoutItems", JSON.stringify([product]));
-    window.location.href = "checkout.html";
-}
-  </script>
+
+      <!-- LIFESTYLE -->
+      <div class="lp-section lifestyle"></div>
+
+      <!-- TABS: Description / Features / Reviews / FAQ -->
+      <div class="lp-section" id="tabsSection"></div>
+
+
+      <!-- RELATED PRODUCTS -->
+      <div class="lp-section related-products"></div>
+
+      <!-- ECO / Other Components -->
+      <div id="eco-container"></div>
+
+    </div>
+    <!-- /page -->
+
+    <!-- STICKY BAR (mobile) -->
+    <div class="sticky-bar"></div>
+
+    <!-- Footer Component -->
+    <div id="footer-container"></div>
+
+    <!-- JS -->
+    <script src="js/env.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/loadComponents.js"></script>
+    <script>
+      function buyNow() {
+        const product = {
+          id: "lth-w-001",
+          name: "Premium Leather Wallet",
+          price: 2500,
+          qty: qty
+        };
+
+        // 🔥 ALWAYS overwrite fresh
+        localStorage.setItem("checkoutItems", JSON.stringify([product]));
+
+        window.location.href = "checkout.html";
+
+
+        localStorage.setItem("checkoutItems", JSON.stringify([product]));
+        window.location.href = "checkout.html";
+      }
+    </script>
 </body>
+
 </html>

@@ -5,36 +5,25 @@
 
   <meta charset="UTF-8">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>
     All Products — Pencilwood Leather Bangladesh
   </title>
 
-  <meta
-    name="description"
-    content="Explore Pencilwood Leather products.">
+  <meta name="description" content="Explore Pencilwood Leather products.">
 
-  <link rel="preconnect"
-    href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
 
   <link
     href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap"
     rel="stylesheet">
 
-  <link
-    rel="stylesheet"
-    href="css/home.css?v=2">
+  <link rel="stylesheet" href="css/home.css?v=2">
 
-  <link
-    rel="stylesheet"
-    href="css/products.css?v=2">
+  <link rel="stylesheet" href="css/products.css?v=2">
 
-  <link
-    rel="stylesheet"
-    href="css/product.css?v=2">
+  <link rel="stylesheet" href="css/product.css?v=2">
 
 </head>
 
@@ -50,9 +39,7 @@
 
   <div id="subnavbar-container"></div>
 
-  <div
-    id="bc-br"
-    class="bc-br-section"></div>
+  <div id="bc-br" class="bc-br-section"></div>
 
   <div class="page">
 
@@ -82,9 +69,7 @@
 
           <span>Category:</span>
 
-          <select
-            id="filterCategory"
-            onchange="applyFilters()">
+          <select id="filterCategory" onchange="applyFilters()">
 
             <option value="all">
               All
@@ -98,9 +83,7 @@
 
           <span>Sort by:</span>
 
-          <select
-            id="sortBy"
-            onchange="applyFilters()">
+          <select id="sortBy" onchange="applyFilters()">
 
             <option value="popularity">
               Popularity
@@ -135,9 +118,7 @@
     </div>
 
     <!-- PRODUCTS -->
-    <div
-      class="products-grid"
-      id="productsGrid"></div>
+    <div class="products-grid" id="productsGrid"></div>
 
     <!-- PAGINATION -->
     <div class="pagination">
@@ -156,8 +137,7 @@
         Next ›
       </button>
 
-      <button
-        onclick="goPage(Math.ceil(filteredProducts.length / perPage))">
+      <button onclick="goPage(Math.ceil(filteredProducts.length / perPage))">
 
         Last »
 
@@ -214,4 +194,5 @@
   <!-- <script src="js/product_list.js"></script> -->
 
 </body>
+
 </html>

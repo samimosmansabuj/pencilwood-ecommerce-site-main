@@ -1,80 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Order Details — Pencilwood</title>
-<meta name="description" content="View full order details, items, delivery info and reorder easily.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/home.css">
-<link rel="stylesheet" href="css/order.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Details — Pencilwood</title>
+  <meta name="description" content="View full order details, items, delivery info and reorder easily.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/home.css?v=2">
+  <link rel="stylesheet" href="css/orders.css">
+  <link rel="stylesheet" href="css/order.css">
 </head>
+
 <body>
-    
-<body>
 
-  <!-- Components -->
-  <div id="toast-container"></div>
-  <div id="float-wa"></div>
-  <div id="drawer-container"></div>
-  
-  <div id="topnavbar-container"></div>
-  <div id="subnavbar-container"></div>
-  <div id="bc-br"></div>
+  <body>
 
-  <!-- ══ ORDER DETAILS PAGE ══ -->
-  <div class="page order-page">
+    <!-- Components -->
+    <div id="toast-container"></div>
+    <div id="float-wa"></div>
+    <div id="drawer-container"></div>
 
-    <div class="order-header">
-      <div>
-        <h1>Order #<span id="orderId"></span></h1>
-        <p class="order-date"></p>
-      </div>
-      <div class="order-status" id="orderStatus"></div>
-    </div>
-  
-    <div class="order-grid">
-  
-      <!-- LEFT -->
-      <div class="order-left">
-  
-        <!-- ITEMS -->
-        <div class="card">
-          <h2>Items</h2>
-          <div class="order-items" id="orderItems"></div>
+    <div id="topnavbar-container"></div>
+    <div id="subnavbar-container"></div>
+    <div id="bc-br" class="bc-br-section"></div>
+
+    <!-- ══ ORDER DETAILS PAGE ══ -->
+    <div class="page order-page">
+
+      <div class="order-header">
+        <div>
+          <h1>Order #<span id="orderId"></span></h1>
+          <p class="order-date"></p>
         </div>
-  
-        <!-- DELIVERY -->
-        <div class="card" id="orderDelivery"></div>
-  
-        <!-- PAYMENT -->
-        <div class="card">
-          <h2>Payment</h2>
-          <p>Cash on Delivery</p>
+        <div class="order-status" id="orderStatus"></div>
+      </div>
+
+      <div class="order-grid">
+
+        <!-- LEFT -->
+        <div class="order-left">
+
+          <!-- ITEMS -->
+          <div class="card">
+            <h2>Items</h2>
+            <div class="order-items" id="orderItems"></div>
+          </div>
+
+          <!-- DELIVERY -->
+          <div class="card" id="orderDelivery"></div>
+
+          <!-- PAYMENT -->
+          <div class="card">
+            <h2>Payment</h2>
+            <p>Cash on Delivery</p>
+          </div>
+
         </div>
-  
+
+        <!-- RIGHT -->
+        <div class="order-right">
+          <div class="card" id="orderSummary"></div>
+        </div>
+
       </div>
-  
-      <!-- RIGHT -->
-      <div class="order-right">
-        <div class="card" id="orderSummary"></div>
-      </div>
-  
+
     </div>
-  
-  </div>
 
-  <!-- Footer -->
-  <!-- <div id="footer-container"></div> -->
-  <div id="eco-container"></div>
+    <!-- Footer -->
+    <!-- <div id="footer-container"></div> -->
+    <div id="eco-container"></div>
 
-  <!-- JS -->
-  <script src="js/env.js"></script>
-  <script src="js/config.js"></script>
-  <script src="js/main.js"></script>
-  <script src="js/loadComponents.js"></script>
-  <script src="js/order.js"></script>
+    <!-- JS -->
+    <script src="js/env.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/loadComponents.js"></script>
+    <script src="js/order.js"></script>
 
-</body>
+  </body>
+
 </html>

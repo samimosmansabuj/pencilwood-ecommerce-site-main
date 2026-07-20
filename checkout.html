@@ -5,33 +5,18 @@
 
   <meta charset="UTF-8">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>
     Checkout — Pencilwood
   </title>
 
-  <meta
-    name="description"
-    content="Secure checkout and place your order easily.">
+  <meta name="description" content="Secure checkout and place your order easily.">
 
-  <link rel="preconnect"
-    href="https://fonts.googleapis.com">
-
-  <link
-    href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet">
-
-  <link
-    rel="stylesheet"
-    href="css/home.css?v=2">
-
-  <link
-    rel="stylesheet"
-    href="css/checkout.css?v=2">
-
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/home.css?v=2">
+  <link rel="stylesheet" href="css/checkout.css?v=2">
 </head>
 
 <body>
@@ -47,15 +32,13 @@
 
   <div id="subnavbar-container"></div>
 
-  <div id="bc-br"></div>
+  <div id="bc-br" class="bc-br-section"></div>
 
   <!-- PAGE -->
   <div class="page">
 
     <!-- PRODUCTS -->
-    <div
-      id="checkoutProducts"
-      class="ck-products">
+    <div id="checkoutProducts" class="ck-products">
 
       <div class="ck-product">
         Loading checkout...
@@ -82,10 +65,7 @@
               Full Name
             </label>
 
-            <input
-              id="ckName"
-              type="text"
-              placeholder="Your full name">
+            <input id="ckName" type="text" placeholder="Your full name">
 
           </div>
 
@@ -95,10 +75,7 @@
               Phone Number
             </label>
 
-            <input
-              id="ckPhone"
-              type="text"
-              placeholder="01XXXXXXXXX">
+            <input id="ckPhone" type="text" placeholder="01XXXXXXXXX">
 
           </div>
 
@@ -128,15 +105,9 @@
 
             <div class="ck-address-row">
 
-              <input
-                type="text"
-                id="ckAddress"
-                class="ck-address-input"
-                placeholder="Area / Road / House">
+              <input type="text" id="ckAddress" class="ck-address-input" placeholder="Area / Road / House">
 
-              <select
-                id="ckDistrict"
-                class="ck-district">
+              <select id="ckDistrict" class="ck-district">
 
                 <option value="">
                   Select District
@@ -169,11 +140,7 @@
 
           <label class="pay-opt active">
 
-            <input
-              type="radio"
-              name="pay"
-              value="cod"
-              checked>
+            <input type="radio" name="pay" value="cod" checked>
 
             Cash on Delivery
 
@@ -181,10 +148,7 @@
 
           <label class="pay-opt">
 
-            <input
-              type="radio"
-              name="pay"
-              value="online">
+            <input type="radio" name="pay" value="online">
 
             Online Payment
 
@@ -240,9 +204,7 @@
           <!-- DELIVERY BREAKDOWN TOGGLE -->
           <div class="delivery-breakdown-wrap">
 
-            <div
-              class="delivery-breakdown-toggle"
-              onclick="toggleDeliveryBreakdown()">
+            <div class="delivery-breakdown-toggle" onclick="toggleDeliveryBreakdown()">
 
               <span>
                 Delivery Charge Details
@@ -254,9 +216,7 @@
 
             </div>
 
-            <div
-              id="deliveryBreakdown"
-              class="delivery-breakdown-list">
+            <div id="deliveryBreakdown" class="delivery-breakdown-list">
 
             </div>
 
@@ -279,9 +239,7 @@
           </div>
 
           <!-- BUTTON -->
-          <button
-            class="btn-place"
-            onclick="placeOrder()">
+          <button class="btn-place" onclick="placeOrder()">
 
             Place Order
 
