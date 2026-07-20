@@ -39,7 +39,6 @@ function getSelectedItems() {
    UPDATE SUMMARY BASED ON CHECKBOX
 ========================= */
 function updateSummaryFromSelection() {
-
     const summaryList = document.getElementById("cartSummaryList");
     const subtotalEl = document.getElementById("cartSubtotal");
     const itemCountEl = document.getElementById("cartItemCount");
@@ -58,13 +57,16 @@ function updateSummaryFromSelection() {
     summaryList.innerHTML = "";
 
     selected.forEach(item => {
-
+        const productName = item.product
+        .split(' ')
+        .slice(0, 5)
+        .join(' ') + (item.product.split(' ').length > 5 ? '...' : '');
         totalQty += Number(item.quantity || 0);
         subtotal += Number(item.total || 0);
 
         summaryList.innerHTML += `
             <div class="summary-row">
-                <span>${item.product} × ${item.quantity}</span>
+                <span>${productName} × ${item.quantity}</span>
                 <span>৳ ${item.total}</span>
             </div>
         `;
@@ -94,88 +96,70 @@ async function loadCartItems() {
         });
 
         const data = await res.json();
-
         if (!data.status || !Array.isArray(data.data)) {
             container.innerHTML = `<p>Failed to load cart</p>`;
             return;
         }
 
         const items = data.data;
-        CART_ITEMS_CACHE = items; // 🔥 SAVE GLOBAL
+        CART_ITEMS_CACHE = items;
+        const cartLayout = document.querySelector(".cart-layout");
 
-        const cartLayout =
-            document.querySelector(".cart-layout");
-
-            if (!items.length) {
-
+        if (!items.length) {
             if (cartLayout) {
                 cartLayout.style.display = "none";
             }
-
             emptyBox.style.display = "block";
             return;
-            }
+        }
 
-            emptyBox.style.display = "none";
-
-            if (cartLayout) {
-            cartLayout.style.display = "grid";
-            }
+        emptyBox.style.display = "none";
+        if (cartLayout) {
+            // cartLayout.style.display = "grid";
+        }
 
         container.innerHTML = "";
 
         let totalQty = 0;
 
         items.forEach(item => {
-
             totalQty += Number(item.quantity || 0);
-
             const img = fixImage(item.image);
             const newPrice = item.price;
+            const productName = item.product
+            .split(' ')
+            .slice(0, 5)
+            .join(' ') + (item.product.split(' ').length > 5 ? '...' : '');
 
             container.innerHTML += `
                 <div class="cart-item">
 
-                    <input
-                        type="checkbox"
-                        class="cart-check"
-                        data-id="${item.id}"
-                        checked
-                        onchange="updateSummaryFromSelection()"
-                    >
-
+                    <input type="checkbox" class="cart-check" data-id="${item.id}" checked onchange="updateSummaryFromSelection()"s>
                     <img class="cart-img" src="${img}" />
 
                     <div class="cart-info">
-
                         <div class="cart-name">
-                            ${item.product}
+                            ${productName}
                         </div>
-
                         <div class="cart-total-price">
                             ৳ ${item.total}
                         </div>
-
                         <div class="cart-subtotal-mini">
-                            ${item.quantity} × ৳ ${newPrice}
+                            ${item.quantity} x ৳ ${newPrice}
                         </div>
-
                     </div>
 
                     <div class="cart-qty">
-
                         <button onclick="changeQty(${item.id}, ${item.quantity - 1})">−</button>
-
                         <span>${item.quantity}</span>
-
                         <button onclick="changeQty(${item.id}, ${item.quantity + 1})">+</button>
-
                     </div>
 
                     <button class="remove-btn" onclick="removeCartItem(${item.id})">×</button>
 
                 </div>
             `;
+
         });
 
         // initial summary = all selected

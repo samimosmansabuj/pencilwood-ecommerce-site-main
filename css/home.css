@@ -2491,6 +2491,19 @@ img {
     transform: translateX(-50%) translateY(0)
 }
 
+
+
+
+/* Footer Section  */
+.footer-section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px
+}
+
 /* ══════════════════════════
      RESPONSIVE
   ══════════════════════════ */
@@ -2804,6 +2817,12 @@ a,
     /* FAQ touch improvement */
     .faq-q {
         padding: 14px;
+    }
+
+    /* Footer */
+    .footer-section {
+        padding: 10px 12px;
+        gap: 12px;
     }
 }
 

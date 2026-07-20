@@ -74,12 +74,8 @@ function mkStars(id, score, sz) {
    ── LOAD PRODUCTS
 ========================= */
 async function loadProducts() {
-
-    const grid =
-        document.getElementById("productsGrid");
-
-    const total =
-        document.getElementById("totalProducts");
+    const grid =document.getElementById("productsGrid");
+    const total =document.getElementById("totalProducts");
 
     if (!grid) return;
 
@@ -376,6 +372,11 @@ function renderProducts(products) {
                 : API_BASE + p.image;
         }
 
+        const productName = p.name
+            .split(' ')
+            .slice(0, 5)
+            .join(' ') + (p.name.split(' ').length > 5 ? '...' : '');
+
         grid.innerHTML += `
         <div class="prod-card">
 
@@ -385,7 +386,7 @@ function renderProducts(products) {
 
                 <img
                     src="${image}"
-                    alt="${p.name}">
+                    alt="${productName}">
 
             </div>
 
@@ -393,7 +394,7 @@ function renderProducts(products) {
                 class="prod-name"
                 onclick="openProduct('${slug}')">
 
-                ${p.name}
+                ${productName}
 
             </div>
 
@@ -488,45 +489,45 @@ function applyFilters() {
 
     let data = [...ALL_PRODUCTS];
 
-   /* CATEGORY */
-if (
-    cat &&
-    cat !== "all"
-) {
+    /* CATEGORY */
+    if (
+        cat &&
+        cat !== "all"
+    ) {
 
-    data = data.filter(p => {
+        data = data.filter(p => {
 
-        let productCat = "";
+            let productCat = "";
 
-        if (
-            p.category &&
-            typeof p.category === "object"
-        ) {
+            if (
+                p.category &&
+                typeof p.category === "object"
+            ) {
 
-            productCat =
-                p.category.name ||
-                p.category.title ||
-                "";
+                productCat =
+                    p.category.name ||
+                    p.category.title ||
+                    "";
 
-        } else {
+            } else {
 
-            productCat =
-                p.category || "";
-        }
+                productCat =
+                    p.category || "";
+            }
 
-        return (
-            productCat
-                .toString()
-                .trim()
-                .toLowerCase()
-            ===
-            cat
-                .toString()
-                .trim()
-                .toLowerCase()
-        );
-    });
-}
+            return (
+                productCat
+                    .toString()
+                    .trim()
+                    .toLowerCase()
+                ===
+                cat
+                    .toString()
+                    .trim()
+                    .toLowerCase()
+            );
+        });
+    }
 
     /* PRICE LOW */
     if (sort === "price-low-high") {
@@ -605,30 +606,30 @@ function updateCartCountFromBackend() {
         }
 
     })
-    .then(res => res.json())
-    .then(data => {
+        .then(res => res.json())
+        .then(data => {
 
-        const dot =
-            document.getElementById("cartDot");
+            const dot =
+                document.getElementById("cartDot");
 
-        if (!dot) return;
+            if (!dot) return;
 
-        const items =
-            data.data ||
-            data.results ||
-            data.cart_items ||
-            [];
+            const items =
+                data.data ||
+                data.results ||
+                data.cart_items ||
+                [];
 
-        let total = 0;
+            let total = 0;
 
-        items.forEach(i => {
-            total += i.quantity || 0;
-        });
+            items.forEach(i => {
+                total += i.quantity || 0;
+            });
 
-        dot.textContent = total;
+            dot.textContent = total;
 
-    })
-    .catch(console.error);
+        })
+        .catch(console.error);
 }
 
 /* =========================
@@ -697,12 +698,12 @@ async function quickAddCart(productId) {
             localStorage.getItem("access") ||
             localStorage.getItem("token");
 
-            if (!token) {
+        if (!token) {
 
-                showLoginPopup();
-            
-                return;
-            }
+            showLoginPopup();
+
+            return;
+        }
 
         const response = await fetch(
             `${API_BASE}/cart/add/`,

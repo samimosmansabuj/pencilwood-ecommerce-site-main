@@ -32,7 +32,6 @@
 
     <div class="cart-head">
       <h1 class="cart-title">My Cart</h1>
-
       <div class="cart-count" id="cartItemCount">0 Items</div>
     </div>
 
@@ -40,34 +39,25 @@
 
       <!-- LEFT -->
       <div class="cart-left">
-
         <div class="cart-items" id="cartItemsContainer">
           <p>Loading cart...</p>
         </div>
-
       </div>
 
       <!-- RIGHT -->
       <div class="cart-right">
-
         <div class="cart-summary">
-
           <div class="summary-title">Order Summary</div>
-
           <div id="cartSummaryList"></div>
-
           <!-- ONLY SUBTOTAL -->
           <div class="summary-row">
             <span>Subtotal</span>
             <span id="cartSubtotal">৳ 0</span>
           </div>
-
           <button class="btn-checkout" onclick="goToCheckout()">
             Proceed to Checkout
           </button>
-
         </div>
-
       </div>
 
     </div>
@@ -84,8 +74,11 @@
 
   </div>
 
-  <div id="eco-container"></div>
-  <div id="footer-container"></div>
+  <!-- FOOTER -->
+  <div class="footer-section">
+    <div id="eco-container"></div>
+    <div id="footer-container"></div>
+  </div>
 
   <script src="js/env.js"></script>
   <script src="js/config.js"></script>
