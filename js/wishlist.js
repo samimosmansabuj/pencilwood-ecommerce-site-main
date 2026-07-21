@@ -1,330 +1,316 @@
 /* =========================
-   ── TOKEN
+   TOKEN
 ========================= */
 function getToken() {
-
-    return (
-        localStorage.getItem("access") ||
-        localStorage.getItem("token") ||
-        ""
-    );
+    return localStorage.getItem("access") || localStorage.getItem("token") || "";
+}
+function isLoggedIn() {
+    return !!getToken();
 }
 
 /* =========================
-   ── LOAD WISHLIST
+   GUEST WISHLIST (localStorage)
+   Shape: [{ product_id, slug, name, image, price, discount_price }]
+========================= */
+const GUEST_WISHLIST_KEY = "guest_wishlist";
+
+function getGuestWishlist() {
+    try {
+        return JSON.parse(localStorage.getItem(GUEST_WISHLIST_KEY)) || [];
+    } catch {
+        return [];
+    }
+}
+
+function saveGuestWishlist(list) {
+    localStorage.setItem(GUEST_WISHLIST_KEY, JSON.stringify(list));
+}
+
+function guestWishlistCount() {
+    return getGuestWishlist().length;
+}
+
+function guestWishlistHas(productId) {
+    return getGuestWishlist().some(i => i.product_id === productId);
+}
+
+function guestWishlistAdd(productId, snapshot = {}) {
+    const list = getGuestWishlist();
+    if (list.some(i => i.product_id === productId)) {
+        return false; // already in wishlist
+    }
+    list.push({
+        product_id: productId,
+        slug: snapshot.slug || "",
+        name: snapshot.name || "",
+        image: snapshot.image || "",
+        price: snapshot.price || 0,
+        discount_price: snapshot.discount_price || null,
+    });
+    saveGuestWishlist(list);
+    return true;
+}
+
+function guestWishlistRemove(productId) {
+    let list = getGuestWishlist();
+    list = list.filter(i => i.product_id !== productId);
+    saveGuestWishlist(list);
+}
+
+function clearGuestWishlist() {
+    localStorage.removeItem(GUEST_WISHLIST_KEY);
+}
+
+/* =========================
+   HELPERS
+========================= */
+function fixImage(img) {
+    if (!img) return "";
+    if (img.startsWith("http")) return img;
+    return API_BASE + img;
+}
+
+function openProduct(slug) {
+    if (!slug) return;
+    window.location.href = `product-details.html?slug=${slug}`;
+}
+
+/* =========================
+   ADD TO WISHLIST (auth or guest) — called from product cards/details
+========================= */
+async function addToWishlist(productId, snapshot = {}) {
+    if (isLoggedIn()) {
+        try {
+            const response = await fetch(`${API_BASE}/wishlist/add/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${getToken()}`
+                },
+                body: JSON.stringify({ product_id: productId })
+            });
+            const data = await response.json();
+            if (data.status) {
+                toast?.("Added to wishlist ❤️");
+                updateWishlistCount?.();
+            } else {
+                toast?.(data.message || "Already in wishlist");
+            }
+        } catch (error) {
+            console.error(error);
+            toast?.("Something went wrong");
+        }
+        return;
+    }
+
+    // Guest
+    const added = guestWishlistAdd(productId, snapshot);
+    if (added) {
+        toast?.("Added to wishlist ❤️");
+    } else {
+        toast?.("Already in wishlist");
+    }
+    updateWishlistCount?.();
+}
+
+/* =========================
+   LOAD WISHLIST (auth or guest)
 ========================= */
 async function loadWishlist() {
-
-    const container =
-        document.getElementById(
-            "wishlistContainer"
-        );
-
-    const emptyBox =
-        document.getElementById(
-            "emptyWishlist"
-        );
-
-    const countText =
-        document.getElementById(
-            "wishlistCountText"
-        );
+    const container = document.getElementById("wishlistContainer");
+    const emptyBox = document.getElementById("emptyWishlist");
+    const countText = document.getElementById("wishlistCountText");
 
     if (!container) return;
 
-    container.innerHTML = `
-        <p>Loading wishlist...</p>
-    `;
+    container.innerHTML = `<p>Loading wishlist...</p>`;
+
+    let items = [];
 
     try {
-
-        const response = await fetch(
-            `${API_BASE}/wishlist/`,
-            {
+        if (isLoggedIn()) {
+            const response = await fetch(`${API_BASE}/wishlist/`, {
                 method: "GET",
+                headers: { "Authorization": `Bearer ${getToken()}` }
+            });
+            const data = await response.json();
 
-                headers: {
-                    "Authorization":
-                    `Bearer ${getToken()}`
-                }
+            if (!data.status || !Array.isArray(data.data)) {
+                container.innerHTML = `<p>Failed to load wishlist</p>`;
+                return;
             }
-        );
 
-        const data =
-            await response.json();
-
-        console.log(
-            "WISHLIST RESPONSE:",
-            data
-        );
-
-        if (
-            !data.status ||
-            !Array.isArray(data.data)
-        ) {
-
-            container.innerHTML = `
-                <p>
-                    Failed to load wishlist
-                </p>
-            `;
-
-            return;
+            items = data.data.map(i => ({
+                key: `db-${i.id}`,
+                server_id: i.id,
+                product_id: i.product_id,
+                slug: i.slug,
+                name: i.name,
+                image: i.image,
+                price: i.price,
+                discount_price: i.discount_price,
+            }));
+        } else {
+            items = getGuestWishlist().map(i => ({
+                key: `guest-${i.product_id}`,
+                server_id: null,
+                product_id: i.product_id,
+                slug: i.slug,
+                name: i.name,
+                image: i.image,
+                price: i.price,
+                discount_price: i.discount_price,
+            }));
         }
+    } catch (error) {
+        console.error("WISHLIST ERROR:", error);
+        container.innerHTML = `<p style="color:red">Failed to load wishlist</p>`;
+        return;
+    }
 
-        const items = data.data;
+    if (!items.length) {
+        container.style.display = "none";
+        if (emptyBox) emptyBox.style.display = "flex";
+        if (countText) countText.textContent = "0 Items";
+        return;
+    }
 
-        /* EMPTY */
-        if (!items.length) {
+    container.style.display = "grid";
+    if (emptyBox) emptyBox.style.display = "none";
+    if (countText) countText.textContent = `${items.length} Item${items.length > 1 ? "s" : ""}`;
 
-            container.style.display =
-                "none";
+    container.innerHTML = "";
 
-            emptyBox.style.display =
-                "flex";
+    items.forEach(item => {
+        const image = fixImage(item.image);
+        const slug = item.slug || "";
 
-            countText.textContent =
-                "0 Items";
+        container.innerHTML += `
+            <div class="wishlist-row">
 
-            return;
-        }
-
-        container.style.display =
-            "grid";
-
-        emptyBox.style.display =
-            "none";
-
-        container.innerHTML = "";
-
-        countText.textContent =
-            `${items.length} Item${items.length > 1 ? "s" : ""}`;
-
-        items.forEach(item => {
-
-            const image =
-                item.image
-                    ? (
-                        item.image.startsWith("http")
-                            ? item.image
-                            : API_BASE + item.image
-                    )
-                    : "";
-
-            const slug =
-                item.slug || "";
-
-                container.innerHTML += `
-                <div class="wishlist-row">
-                
-                    <div
-                        class="wishlist-image"
-                        onclick="openProduct('${slug}')">
-                
-                        <img
-                            src="${image}"
-                            alt="${item.name}">
-                    </div>
-                
-                    <div class="wishlist-info">
-                
-                        <div
-                            class="wishlist-name"
-                            onclick="openProduct('${slug}')">
-                
-                            ${item.name}
-                
-                        </div>
-                
-                        <div class="wishlist-price">
-                
-                            ৳ ${
-                                item.discount_price ||
-                                item.price
-                            }
-                
-                            ${
-                                item.discount_price
-                                ? `
-                                <span class="wishlist-old">
-                                    ৳ ${item.price}
-                                </span>
-                                `
-                                : ""
-                            }
-                
-                        </div>
-                
-                    </div>
-                
-                    <div class="wishlist-actions">
-                
-                        <button
-                            class="icon-btn cart-btn"
-                            onclick="addToCart(${item.product_id})"
-                            title="Add to Cart">
-                
-                            🛒
-                
-                        </button>
-                
-                        <button
-                            class="icon-btn remove-btn"
-                            onclick="removeWishlist(${item.id})"
-                            title="Remove">
-                
-                            ✕
-                        </button>
-                
-                    </div>
-                
+                <div class="wishlist-image" onclick="openProduct('${slug}')">
+                    <img src="${image}" alt="${item.name}">
                 </div>
-                `;
-        });
 
-    } catch (error) {
+                <div class="wishlist-info">
+                    <div class="wishlist-name" onclick="openProduct('${slug}')">
+                        ${item.name}
+                    </div>
 
-        console.error(
-            "WISHLIST ERROR:",
-            error
-        );
+                    <div class="wishlist-price">
+                        ৳ ${item.discount_price || item.price}
+                        ${item.discount_price ? `<span class="wishlist-old">৳ ${item.price}</span>` : ""}
+                    </div>
+                </div>
 
-        container.innerHTML = `
-            <p style="color:red">
-                Failed to load wishlist
-            </p>
+                <div class="wishlist-actions">
+                    <button class="icon-btn cart-btn" onclick="moveWishlistToCart('${item.key}')" title="Add to Cart">
+                        🛒
+                    </button>
+                    <button class="icon-btn remove-btn" onclick="removeWishlist('${item.key}')" title="Remove">
+                        ✕
+                    </button>
+                </div>
+
+            </div>
         `;
-    }
+    });
 }
 
 /* =========================
-   ── REMOVE WISHLIST
+   REMOVE WISHLIST (auth or guest, dispatched by key)
 ========================= */
-async function removeWishlist(id) {
+async function removeWishlist(key) {
+    const isGuest = key.startsWith("guest-");
+    const productId = Number(key.split("-")[1]);
 
-    try {
-
-        const response = await fetch(
-            `${API_BASE}/wishlist/remove/${id}/`,
-            {
+    if (!isGuest) {
+        const serverId = Number(key.split("-")[1]);
+        try {
+            const response = await fetch(`${API_BASE}/wishlist/remove/${serverId}/`, {
                 method: "DELETE",
-
-                headers: {
-                    "Authorization":
-                    `Bearer ${getToken()}`
-                }
+                headers: { "Authorization": `Bearer ${getToken()}` }
+            });
+            const data = await response.json();
+            if (data.status) {
+                toast?.("Removed from wishlist");
+                loadWishlist();
+                updateWishlistCount?.();
+            } else {
+                toast?.(data.message || "Remove failed");
             }
-        );
-
-        const data =
-            await response.json();
-
-        if (data.status) {
-
-            toast?.(
-                "Removed from wishlist"
-            );
-
-            loadWishlist();
-
-            updateWishlistCount?.();
-
-        } else {
-
-            toast?.(
-                data.message ||
-                "Remove failed"
-            );
+        } catch (error) {
+            console.error(error);
+            toast?.("Something went wrong");
         }
-
-    } catch (error) {
-
-        console.error(error);
-
-        toast?.(
-            "Something went wrong"
-        );
+        return;
     }
+
+    guestWishlistRemove(productId);
+    toast?.("Removed from wishlist");
+    loadWishlist();
+    updateWishlistCount?.();
 }
 
 /* =========================
-   ── ADD TO CART
+   MOVE WISHLIST ITEM -> CART
 ========================= */
-async function addToCart(productId) {
+async function moveWishlistToCart(key) {
+    const isGuest = key.startsWith("guest-");
+
+    if (!isGuest) {
+        const serverId = Number(key.split("-")[1]);
+        // Find product_id from the loaded wishlist row via a fresh fetch is overkill —
+        // simplest: re-use existing add-to-cart endpoint by product id embedded in DOM lookup.
+        // We refetch wishlist data quickly to resolve product_id for this row.
+        try {
+            const response = await fetch(`${API_BASE}/wishlist/`, {
+                headers: { "Authorization": `Bearer ${getToken()}` }
+            });
+            const data = await response.json();
+            const row = (data.data || []).find(i => i.id === serverId);
+            if (!row) return;
+            await quickAddCart(row.product_id);
+        } catch (error) {
+            console.error(error);
+            toast?.("Something went wrong");
+        }
+        return;
+    }
+
+    const productId = Number(key.split("-")[1]);
+    await quickAddCart(productId);
+}
+
+/* =========================
+   WISHLIST COUNT (navbar)
+========================= */
+async function updateWishlistCount() {
+    const dot = document.getElementById("wishCount");
+    if (!dot) return;
+
+    if (!isLoggedIn()) {
+        dot.textContent = guestWishlistCount();
+        return;
+    }
 
     try {
-
-        const response = await fetch(
-            `${API_BASE}/cart/add/`,
-            {
-                method: "POST",
-
-                headers: {
-                    "Content-Type":
-                        "application/json",
-
-                    "Authorization":
-                    `Bearer ${getToken()}`
-                },
-
-                body: JSON.stringify({
-                    product_id: productId,
-                    quantity: 1
-                })
-            }
-        );
-
-        const data =
-            await response.json();
-
-        if (data.status) {
-
-            toast?.(
-                "Added to cart 🛒"
-            );
-
-            updateCartCountFromBackend?.();
-
-        } else {
-
-            toast?.(
-                data.message ||
-                "Failed to add"
-            );
-        }
-
-    } catch (error) {
-
-        console.error(error);
-
-        toast?.(
-            "Something went wrong"
-        );
+        const res = await fetch(`${API_BASE}/wishlist/`, {
+            headers: { "Authorization": `Bearer ${getToken()}` }
+        });
+        const data = await res.json();
+        dot.textContent = (data.status && Array.isArray(data.data)) ? data.data.length : "0";
+    } catch (err) {
+        console.error("Wishlist Count Error:", err);
+        dot.textContent = "0";
     }
 }
 
 /* =========================
-   ── OPEN PRODUCT
+   INIT
 ========================= */
-function openProduct(slug) {
-
-    if (!slug) return;
-
-    window.location.href =
-        `product-details.html?slug=${slug}`;
-}
-
-/* =========================
-   ── INIT
-========================= */
-window.addEventListener(
-    "DOMContentLoaded",
-    () => {
-
-        loadWishlist();
-
-        updateCartCountFromBackend?.();
-
-        updateWishlistCount?.();
-    }
-);
+window.addEventListener("DOMContentLoaded", () => {
+    loadWishlist();
+    updateCartCountFromBackend?.();
+    updateWishlistCount?.();
+});

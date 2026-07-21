@@ -342,79 +342,68 @@ setInterval(() => {
 ========================= */
 function renderProducts(products) {
 
-    const grid =
-        document.getElementById("productsGrid");
-
+    const grid = document.getElementById("productsGrid");
     if (!grid) return;
 
     grid.innerHTML = "";
 
     if (!products.length) {
-
-        grid.innerHTML = `
-            <p>No products found</p>
-        `;
-
+        grid.innerHTML = `<p>No products found</p>`;
         return;
     }
 
     products.forEach(p => {
 
-        const slug =
-            p.slug || makeSlug(p.name);
+        const slug = p.slug || makeSlug(p.name);
 
         let image = "";
-
         if (p.image) {
-
-            image = p.image.startsWith("http")
-                ? p.image
-                : API_BASE + p.image;
+            image = p.image.startsWith("http") ? p.image : API_BASE + p.image;
         }
 
         const productName = p.name
-            .split(' ')
-            .slice(0, 5)
-            .join(' ') + (p.name.split(' ').length > 5 ? '...' : '');
+            .split(' ').slice(0, 5).join(' ') + (p.name.split(' ').length > 5 ? '...' : '');
+
+        const hasVariants = !!p.has_variants;
 
         grid.innerHTML += `
         <div class="prod-card">
 
-            <div
-                class="prod-img"
-                onclick="openProduct('${slug}')">
-
-                <img
-                    src="${image}"
-                    alt="${productName}">
-
+            <div class="prod-img" onclick="openProduct('${slug}')">
+                <img src="${image}" alt="${productName}">
             </div>
 
-            <div
-                class="prod-name"
-                onclick="openProduct('${slug}')">
-
+            <div class="prod-name" onclick="openProduct('${slug}')">
                 ${productName}
-
             </div>
 
             <div class="prod-price">
-
                 ৳ ${p.discount_price || p.price}
-
             </div>
 
             <button
                 class="prod-cart"
-                onclick="quickAddCart(${p.id})">
-
+                onclick="handleListCartClick(${p.id}, '${slug}', ${hasVariants})">
                 + Cart
-
             </button>
 
         </div>
         `;
     });
+}
+
+/* =========================
+   ── LIST-PAGE CART CLICK (variant-aware)
+========================= */
+function handleListCartClick(productId, slug, hasVariants) {
+    if (hasVariants) {
+        // Can't pick a variant from a card — send them to the product page,
+        // and tell it to auto-prompt for variant selection on load.
+        sessionStorage.setItem("prompt_variant_on_load", "cart");
+        window.location.href = `product-details.html?slug=${slug}`;
+        return;
+    }
+    quickAddCart(productId);
 }
 
 /* =========================
@@ -589,45 +578,29 @@ function openProduct(slug) {
 }
 
 /* =========================
-   ── CART COUNT
+   ── CART COUNT (guest + logged-in)
 ========================= */
 function updateCartCountFromBackend() {
 
-    const token =
-        localStorage.getItem("access") ||
-        localStorage.getItem("token");
+    const dot = document.getElementById("cartDot");
+    if (!dot) return;
 
-    if (!token) return;
+    const token = localStorage.getItem("access") || localStorage.getItem("token");
+
+    if (!token) {
+        dot.textContent = typeof guestCartCount === "function" ? guestCartCount() : "0";
+        return;
+    }
 
     fetch(`${API_BASE}/cart/`, {
-
-        headers: {
-            "Authorization": `Bearer ${token}`
-        }
-
+        headers: { "Authorization": `Bearer ${token}` }
     })
         .then(res => res.json())
         .then(data => {
-
-            const dot =
-                document.getElementById("cartDot");
-
-            if (!dot) return;
-
-            const items =
-                data.data ||
-                data.results ||
-                data.cart_items ||
-                [];
-
+            const items = data.data || data.results || data.cart_items || [];
             let total = 0;
-
-            items.forEach(i => {
-                total += i.quantity || 0;
-            });
-
+            items.forEach(i => { total += i.quantity || 0; });
             dot.textContent = total;
-
         })
         .catch(console.error);
 }
@@ -688,61 +661,45 @@ async function updateWishlistCount() {
 }
 
 /* =========================
-   ── QUICK ADD CART
+   ── QUICK ADD CART (guest + logged-in, simple products only)
 ========================= */
-async function quickAddCart(productId) {
+async function quickAddCart(productId, variantId = null, snapshot = null) {
+
+    const token = localStorage.getItem("access") || localStorage.getItem("token");
+
+    if (!token) {
+        const product = ALL_PRODUCTS.find(p => p.id === productId);
+        guestCartAdd(productId, variantId, 1, snapshot || {
+            name: product?.name || "",
+            image: product?.image || "",
+            price: product?.price || 0,
+            discount_price: product?.discount_price || null,
+        });
+        toast("Added to cart 🛒");
+        updateCartCountFromBackend();
+        return;
+    }
 
     try {
+        const payload = { product_id: productId, quantity: 1 };
+        if (variantId) payload.variant_id = variantId;
 
-        const token =
-            localStorage.getItem("access") ||
-            localStorage.getItem("token");
+        const response = await fetch(`${API_BASE}/cart/add/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+            body: JSON.stringify(payload)
+        });
 
-        if (!token) {
-
-            showLoginPopup();
-
-            return;
-        }
-
-        const response = await fetch(
-            `${API_BASE}/cart/add/`,
-            {
-                method: "POST",
-
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-
-                body: JSON.stringify({
-                    product_id: productId,
-                    quantity: 1
-                })
-            }
-        );
-
-        const data =
-            await response.json();
+        const data = await response.json();
 
         if (data.status) {
-
             toast("Added to cart 🛒");
-
             updateCartCountFromBackend();
-
         } else {
-
-            toast(
-                data.message ||
-                "Failed to add cart"
-            );
+            toast(data.message || "Failed to add cart");
         }
-
     } catch (err) {
-
         console.error(err);
-
         toast("Something went wrong");
     }
 }
@@ -846,32 +803,18 @@ function updateAuthButtons() {
 /* =========================
    GLOBAL NAVIGATION
 ========================= */
-
 function openCart() {
-
-    const token =
-        localStorage.getItem("access") ||
-        localStorage.getItem("token");
-
-    if (!token) {
-
-        showLoginPopup();
-        return;
-    }
-
+    // guests can view their local cart too — no login gate
     window.location.href = "cart.html";
 }
 
 function openWishlist() {
-    const token =
-        localStorage.getItem("access") ||
-        localStorage.getItem("token");
+    const token = localStorage.getItem("access") || localStorage.getItem("token");
 
     if (!token) {
-        window.location.href = "login.html";
+        showLoginPopup();
         return;
     }
-
     window.location.href = "wishlist.html";
 }
 

@@ -4,12 +4,8 @@
 <head>
 
   <meta charset="UTF-8">
-
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>
-    Login / Signup — Pencilwood
-  </title>
+  <title>Login — Pencilwood</title>
 
   <meta name="description"
     content="Explore Pencilwood Leather's collection of wallets, belts, card holders, and accessories.">
@@ -21,11 +17,8 @@
     rel="stylesheet">
 
   <link rel="stylesheet" href="css/auth.css">
-
   <link rel="stylesheet" href="css/home.css?v=2">
-
   <link rel="stylesheet" href="css/products.css?v=2">
-
   <link rel="stylesheet" href="css/product.css?v=2">
 
 </head>
@@ -34,15 +27,10 @@
 
   <!-- COMPONENTS -->
   <div id="toast-container"></div>
-
   <div id="float-wa"></div>
-
   <div id="drawer-container"></div>
-
   <div id="topnavbar-container"></div>
-
   <div id="subnavbar-container"></div>
-
   <div id="bc-br" class="bc-br-section"></div>
 
   <!-- AUTH PAGE -->
@@ -50,49 +38,34 @@
 
     <div class="auth-box">
 
-      <!-- TABS -->
       <div class="auth-tabs">
-
-        <button class="tab on" onclick="switchAuth('login')">
-
-          Login
-
-        </button>
-
-        <button class="tab" onclick="switchAuth('signup')">
-
-          Signup
-
-        </button>
-
+        <button class="tab on">Login</button>
       </div>
 
-      <!-- LOGIN -->
-      <div id="loginForm" class="auth-form">
+      <!-- STEP 1: PHONE -->
+      <div id="phoneStep" class="auth-form">
+        <input type="tel" id="loginPhone" placeholder="Phone Number (e.g. 01XXXXXXXXX)">
+        <button onclick="submitPhoneStep()">Next</button>
+      </div>
 
-        <input type="email" id="loginPhone" placeholder="Email Address">
+      <!-- STEP 2: PASSWORD -->
+      <div id="passwordStep" class="auth-form" style="display:none">
+
+        <p id="passwordStepLabel" style="margin:0 0 5px; font-size:14px; color:#555;">
+          Enter your password
+        </p>
+
+        <div id="setPasswordNameField" style="display:none;">
+          <input type="text" id="setPasswordName" placeholder="Your Name">
+        </div>
 
         <input type="password" id="loginPassword" placeholder="Password">
 
-        <button onclick="loginUser()">
-          Login
-        </button>
+        <button onclick="submitPasswordStep()">Continue</button>
 
-      </div>
-
-      <!-- SIGNUP -->
-      <div id="signupForm" class="auth-form" style="display:none">
-
-        <input type="text" id="signupName" placeholder="Full Name">
-
-        <input type="text" id="signupPhone" placeholder="Phone Number">
-
-        <input type="email" id="signupEmail" placeholder="Email Address">
-
-        <input type="password" id="signupPassword" placeholder="Password">
-
-        <button onclick="signupUser()">
-          Create Account
+        <button type="button" onclick="backToPhoneStep()"
+          style="background:transparent; color:#666; box-shadow:none;">
+          ← Back
         </button>
 
       </div>
@@ -117,7 +90,7 @@
   <div id="loginLoader" class="login-loader">
     <div class="loader-box">
       <div class="spinner"></div>
-      <p>Logging in...</p>
+      <p>Please wait...</p>
     </div>
   </div>
 
