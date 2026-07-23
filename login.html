@@ -59,9 +59,24 @@
           <input type="text" id="setPasswordName" placeholder="Your Name">
         </div>
 
-        <input type="password" id="loginPassword" placeholder="Password">
+        <div style="position:relative;">
+          <input type="password" id="loginPassword" placeholder="Password" style="width:100%; padding-right:40px;">
+          <span id="togglePasswordIcon" onclick="togglePasswordVisibility()"
+                style="position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; user-select:none; display:flex; align-items:center; color:#888;">
+            <!-- eye (closed = show password state) -->
+            <svg id="eyeOpen" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <svg id="eyeClosed" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+              <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a19.86 19.86 0 0 1 5.06-6.06M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 8 11 8a19.86 19.86 0 0 1-2.16 3.19"></path>
+              <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          </span>
+        </div>
 
-        <button onclick="submitPasswordStep()">Continue</button>
+        <button id="submitPasswordBtn" onclick="submitPasswordStep()">Continue</button>
 
         <button type="button" onclick="backToPhoneStep()"
           style="background:transparent; color:#666; box-shadow:none;">

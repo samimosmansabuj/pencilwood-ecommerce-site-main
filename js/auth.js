@@ -1,4 +1,4 @@
-/* =========================
+/* ========Auth js=================
    PHONE LOGIN FLOW STATE
 ========================= */
 let LOGIN_FLOW_PHONE = "";
@@ -58,15 +58,6 @@ async function submitPhoneStep() {
         document.getElementById("passwordStep").style.display = "flex";
 
         const label = document.getElementById("passwordStepLabel");
-        const nameField = document.getElementById("setPasswordNameField");
-
-        if (data.action === "set_password") {
-            if (label) label.innerText = "Set a password for your account";
-            if (nameField) nameField.style.display = "block";
-        } else {
-            if (label) label.innerText = "Enter your password";
-            if (nameField) nameField.style.display = "none";
-        }
 
         document.getElementById("loginPassword")?.focus();
 
@@ -82,29 +73,29 @@ async function submitPhoneStep() {
    STEP 2: SUBMIT PASSWORD
 ========================= */
 async function submitPasswordStep() {
+    const submitBtn = document.getElementById("submitPasswordBtn");
+    if (submitBtn?.disabled) return;
+    if (submitBtn) submitBtn.disabled = true;
 
     const password = document.getElementById("loginPassword")?.value.trim();
 
     if (!password) {
         toast("Enter password");
+        if (submitBtn) submitBtn.disabled = false;
         return;
     }
-
     if (LOGIN_FLOW_ACTION === "set_password" && password.length < 6) {
         toast("Password must be at least 6 characters");
+        if (submitBtn) submitBtn.disabled = false;
         return;
     }
 
     showLoginLoader();
-
     try {
-
         let url, payload;
-
         if (LOGIN_FLOW_ACTION === "set_password") {
-            const name = document.getElementById("setPasswordName")?.value.trim() || "";
             url = `${API_BASE}/api/auth/set-password/`;
-            payload = { phone: LOGIN_FLOW_PHONE, password, name };
+            payload = { phone: LOGIN_FLOW_PHONE, password };
         } else {
             url = `${API_BASE}/api/auth/phone-login/`;
             payload = { phone: LOGIN_FLOW_PHONE, password };
@@ -115,24 +106,21 @@ async function submitPasswordStep() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
-
         const data = await response.json();
 
         if (response.ok && data.status) {
             saveAuthData(data);
             toast(LOGIN_FLOW_ACTION === "set_password" ? "Account ready ✅" : "Welcome back ✅");
-            setTimeout(() => {
-                window.location.href = "profile.html";
-            }, 700);
+            setTimeout(() => { window.location.href = "profile.html"; }, 700);
         } else {
             toast(data.message || "Login failed ❌");
         }
-
     } catch (err) {
         console.error("PASSWORD STEP ERROR:", err);
         toast("Something went wrong ❌");
     } finally {
         hideLoginLoader();
+        if (submitBtn) submitBtn.disabled = false;
     }
 }
 
@@ -182,6 +170,26 @@ function toast(msg) {
         el.classList.remove("show");
         setTimeout(() => el.remove(), 300);
     }, 2200);
+}
+
+/* =========================
+   SHOW / HIDE PASS
+========================= */
+function togglePasswordVisibility() {
+    const input = document.getElementById("loginPassword");
+    const eyeOpen = document.getElementById("eyeOpen");
+    const eyeClosed = document.getElementById("eyeClosed");
+    if (!input) return;
+
+    if (input.type === "password") {
+        input.type = "text";
+        eyeOpen.style.display = "none";
+        eyeClosed.style.display = "block";
+    } else {
+        input.type = "password";
+        eyeOpen.style.display = "block";
+        eyeClosed.style.display = "none";
+    }
 }
 
 /* =========================

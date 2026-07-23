@@ -30,30 +30,38 @@ function guestWishlistCount() {
     return getGuestWishlist().length;
 }
 
-function guestWishlistHas(productId) {
-    return getGuestWishlist().some(i => i.product_id === productId);
+function guestWishlistHas(productId, variantId = null) {
+    return getGuestWishlist().some(i =>
+        i.product_id === productId && (i.variant_id || null) === (variantId || null)
+    );
 }
 
 function guestWishlistAdd(productId, snapshot = {}) {
     const list = getGuestWishlist();
-    if (list.some(i => i.product_id === productId)) {
-        return false; // already in wishlist
+    const variantId = snapshot.variant_id || null;
+
+    if (list.some(i => i.product_id === productId && (i.variant_id || null) === variantId)) {
+        return false;
     }
     list.push({
         product_id: productId,
+        variant_id: variantId,
         slug: snapshot.slug || "",
         name: snapshot.name || "",
         image: snapshot.image || "",
         price: snapshot.price || 0,
         discount_price: snapshot.discount_price || null,
+        attributes: snapshot.attributes || null,
     });
     saveGuestWishlist(list);
     return true;
 }
 
-function guestWishlistRemove(productId) {
+function guestWishlistRemove(productId, variantId = null) {
     let list = getGuestWishlist();
-    list = list.filter(i => i.product_id !== productId);
+    list = list.filter(i =>
+        !(i.product_id === productId && (i.variant_id || null) === (variantId || null))
+    );
     saveGuestWishlist(list);
 }
 
@@ -168,6 +176,37 @@ async function loadWishlist() {
         return;
     }
 
+    if (!isLoggedIn() && items.length) {
+        try {
+            const res = await fetch(`${API_BASE}/api/ecom/products/`);
+            const data = await res.json();
+            const allProducts = data?.data || data?.results?.data || [];
+
+            items = items.map(item => {
+                const live = allProducts.find(p => p.id === item.product_id);
+                if (live) {
+                    return {
+                        ...item,
+                        price: live.price,
+                        discount_price: live.discount_price,
+                        name: live.name || item.name,
+                        image: live.image || item.image,
+                    };
+                }
+                return item;
+            });
+
+            // also refresh the stored guest wishlist so future loads/counts stay accurate
+            const guestList = getGuestWishlist().map(g => {
+                const live = allProducts.find(p => p.id === g.product_id);
+                return live ? { ...g, price: live.price, discount_price: live.discount_price } : g;
+            });
+            saveGuestWishlist(guestList);
+
+        } catch (err) {
+            console.error("Price refresh failed:", err);
+        }
+    }
     if (!items.length) {
         container.style.display = "none";
         if (emptyBox) emptyBox.style.display = "flex";
@@ -260,9 +299,6 @@ async function moveWishlistToCart(key) {
 
     if (!isGuest) {
         const serverId = Number(key.split("-")[1]);
-        // Find product_id from the loaded wishlist row via a fresh fetch is overkill —
-        // simplest: re-use existing add-to-cart endpoint by product id embedded in DOM lookup.
-        // We refetch wishlist data quickly to resolve product_id for this row.
         try {
             const response = await fetch(`${API_BASE}/wishlist/`, {
                 headers: { "Authorization": `Bearer ${getToken()}` }
@@ -270,7 +306,17 @@ async function moveWishlistToCart(key) {
             const data = await response.json();
             const row = (data.data || []).find(i => i.id === serverId);
             if (!row) return;
-            await quickAddCart(row.product_id);
+
+            await quickAddCart(row.product_id, null, {
+                name: row.name,
+                image: row.image,
+                price: row.price,
+                discount_price: row.discount_price,
+            });
+
+            // Remove from wishlist after successful add
+            await removeWishlist(key);
+
         } catch (error) {
             console.error(error);
             toast?.("Something went wrong");
@@ -278,8 +324,23 @@ async function moveWishlistToCart(key) {
         return;
     }
 
-    const productId = Number(key.split("-")[1]);
-    await quickAddCart(productId);
+    // GUEST
+    const productId = Number(key.replace("guest-", ""));
+    const wishlistRow = getGuestWishlist().find(i => i.product_id === productId);
+    if (!wishlistRow) return;
+
+    await quickAddCart(productId, null, {
+        name: wishlistRow.name,
+        image: wishlistRow.image,
+        price: wishlistRow.price,
+        discount_price: wishlistRow.discount_price,
+    });
+
+    // Remove from wishlist after successful add
+    guestWishlistRemove(productId);
+    toast?.("Moved to cart 🛒");
+    loadWishlist();
+    updateWishlistCount?.();
 }
 
 /* =========================

@@ -804,17 +804,10 @@ function updateAuthButtons() {
    GLOBAL NAVIGATION
 ========================= */
 function openCart() {
-    // guests can view their local cart too — no login gate
     window.location.href = "cart.html";
 }
 
 function openWishlist() {
-    const token = localStorage.getItem("access") || localStorage.getItem("token");
-
-    if (!token) {
-        showLoginPopup();
-        return;
-    }
     window.location.href = "wishlist.html";
 }
 

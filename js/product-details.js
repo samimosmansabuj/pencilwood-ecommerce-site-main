@@ -297,6 +297,9 @@ function selectVariantByAttributes(attrsWanted, variants, isUserClick = false) {
     // Update price + stock display
     renderPriceAndStock(match.price, match.discount_price, match.stock);
 
+    // at the end of selectVariantByAttributes(), after renderPriceAndStock(...)
+    initWishlist(CURRENT_PRODUCT.id);
+    
     // Update image if variant carries its own image(s)
     if (match.image) {
         setMainImage(match.image);
@@ -519,9 +522,10 @@ let IS_WISHLISTED = false;
 
 async function initWishlist(productId) {
     const token = localStorage.getItem("access") || localStorage.getItem("token");
+    const variantId = SELECTED_VARIANT ? SELECTED_VARIANT.id : null;
 
     if (!token) {
-        IS_WISHLISTED = guestWishlistHas(productId);
+        IS_WISHLISTED = guestWishlistHas(productId, variantId);
         renderWishlistState();
         return;
     }
@@ -532,14 +536,19 @@ async function initWishlist(productId) {
         });
         const data = await res.json();
 
+        IS_WISHLISTED = false;
+        WISHLIST_ID = null;
+
         if (data.status && Array.isArray(data.data)) {
-            const item = data.data.find(x => x.product_id == productId);
+            const item = data.data.find(x =>
+                x.product_id == productId && (x.variant_id || null) === (variantId || null)
+            );
             if (item) {
                 IS_WISHLISTED = true;
                 WISHLIST_ID = item.id;
-                renderWishlistState();
             }
         }
+        renderWishlistState();
     } catch (err) {
         console.error(err);
     }
@@ -560,19 +569,22 @@ function renderWishlistState() {
 
 async function toggleWishlist(productId) {
     const token = localStorage.getItem("access") || localStorage.getItem("token");
+    const variantId = SELECTED_VARIANT ? SELECTED_VARIANT.id : null;
 
     if (!token) {
         if (IS_WISHLISTED) {
-            guestWishlistRemove(productId);
+            guestWishlistRemove(productId, variantId);
             IS_WISHLISTED = false;
             toast?.("Removed from wishlist");
         } else {
             guestWishlistAdd(productId, {
                 slug: CURRENT_PRODUCT?.slug || "",
                 name: CURRENT_PRODUCT?.name || "",
-                image: CURRENT_PRODUCT?.images?.[0] || "",
-                price: CURRENT_PRODUCT?.price || 0,
-                discount_price: CURRENT_PRODUCT?.discount_price || null,
+                image: SELECTED_VARIANT?.image || CURRENT_PRODUCT?.images?.[0] || "",
+                price: SELECTED_VARIANT ? SELECTED_VARIANT.price : CURRENT_PRODUCT?.price || 0,
+                discount_price: SELECTED_VARIANT ? SELECTED_VARIANT.discount_price : CURRENT_PRODUCT?.discount_price || null,
+                variant_id: variantId,
+                attributes: SELECTED_VARIANT ? SELECTED_VARIANT.attributes : null,
             });
             IS_WISHLISTED = true;
             toast?.("Added to wishlist ❤️");
@@ -600,7 +612,7 @@ async function toggleWishlist(productId) {
             const res = await fetch(`${API_BASE}/wishlist/add/`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-                body: JSON.stringify({ product_id: productId })
+                body: JSON.stringify({ product_id: productId, variant_id: variantId })
             });
             const data = await res.json();
             if (data.status) {
