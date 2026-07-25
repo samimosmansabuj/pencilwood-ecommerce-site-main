@@ -128,103 +128,75 @@ function bindDistrictChange() {
 }
 
 /* =========================================
-   LOAD CHECKOUT SUMMARY
+   LOAD CHECKOUT SUMMARY (auth or guest)
 ========================================= */
 async function loadCheckoutSummary() {
 
     try {
+        const district = document.getElementById("ckDistrict")?.value;
 
-        const selectedCartIds =
-            JSON.parse(
-                localStorage.getItem(
-                    "checkout_cart_ids"
-                )
-            ) || [];
+        if (isLoggedIn()) {
+            const selectedCartIds = JSON.parse(localStorage.getItem("checkout_cart_ids")) || [];
+            const params = new URLSearchParams();
+            selectedCartIds.forEach(id => params.append("cart_ids", id));
+            if (district) params.append("district", district);
 
-        const params =
-            new URLSearchParams();
-
-        selectedCartIds.forEach(id => {
-            params.append("cart_ids", id);
-        });
-
-        const district =
-            document.getElementById(
-                "ckDistrict"
-            )?.value;
-
-        if (district) {
-
-            params.append(
-                "district",
-                district
-            );
-        }
-
-        const res = await fetch(
-            `${API_BASE}/api/checkout/summary/?${params.toString()}`,
-            {
+            const res = await fetch(`${API_BASE}/api/checkout/summary/?${params.toString()}`, {
                 method: "GET",
                 headers: getAuthHeaders()
+            });
+            const data = await res.json();
+
+            if (!data.status) {
+                toast(data.message || "Checkout failed");
+                return;
             }
-        );
 
-        const data =
-            await res.json();
+            checkoutData = data.data;
+            selectedDeliveryCharge = Number(data.data.delivery_charge || 0);
+            renderDeliveryChargeText();
+            renderCheckoutProducts(data.data.items || []);
+            renderSummary(data.data.items || [], data.data.subtotal || 0);
 
-        console.log(
-            "CHECKOUT:",
-            data
-        );
-
-        if (!data.status) {
-
-            toast(
-                data.message ||
-                "Checkout failed"
-            );
-
-            return;
-        }
-
-        checkoutData = data.data;
-
-        selectedDeliveryCharge =
-            Number(
-                data.data.delivery_charge || 0
-            );
-
-            const deliveryText =
-            document.getElementById(
-                "deliveryChargeText"
-            );
+        } else {
+            // GUEST: fetch summary from backend, passing localStorage items + district
+            const guestItems = JSON.parse(localStorage.getItem("checkout_guest_items")) || [];
         
-        if (deliveryText) {
+            if (!guestItems.length) {
+                toast("No items to checkout");
+                return;
+            }
         
-            deliveryText.innerText =
-                `৳ ${selectedDeliveryCharge}`;
+            const params = new URLSearchParams();
+            params.append("items", JSON.stringify(guestItems));
+            if (district) params.append("district", district);
+        
+            const res = await fetch(`${API_BASE}/api/checkout/summary/?${params.toString()}`, {
+                method: "GET"
+            });
+            const data = await res.json();
+        
+            if (!data.status) {
+                toast(data.message || "Checkout failed");
+                return;
+            }
+        
+            checkoutData = data.data;
+            selectedDeliveryCharge = Number(data.data.delivery_charge || 0);
+            renderDeliveryChargeText();
+            renderCheckoutProducts(data.data.items || []);
+            renderSummary(data.data.items || [], data.data.subtotal || 0);
         }
-
-        renderCheckoutProducts(
-            data.data.items || []
-        );
-
-        renderSummary(
-            data.data.items || [],
-            data.data.subtotal || 0
-        );
 
     } catch (err) {
-
-        console.error(
-            "CHECKOUT ERROR:",
-            err
-        );
-
-        toast(
-            "Failed to load checkout"
-        );
+        console.error("CHECKOUT ERROR:", err);
+        toast("Failed to load checkout");
     }
+}
+
+function renderDeliveryChargeText() {
+    const deliveryText = document.getElementById("deliveryChargeText");
+    if (deliveryText) deliveryText.innerText = `৳ ${selectedDeliveryCharge}`;
 }
 
 /* =========================================
@@ -483,125 +455,62 @@ function bindAddressSelect() {
 }
 
 /* =========================================
-   PLACE ORDER
+   PLACE ORDER (auth or guest)
 ========================================= */
 async function placeOrder() {
 
-    const name =
-        document.getElementById(
-            "ckName"
-        ).value.trim();
+    const name = document.getElementById("ckName").value.trim();
+    const phone = document.getElementById("ckPhone").value.trim();
+    const address = document.getElementById("ckAddress").value.trim();
+    const district = document.getElementById("ckDistrict").value;
 
-    const phone =
-        document.getElementById(
-            "ckPhone"
-        ).value.trim();
-
-    const address =
-        document.getElementById(
-            "ckAddress"
-        ).value.trim();
-
-    const district =
-        document.getElementById(
-            "ckDistrict"
-        ).value;
-
-    if (!name) {
-        toast("Enter name");
-        return;
-    }
-
-    if (!phone) {
-        toast("Enter phone");
-        return;
-    }
-
-    if (!address) {
-        toast("Enter address");
-        return;
-    }
-
-    if (!district) {
-        toast("Select district");
-        return;
-    }
+    if (!name) { toast("Enter name"); return; }
+    if (!phone) { toast("Enter phone"); return; }
+    if (!address) { toast("Enter address"); return; }
+    if (!district) { toast("Select district"); return; }
 
     try {
+        let body;
 
-        const selectedCartIds =
-            JSON.parse(
-                localStorage.getItem(
-                    "checkout_cart_ids"
-                )
-            ) || [];
-
-        const res = await fetch(
-            `${API_BASE}/api/checkout/place-order/`,
-            {
-                method: "POST",
-
-                headers: getAuthHeaders(),
-
-                body: JSON.stringify({
-
-                    cart_ids:
-                        selectedCartIds,
-                
-                    name,
-                
-                    phone,
-                
-                    address,
-                
-                    district:
-                        district
-                })
+        if (isLoggedIn()) {
+            const selectedCartIds = JSON.parse(localStorage.getItem("checkout_cart_ids")) || [];
+            body = { cart_ids: selectedCartIds, name, phone, address, district };
+        } else {
+            const guestItems = JSON.parse(localStorage.getItem("checkout_guest_items")) || [];
+            if (!guestItems.length) {
+                toast("No items to checkout");
+                return;
             }
-        );
+            body = { items: guestItems, name, phone, address, district };
+        }
 
-        const data =
-            await res.json();
+        const res = await fetch(`${API_BASE}/api/checkout/place-order/`, {
+            method: "POST",
+            headers: getAuthHeaders(), // sends empty Bearer for guests — backend is AllowAny, fine
+            body: JSON.stringify(body)
+        });
 
-        console.log(
-            "PLACE ORDER:",
-            data
-        );
+        const data = await res.json();
 
         if (data.status) {
+            localStorage.removeItem("checkout_cart_ids");
+            localStorage.removeItem("checkout_guest_items");
 
-            localStorage.removeItem(
-                "checkout_cart_ids"
-            );
-        
+            if (!isLoggedIn()) {
+                clearGuestCart(); // from cart.js — guest cart is now placed as an order
+            }
+
             showOrderSuccess();
-        
             setTimeout(() => {
-        
-                window.location.href =
-                    "my-orders.html";
-        
+                window.location.href = isLoggedIn() ? "my-orders.html" : "index.html";
             }, 2500);
-        
-
         } else {
-
-            toast(
-                data.message ||
-                "Order failed"
-            );
+            toast(data.message || "Order failed");
         }
 
     } catch (err) {
-
-        console.error(
-            "ORDER ERROR:",
-            err
-        );
-
-        toast(
-            "Something went wrong"
-        );
+        console.error("ORDER ERROR:", err);
+        toast("Something went wrong");
     }
 }
 

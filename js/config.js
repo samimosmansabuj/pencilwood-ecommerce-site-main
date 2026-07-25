@@ -1,4 +1,4 @@
-/* =========================
+/* ==========Config js===============
    TOKEN HELPERS  */
 function getAccessToken() {
     return localStorage.getItem("access") || "";

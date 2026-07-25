@@ -120,6 +120,13 @@ body {
     margin:auto auto 15px;
 }
 
+#togglePasswordIcon svg {
+    transition: color 0.15s ease;
+}
+#togglePasswordIcon:hover svg {
+    color: #888;
+}
+
 @keyframes spin{
     to{
         transform:rotate(360deg);

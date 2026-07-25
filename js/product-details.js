@@ -4,7 +4,32 @@
 
 let CURRENT_PRODUCT = null;
 let SELECTED_VARIANT = null;
-let VARIANT_ATTR_STATE = {}; // { color: "Red", size: "M" }
+let VARIANT_ATTR_STATE = {};
+
+function requireVariantSelection() {
+    toast?.("Please select a variant");
+
+    const groups = document.querySelectorAll(".variant-group");
+    groups.forEach(group => {
+        group.classList.add("variant-glow");
+    });
+
+    // auto-remove the glow once they click any option
+    document.querySelectorAll(".variant-option").forEach(btn => {
+        btn.addEventListener("click", clearVariantGlow, { once: true });
+    });
+
+    // also clear it automatically after a few seconds so it doesn't nag forever
+    clearTimeout(window._variantGlowTimeout);
+    window._variantGlowTimeout = setTimeout(clearVariantGlow, 2500);
+
+    // scroll the picker into view so they actually see it
+    document.getElementById("variantPickerWrap")?.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+function clearVariantGlow() {
+    document.querySelectorAll(".variant-group").forEach(g => g.classList.remove("variant-glow"));
+}
 
 /* =========================
    LOAD PRODUCT DETAILS
@@ -272,6 +297,9 @@ function selectVariantByAttributes(attrsWanted, variants, isUserClick = false) {
     // Update price + stock display
     renderPriceAndStock(match.price, match.discount_price, match.stock);
 
+    // at the end of selectVariantByAttributes(), after renderPriceAndStock(...)
+    initWishlist(CURRENT_PRODUCT.id);
+    
     // Update image if variant carries its own image(s)
     if (match.image) {
         setMainImage(match.image);
@@ -354,7 +382,7 @@ function renderPriceAndStock(price, discountPrice, stock) {
 }
 
 /* =========================
-   BUTTONS
+   BUTTONS (updated)
 ========================= */
 function setupButtons(product, slug) {
 
@@ -370,72 +398,74 @@ function setupButtons(product, slug) {
         btn.onclick = async () => {
 
             if (product.variants && product.variants.length > 0 && !SELECTED_VARIANT) {
-                toast?.("Please select a variant");
+                requireVariantSelection();
+                return;
+            }
+
+            const token = localStorage.getItem("access") || localStorage.getItem("token");
+
+            if (!token) {
+                const variant = SELECTED_VARIANT;
+                guestCartAdd(product.id, variant ? variant.id : null, 1, {
+                    name: product.name,
+                    image: product.images?.[0] || "",
+                    price: variant ? variant.price : product.price,
+                    discount_price: variant ? variant.discount_price : product.discount_price,
+                    attributes: variant ? variant.attributes : null,
+                });
+
+                localStorage.setItem("checkout_guest_items", JSON.stringify([{
+                    product_id: product.id,
+                    variant_id: variant ? variant.id : null,
+                    quantity: 1
+                }]));
+                localStorage.removeItem("checkout_cart_ids");
+
+                window.location.href = "checkout.html";
                 return;
             }
 
             try {
-
-                const token = localStorage.getItem("access") || localStorage.getItem("token");
-
-                if (!token) {
-                    showLoginPopup();
-                    return;
-                }
-
                 const payload = { product_id: product.id, quantity: 1 };
                 if (SELECTED_VARIANT) payload.variant_id = SELECTED_VARIANT.id;
 
                 const addRes = await fetch(`${API_BASE}/cart/add/`, {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`
-                    },
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
                     body: JSON.stringify(payload)
                 });
 
                 if (!addRes.ok) {
-                    const errorText = await addRes.text();
-                    console.error("ADD CART ERROR:", errorText);
-                    alert("Add to cart failed");
+                    console.error("ADD CART ERROR:", await addRes.text());
+                    toast?.("Add to cart failed");
                     return;
                 }
 
                 const addData = await addRes.json();
-
                 if (!addData.status) {
-                    alert(addData.message || "Failed to add cart");
+                    toast?.(addData.message || "Failed to add cart");
                     return;
                 }
 
                 const cartRes = await fetch(`${API_BASE}/cart/`, {
                     headers: { "Authorization": `Bearer ${token}` }
                 });
-
-                if (!cartRes.ok) {
-                    const errorText = await cartRes.text();
-                    console.error("CART ERROR:", errorText);
-                    alert("Failed to load cart");
-                    return;
-                }
-
                 const cartData = await cartRes.json();
 
                 if (!cartData.status || !Array.isArray(cartData.data) || !cartData.data.length) {
-                    alert("Cart is empty");
+                    toast?.("Cart is empty");
                     return;
                 }
 
                 const cartItem = cartData.data[cartData.data.length - 1];
-
                 localStorage.setItem("checkout_cart_ids", JSON.stringify([cartItem.id]));
+                localStorage.removeItem("checkout_guest_items");
 
                 window.location.href = "checkout.html";
 
             } catch (err) {
                 console.error("BUY NOW ERROR:", err);
-                alert("Buy now failed");
+                toast?.("Buy now failed");
             }
         };
     });
@@ -449,10 +479,16 @@ function setupButtons(product, slug) {
         if (!btn) return;
         btn.onclick = () => {
             if (product.variants && product.variants.length > 0 && !SELECTED_VARIANT) {
-                toast?.("Please select a variant");
+                requireVariantSelection();
                 return;
             }
-            quickAddCart(product.id, SELECTED_VARIANT ? SELECTED_VARIANT.id : null);
+            quickAddCart(product.id, SELECTED_VARIANT ? SELECTED_VARIANT.id : null, {
+                name: product.name,
+                image: SELECTED_VARIANT?.image || product.images?.[0] || "",
+                price: SELECTED_VARIANT ? SELECTED_VARIANT.price : product.price,
+                discount_price: SELECTED_VARIANT ? SELECTED_VARIANT.discount_price : product.discount_price,
+                attributes: SELECTED_VARIANT ? SELECTED_VARIANT.attributes : null,
+            });
         };
     });
 
@@ -466,8 +502,17 @@ function setupButtons(product, slug) {
 
     const wishBtn = document.getElementById("wishBtn");
     const wishIco = document.getElementById("wishIco");
-    wishBtn?.addEventListener("click", () => toggleWishlist(product.id));
-    wishIco?.addEventListener("click", () => toggleWishlist(product.id));
+
+    const wishHandler = () => {
+        if (product.variants && product.variants.length > 0 && !SELECTED_VARIANT) {
+            requireVariantSelection();
+            return;
+        }
+        toggleWishlist(product.id);
+    };
+
+    wishBtn?.addEventListener("click", wishHandler);
+    wishIco?.addEventListener("click", wishHandler);
 }
 
 /* ========================= WISHLIST ========================= */
@@ -476,9 +521,14 @@ let WISHLIST_ID = null;
 let IS_WISHLISTED = false;
 
 async function initWishlist(productId) {
-
     const token = localStorage.getItem("access") || localStorage.getItem("token");
-    if (!token) return;
+    const variantId = SELECTED_VARIANT ? SELECTED_VARIANT.id : null;
+
+    if (!token) {
+        IS_WISHLISTED = guestWishlistHas(productId, variantId);
+        renderWishlistState();
+        return;
+    }
 
     try {
         const res = await fetch(`${API_BASE}/wishlist/`, {
@@ -486,14 +536,19 @@ async function initWishlist(productId) {
         });
         const data = await res.json();
 
+        IS_WISHLISTED = false;
+        WISHLIST_ID = null;
+
         if (data.status && Array.isArray(data.data)) {
-            const item = data.data.find(x => x.product_id == productId);
+            const item = data.data.find(x =>
+                x.product_id == productId && (x.variant_id || null) === (variantId || null)
+            );
             if (item) {
                 IS_WISHLISTED = true;
                 WISHLIST_ID = item.id;
-                renderWishlistState();
             }
         }
+        renderWishlistState();
     } catch (err) {
         console.error(err);
     }
@@ -513,24 +568,39 @@ function renderWishlistState() {
 }
 
 async function toggleWishlist(productId) {
-
     const token = localStorage.getItem("access") || localStorage.getItem("token");
+    const variantId = SELECTED_VARIANT ? SELECTED_VARIANT.id : null;
 
     if (!token) {
-        showLoginPopup();
+        if (IS_WISHLISTED) {
+            guestWishlistRemove(productId, variantId);
+            IS_WISHLISTED = false;
+            toast?.("Removed from wishlist");
+        } else {
+            guestWishlistAdd(productId, {
+                slug: CURRENT_PRODUCT?.slug || "",
+                name: CURRENT_PRODUCT?.name || "",
+                image: SELECTED_VARIANT?.image || CURRENT_PRODUCT?.images?.[0] || "",
+                price: SELECTED_VARIANT ? SELECTED_VARIANT.price : CURRENT_PRODUCT?.price || 0,
+                discount_price: SELECTED_VARIANT ? SELECTED_VARIANT.discount_price : CURRENT_PRODUCT?.discount_price || null,
+                variant_id: variantId,
+                attributes: SELECTED_VARIANT ? SELECTED_VARIANT.attributes : null,
+            });
+            IS_WISHLISTED = true;
+            toast?.("Added to wishlist ❤️");
+        }
+        renderWishlistState();
+        updateWishlistCount?.();
         return;
     }
 
     try {
         if (IS_WISHLISTED) {
-
             const res = await fetch(`${API_BASE}/wishlist/remove/${WISHLIST_ID}/`, {
                 method: "DELETE",
                 headers: { "Authorization": `Bearer ${token}` }
             });
-
             const data = await res.json();
-
             if (data.status) {
                 IS_WISHLISTED = false;
                 WISHLIST_ID = null;
@@ -538,20 +608,13 @@ async function toggleWishlist(productId) {
                 updateWishlistCount();
                 toast?.("Removed from wishlist");
             }
-
         } else {
-
             const res = await fetch(`${API_BASE}/wishlist/add/`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify({ product_id: productId })
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+                body: JSON.stringify({ product_id: productId, variant_id: variantId })
             });
-
             const data = await res.json();
-
             if (data.status) {
                 IS_WISHLISTED = true;
                 renderWishlistState();
@@ -667,46 +730,6 @@ function shareTo(type) {
     closeShare();
 }
 
-/* =========================
-   QUICK ADD CART (variant-aware override)
-========================= */
-async function quickAddCart(productId, variantId = null) {
-
-    try {
-
-        const token = localStorage.getItem("access") || localStorage.getItem("token");
-
-        if (!token) {
-            showLoginPopup();
-            return;
-        }
-
-        const payload = { product_id: productId, quantity: 1 };
-        if (variantId) payload.variant_id = variantId;
-
-        const response = await fetch(`${API_BASE}/cart/add/`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify(payload)
-        });
-
-        const data = await response.json();
-
-        if (data.status) {
-            toast("Added to cart 🛒");
-            updateCartCountFromBackend();
-        } else {
-            toast(data.message || "Failed to add cart");
-        }
-
-    } catch (err) {
-        console.error(err);
-        toast("Something went wrong");
-    }
-}
 
 /* =========================
    INIT
@@ -715,3 +738,10 @@ window.addEventListener("DOMContentLoaded", () => {
     loadProductDetails();
     updateCartCountFromBackend?.();
 });
+
+const pendingAction = sessionStorage.getItem("prompt_variant_on_load");
+if (pendingAction && Array.isArray(product.variants) && product.variants.length > 0) {
+    sessionStorage.removeItem("prompt_variant_on_load");
+    // let the DOM paint first, then nudge
+    setTimeout(() => requireVariantSelection(), 300);
+}
