@@ -44,13 +44,17 @@ function getToken() {
    AUTH HEADERS
 ========================================= */
 function getAuthHeaders() {
-
-    return {
-        "Content-Type": "application/json",
-
-        "Authorization":
-        `Bearer ${getToken()}`
+    const headers = {
+        "Content-Type": "application/json"
     };
+
+    const token = getToken();
+
+    if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    return headers;
 }
 
 /* =========================================

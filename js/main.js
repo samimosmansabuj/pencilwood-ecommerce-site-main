@@ -74,8 +74,8 @@ function mkStars(id, score, sz) {
    ── LOAD PRODUCTS
 ========================= */
 async function loadProducts() {
-    const grid =document.getElementById("productsGrid");
-    const total =document.getElementById("totalProducts");
+    const grid = document.getElementById("productsGrid");
+    const total = document.getElementById("totalProducts");
 
     if (!grid) return;
 
@@ -130,10 +130,6 @@ async function loadProducts() {
             return (b.id || 0) - (a.id || 0);
         });
 
-        /* HERO SLIDER */
-        SLIDES = [...filteredProducts].slice(0, 3);
-
-        renderSlider();
         goPage(1);
 
         if (total) {
@@ -207,19 +203,48 @@ function loadCategories(products) {
 }
 
 /* =========================
-   ── HERO SLIDER
+   ── HERO SLIDER (now backend-driven — manual + product slides)
 ========================= */
+async function loadHeroSlider() {
+
+    const slider = document.querySelector(".hero-slider");
+    if (!slider) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/api/ecom/home-slider/`);
+        const data = await res.json();
+
+        if (data.status && Array.isArray(data.data)) {
+            SLIDES = data.data;
+        } else {
+            SLIDES = [];
+        }
+
+        renderSlider();
+
+    } catch (err) {
+        console.error("HERO SLIDER LOAD ERROR:", err);
+        SLIDES = [];
+        renderSlider();
+    }
+}
+
 function renderSlider() {
 
     const slider = document.querySelector(".hero-slider");
 
-    if (!slider || SLIDES.length === 0) return;
+    if (!slider) return;
 
-    currentSlide = 0; // ✅ IMPORTANT FIX
+    if (!SLIDES.length) {
+        slider.innerHTML = "";
+        return;
+    }
+
+    currentSlide = 0;
 
     let dots = "";
 
-    const slidesHTML = SLIDES.map((p, i) => {
+    const slidesHTML = SLIDES.map((s, i) => {
 
         dots += `
             <span onclick="goSlide(${i})"
@@ -227,10 +252,14 @@ function renderSlider() {
             </span>
         `;
 
-        let image = p.image
-            ? (p.image.startsWith("http")
-                ? p.image
-                : API_BASE + p.image)
+        let image = s.image
+            ? (s.image.startsWith("http")
+                ? s.image
+                : API_BASE + s.image)
+            : "";
+
+        const priceHTML = s.price
+            ? `<p>৳ ${s.price}</p>`
             : "";
 
         return `
@@ -240,18 +269,18 @@ function renderSlider() {
 
                 <div class="slide-text">
 
-                    <h2>${p.name}</h2>
+                    <h2>${s.title || ""}</h2>
 
-                    <p>৳ ${p.discount_price || p.price}</p>
+                    ${priceHTML}
 
-                    <button onclick="openProduct('${p.slug || makeSlug(p.name)}')">
-                        View Product
+                    <button onclick="goSliderLink('${s.url}')">
+                        ${s.button_name || "Shop Now"}
                     </button>
 
                 </div>
 
                 <div class="slide-img">
-                    <img src="${image}" alt="${p.name}">
+                    <img src="${image}" alt="${s.title || ""}">
                 </div>
 
             </div>
@@ -271,7 +300,12 @@ function renderSlider() {
         </div>
     `;
 
-    startSliderAuto(); // ✅ IMPORTANT
+    startSliderAuto();
+}
+
+function goSliderLink(url) {
+    if (!url || url === "#") return;
+    window.location.href = url;
 }
 
 function startSliderAuto() {
@@ -328,14 +362,6 @@ function prevSlide() {
 function goSlide(i) {
     showSlide(i);
 }
-
-setInterval(() => {
-
-    if (SLIDES.length > 0) {
-        nextSlide();
-    }
-
-}, 3000);
 
 /* =========================
    ── PRODUCTS GRID
@@ -397,8 +423,6 @@ function renderProducts(products) {
 ========================= */
 function handleListCartClick(productId, slug, hasVariants) {
     if (hasVariants) {
-        // Can't pick a variant from a card — send them to the product page,
-        // and tell it to auto-prompt for variant selection on load.
         sessionStorage.setItem("prompt_variant_on_load", "cart");
         window.location.href = `product-details.html?slug=${slug}`;
         return;
@@ -849,7 +873,6 @@ function applySearch(query) {
 function goSearch(query) {
     if (!query) return;
 
-    // page reload with query
     window.location.href =
         `product-list.html?search=${encodeURIComponent(query)}`;
 }
@@ -862,7 +885,6 @@ function bindSearch() {
     const mobileBtn = document.getElementById("mobileSearchBtn");
     const closeBtn = document.getElementById("closeSearch");
 
-    // desktop input ENTER only
     if (searchInput) {
         searchInput.onkeypress = (e) => {
             if (e.key === "Enter") {
@@ -872,7 +894,6 @@ function bindSearch() {
         };
     }
 
-    // mobile search
     if (mobileBtn && mobileInput) {
 
         mobileBtn.onclick = () => {
@@ -888,11 +909,11 @@ function bindSearch() {
         };
     }
 
-    // close overlay
     if (closeBtn) {
         closeBtn.onclick = closeSearch;
     }
 }
+
 /* =========================
    ── INIT
 ========================= */
@@ -908,6 +929,10 @@ window.addEventListener("DOMContentLoaded", () => {
         document.getElementById("productsGrid")
     ) {
         loadProducts();
+    }
+
+    if (document.querySelector(".hero-slider")) {
+        loadHeroSlider();
     }
 
     const sliderEl = document.querySelector(".hero-slider");
