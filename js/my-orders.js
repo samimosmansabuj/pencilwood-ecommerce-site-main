@@ -71,32 +71,24 @@ async function loadOrders() {
             let itemsHtml = "";
 
             order.items.forEach(item => {
-
+                const variantText = item.variant && typeof item.variant === "object"
+                    ? Object.values(item.variant).join(" / ")
+                    : "";
+            
                 itemsHtml += `
                     <div class="order-item">
-
                         <div class="oi-img">
-
-                            ${
-                                item.image
-                                ? `<img src="${item.image}" alt="${item.product_name}">`
-                                : "👜"
-                            }
-
+                            ${item.image ? `<img src="${item.image}" alt="${item.name}">` : "👜"}
                         </div>
-
                         <div class="oi-info">
-
                             <div class="oi-name">
                                 ${item.name}
+                                ${variantText ? `<span style="color:#888;font-size:12px"> (${variantText})</span>` : ""}
                             </div>
-
                             <div class="oi-meta">
                                 Qty: ${item.qty}
                             </div>
-
                         </div>
-
                     </div>
                 `;
             });

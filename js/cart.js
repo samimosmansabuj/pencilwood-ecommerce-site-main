@@ -152,12 +152,58 @@ async function loadCartItems() {
                     price: i.price,
                     total: i.total,
                     attributes: i.variant,
+                    out_of_stock: false,
                 }));
             }
         } else {
-            const guestCart = getGuestCart();
+            let guestCart = getGuestCart();
+
+            if (guestCart.length) {
+                // 🔥 REFRESH PRICE/STOCK FROM BACKEND (batch, single call)
+                try {
+                    const ids = guestCart.map(i => i.product_id).join(",");
+                    const res = await fetch(`${API_BASE}/cart/guest-refresh/?ids=${ids}`);
+                    const data = await res.json();
+
+                    if (data.status && Array.isArray(data.data)) {
+                        guestCart = guestCart.map(item => {
+                            const live = data.data.find(p => p.id === item.product_id);
+                            if (!live) return item;
+
+                            let livePrice = live.price;
+                            let liveDiscount = live.discount_price;
+                            let liveStock = live.stock;
+
+                            if (item.variant_id && Array.isArray(live.variants)) {
+                                const v = live.variants.find(v => v.id === item.variant_id);
+                                if (v) {
+                                    livePrice = v.price;
+                                    liveDiscount = v.discount_price;
+                                    liveStock = v.stock;
+                                }
+                            }
+
+                            return {
+                                ...item,
+                                name: live.name || item.name,
+                                image: live.image || item.image,
+                                price: livePrice,
+                                discount_price: liveDiscount,
+                                stock: liveStock,
+                            };
+                        });
+
+                        saveGuestCart(guestCart); // persist refreshed snapshot
+                    }
+                } catch (err) {
+                    console.error("GUEST CART REFRESH ERROR:", err);
+                    // fail hole purano snapshot diyei continue
+                }
+            }
+
             items = guestCart.map(i => {
                 const unit = i.discount_price || i.price || 0;
+                const outOfStock = typeof i.stock === "number" && i.stock < i.quantity;
                 return {
                     key: `guest-${i.product_id}-${i.variant_id || 0}`,
                     server_id: null,
@@ -169,6 +215,7 @@ async function loadCartItems() {
                     price: unit,
                     total: unit * i.quantity,
                     attributes: i.attributes,
+                    out_of_stock: outOfStock,
                 };
             });
         }
@@ -194,15 +241,27 @@ async function loadCartItems() {
         const img = fixImage(item.image);
         const productName = item.product.split(' ').slice(0, 5).join(' ') +
             (item.product.split(' ').length > 5 ? '...' : '');
-
+    
+        const variantText = item.attributes && typeof item.attributes === "object"
+            ? Object.values(item.attributes).join(" / ")
+            : "";
+    
+        const stockWarning = item.out_of_stock
+            ? `<div class="cart-stock-warning" style="color:red;font-size:12px">Stock unavailable for this quantity</div>`
+            : "";
+    
         container.innerHTML += `
             <div class="cart-item">
-                <input type="checkbox" class="cart-check" data-key="${item.key}" checked onchange="updateSummaryFromSelection()">
+                <input type="checkbox" class="cart-check" data-key="${item.key}" ${item.out_of_stock ? "" : "checked"} onchange="updateSummaryFromSelection()">
                 <img class="cart-img" src="${img}" />
                 <div class="cart-info">
-                    <div class="cart-name">${productName}</div>
+                    <div class="cart-name">
+                        ${productName}
+                        ${variantText ? `<span style="color:#888;font-size:12px"> (${variantText})</span>` : ""}
+                    </div>
                     <div class="cart-total-price">৳ ${item.total}</div>
                     <div class="cart-subtotal-mini">${item.quantity} x ৳ ${item.price}</div>
+                    ${stockWarning}
                 </div>
                 <div class="cart-qty">
                     <button onclick="changeQty('${item.key}', ${item.quantity - 1})">−</button>

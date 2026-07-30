@@ -152,22 +152,26 @@ async function loadWishlist() {
                 key: `db-${i.id}`,
                 server_id: i.id,
                 product_id: i.product_id,
+                variant_id: i.variant_id || null,
                 slug: i.slug,
                 name: i.name,
                 image: i.image,
                 price: i.price,
                 discount_price: i.discount_price,
+                attributes: i.attributes,
             }));
         } else {
             items = getGuestWishlist().map(i => ({
-                key: `guest-${i.product_id}`,
+                key: `guest-${i.product_id}-${i.variant_id || 0}`,
                 server_id: null,
                 product_id: i.product_id,
+                variant_id: i.variant_id || null,
                 slug: i.slug,
                 name: i.name,
                 image: i.image,
                 price: i.price,
                 discount_price: i.discount_price,
+                attributes: i.attributes,
             }));
         }
     } catch (error) {
@@ -223,25 +227,30 @@ async function loadWishlist() {
     items.forEach(item => {
         const image = fixImage(item.image);
         const slug = item.slug || "";
-
+    
+        const variantText = item.attributes && typeof item.attributes === "object"
+            ? Object.values(item.attributes).join(" / ")
+            : "";
+    
         container.innerHTML += `
             <div class="wishlist-row">
-
+    
                 <div class="wishlist-image" onclick="openProduct('${slug}')">
                     <img src="${image}" alt="${item.name}">
                 </div>
-
+    
                 <div class="wishlist-info">
                     <div class="wishlist-name" onclick="openProduct('${slug}')">
                         ${item.name}
+                        ${variantText ? `<span style="color:#888;font-size:12px"> (${variantText})</span>` : ""}
                     </div>
-
+    
                     <div class="wishlist-price">
                         ৳ ${item.discount_price || item.price}
                         ${item.discount_price ? `<span class="wishlist-old">৳ ${item.price}</span>` : ""}
                     </div>
                 </div>
-
+    
                 <div class="wishlist-actions">
                     <button class="icon-btn cart-btn" onclick="moveWishlistToCart('${item.key}')" title="Add to Cart">
                         🛒
@@ -250,7 +259,7 @@ async function loadWishlist() {
                         ✕
                     </button>
                 </div>
-
+    
             </div>
         `;
     });
@@ -261,7 +270,6 @@ async function loadWishlist() {
 ========================= */
 async function removeWishlist(key) {
     const isGuest = key.startsWith("guest-");
-    const productId = Number(key.split("-")[1]);
 
     if (!isGuest) {
         const serverId = Number(key.split("-")[1]);
@@ -285,7 +293,12 @@ async function removeWishlist(key) {
         return;
     }
 
-    guestWishlistRemove(productId);
+    // key format: guest-<product_id>-<variant_id or 0>
+    const parts = key.replace("guest-", "").split("-");
+    const productId = Number(parts[0]);
+    const variantId = parts[1] && parts[1] !== "0" ? Number(parts[1]) : null;
+
+    guestWishlistRemove(productId, variantId);
     toast?.("Removed from wishlist");
     loadWishlist();
     updateWishlistCount?.();
@@ -299,24 +312,49 @@ async function moveWishlistToCart(key) {
 
     if (!isGuest) {
         const serverId = Number(key.split("-")[1]);
+
+        // প্রথমে wishlist item এর তথ্য দরকার হতে পারে (product_id, variant_id)
+        // যদি loadWishlist এ থাকা data থেকে না পাওয়া যায়, wishlist লিস্ট আবার fetch করতে হবে
         try {
-            const response = await fetch(`${API_BASE}/wishlist/`, {
+            const wishRes = await fetch(`${API_BASE}/wishlist/`, {
                 headers: { "Authorization": `Bearer ${getToken()}` }
             });
-            const data = await response.json();
-            const row = (data.data || []).find(i => i.id === serverId);
-            if (!row) return;
+            const wishData = await wishRes.json();
+            const item = (wishData?.data || []).find(i => i.id === serverId);
+            if (!item) {
+                toast?.("Item not found");
+                return;
+            }
 
-            await quickAddCart(row.product_id, null, {
-                name: row.name,
-                image: row.image,
-                price: row.price,
-                discount_price: row.discount_price,
+            // Cart এ add করা
+            const cartRes = await fetch(`${API_BASE}/cart/add/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${getToken()}`
+                },
+                body: JSON.stringify({
+                    product_id: item.product_id,
+                    variant_id: item.variant_id || null,
+                    quantity: 1
+                })
             });
+            const cartData = await cartRes.json();
 
-            // Remove from wishlist after successful add
-            await removeWishlist(key);
+            if (cartData.status) {
+                // wishlist থেকে remove করা (optional, যদি move করতে চান)
+                await fetch(`${API_BASE}/wishlist/remove/${serverId}/`, {
+                    method: "DELETE",
+                    headers: { "Authorization": `Bearer ${getToken()}` }
+                });
 
+                toast?.("Moved to cart 🛒");
+                loadWishlist();
+                updateWishlistCount?.();
+                updateCartCountFromBackend?.();
+            } else {
+                toast?.(cartData.message || "Add to cart failed");
+            }
         } catch (error) {
             console.error(error);
             toast?.("Something went wrong");
@@ -325,19 +363,24 @@ async function moveWishlistToCart(key) {
     }
 
     // GUEST
-    const productId = Number(key.replace("guest-", ""));
-    const wishlistRow = getGuestWishlist().find(i => i.product_id === productId);
+    const parts = key.replace("guest-", "").split("-");
+    const productId = Number(parts[0]);
+    const variantId = parts[1] && parts[1] !== "0" ? Number(parts[1]) : null;
+
+    const wishlistRow = getGuestWishlist().find(i =>
+        i.product_id === productId && (i.variant_id || null) === variantId
+    );
     if (!wishlistRow) return;
 
-    await quickAddCart(productId, null, {
+    await quickAddCart(productId, variantId, {
         name: wishlistRow.name,
         image: wishlistRow.image,
         price: wishlistRow.price,
         discount_price: wishlistRow.discount_price,
+        attributes: wishlistRow.attributes,
     });
 
-    // Remove from wishlist after successful add
-    guestWishlistRemove(productId);
+    guestWishlistRemove(productId, variantId);
     toast?.("Moved to cart 🛒");
     loadWishlist();
     updateWishlistCount?.();
