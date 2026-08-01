@@ -207,133 +207,81 @@ function renderDeliveryChargeText() {
    RENDER PRODUCTS
 ========================================= */
 function renderCheckoutProducts(items) {
-
-    const container =
-        document.getElementById(
-            "checkoutProducts"
-        );
-
+    const container = document.getElementById("checkoutProducts");
     if (!container) return;
-
     container.innerHTML = "";
 
     if (!items.length) {
-
-        container.innerHTML = `
-            <div class="empty-checkout">
-                No checkout items found
-            </div>
-        `;
-
+        container.innerHTML = `<div class="empty-checkout">No checkout items found</div>`;
         return;
     }
 
     items.forEach(item => {
+        const variantText = item.variant && typeof item.variant === "object"
+            ? Object.values(item.variant).join(" / ")
+            : "";
 
         container.innerHTML += `
             <div class="ck-product">
-    
                 <div class="ck-product-info">
-    
                     <div class="ck-product-name">
                         ${item.product}
+                        ${variantText ? `<span style="color:#888;font-size:12px"> (${variantText})</span>` : ""}
                     </div>
-    
                     <div class="ck-product-meta">
                         Qty: ${item.quantity}
                     </div>
-    
                 </div>
-    
                 <div class="ck-product-right">
-    
                     <div class="ck-product-price">
                         ৳ ${item.total}
                     </div>
-    
                 </div>
-    
             </div>
         `;
     });
 }
-
 /* =========================================
    RENDER SUMMARY
 ========================================= */
-function renderSummary(
-    items,
-    subtotal
-) {
-
-    const summaryBox =
-        document.getElementById(
-            "checkoutSummaryItems"
-        );
-
+function renderSummary(items, subtotal) {
+    const summaryBox = document.getElementById("checkoutSummaryItems");
     if (!summaryBox) return;
-
     summaryBox.innerHTML = "";
-
     let breakdownHtml = "";
 
     items.forEach(item => {
+        const variantText = item.variant && typeof item.variant === "object"
+            ? Object.values(item.variant).join(" / ")
+            : "";
 
         summaryBox.innerHTML += `
             <div class="sum-row">
-
                 <span>
-                    ${item.product}
+                    ${item.product}${variantText ? ` (${variantText})` : ""}
                     × ${item.quantity}
                 </span>
-
                 <span>
                     ৳ ${item.total}
                 </span>
-
             </div>
         `;
 
-        if (
-            Number(item.delivery_charge || 0) > 0
-        ) {
-
+        if (Number(item.delivery_charge || 0) > 0) {
             breakdownHtml += `
                 <div class="delivery-item">
-
-                    <span
-                        class="delivery-item-name">
-                        ${item.product}
-                    </span>
-
-                    <span
-                        class="delivery-item-charge">
-                        ৳ ${item.delivery_charge}
-                    </span>
-
+                    <span class="delivery-item-name">${item.product}</span>
+                    <span class="delivery-item-charge">৳ ${item.delivery_charge}</span>
                 </div>
             `;
         }
     });
 
-    document.getElementById(
-        "ckSubtotal"
-    ).innerText = subtotal;
+    document.getElementById("ckSubtotal").innerText = subtotal;
 
-    const breakdown =
-        document.getElementById(
-            "deliveryBreakdown"
-        );
-
+    const breakdown = document.getElementById("deliveryBreakdown");
     if (breakdown) {
-
-        breakdown.innerHTML =
-            breakdownHtml ||
-            `
-            <div class="delivery-item">
-                No delivery charge
-            </div>
-            `;
+        breakdown.innerHTML = breakdownHtml || `<div class="delivery-item">No delivery charge</div>`;
     }
 
     updateTotals();

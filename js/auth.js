@@ -110,6 +110,10 @@ async function submitPasswordStep() {
 
         if (response.ok && data.status) {
             saveAuthData(data);
+
+            // 🔥 MERGE GUEST CART/WISHLIST
+            await mergeGuestDataToAccount(data.access);
+
             toast(LOGIN_FLOW_ACTION === "set_password" ? "Account ready ✅" : "Welcome back ✅");
             setTimeout(() => { window.location.href = "profile.html"; }, 700);
         } else {
@@ -121,6 +125,47 @@ async function submitPasswordStep() {
     } finally {
         hideLoginLoader();
         if (submitBtn) submitBtn.disabled = false;
+    }
+}
+
+/* =========================
+   MERGE GUEST CART/WISHLIST -> ACCOUNT
+========================= */
+async function mergeGuestDataToAccount(token) {
+    const guestCart = typeof getGuestCart === "function" ? getGuestCart() : [];
+    const guestWishlist = typeof getGuestWishlist === "function" ? getGuestWishlist() : [];
+
+    if (!guestCart.length && !guestWishlist.length) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/cart-wishlist/merge/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                cart: guestCart.map(i => ({
+                    product_id: i.product_id,
+                    variant_id: i.variant_id,
+                    quantity: i.quantity
+                })),
+                wishlist: guestWishlist.map(i => ({
+                    product_id: i.product_id,
+                    variant_id: i.variant_id
+                }))
+            })
+        });
+
+        const data = await res.json();
+        if (data.status) {
+            // merge success -> guest data clear kore dao
+            if (typeof clearGuestCart === "function") clearGuestCart();
+            if (typeof clearGuestWishlist === "function") clearGuestWishlist();
+        }
+    } catch (err) {
+        console.error("MERGE ERROR:", err);
+        // fail hole guest data rekhe dao, next login attempt e abar try hobe
     }
 }
 
