@@ -1,13 +1,13 @@
 /* ====== PROFILE CARD ====== */
 .profile-card {
     background: #fff;
-    padding: 25px;
+    padding: 18px;
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.08);
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    margin-bottom: 30px;
+    gap: 12px;
+    margin-bottom: 20px;
 }
 
 .profile-row {
@@ -54,7 +54,7 @@
 .account-links {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
 .account-links a {
@@ -76,7 +76,13 @@
 /* ====== RESPONSIVE ====== */
 @media (max-width: 480px) {
     .profile-card {
-        padding: 20px;
+        padding: 14px;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .account-links {
+        gap: 8px;
     }
 
     .account-links a {

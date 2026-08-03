@@ -62,9 +62,9 @@ async function loadProductDetails() {
 
         const name = product.name || "";
         const sku = product.sku || "";
-        const rating = Number(product.rating || 4.8);
-        const reviewCount = Number(product.review_count || 500);
-        const soldCount = Number(product.sold_count || 1000);
+        const rating = Number(product.rating || 0);
+        const reviewCount = Number(product.review_count || 0);
+        const soldCount = Number(product.sold_count || 0);
 
         /* =========================
            TITLE / SKU / DESC
@@ -79,11 +79,16 @@ async function loadProductDetails() {
         /* =========================
            RATING
         ========================= */
-        document.querySelector(".r-score").textContent = rating;
+        document.querySelector(".r-score").textContent = rating.toFixed(1);
         document.querySelector(".r-cnt").textContent = `${reviewCount} ratings`;
         document.querySelector(".r-sold").textContent = `${soldCount}+ sold`;
         mkStars("prodStars", rating, 16);
         mkStars("bigStars", rating, 20);
+
+        /* =========================
+           BADGES (bestseller etc.)
+        ========================= */
+        renderBadges(product);
 
         /* =========================
            IMAGES (default = product-level images)
@@ -107,6 +112,26 @@ async function loadProductDetails() {
         }
 
         /* =========================
+           FEATURES
+        ========================= */
+        renderFeatures(product.features || []);
+
+        /* =========================
+           REVIEWS
+        ========================= */
+        renderReviews(product.reviews || [], rating, reviewCount);
+
+        /* =========================
+           FAQ
+        ========================= */
+        renderFAQs(product.faqs || []);
+
+        /* =========================
+           SPEC TABLE (built from features too, if present)
+        ========================= */
+        renderSpecTable(product.features || []);
+
+        /* =========================
            DELIVERY NOTE
         ========================= */
         const deliveryNote = document.getElementById("deliveryNote");
@@ -125,9 +150,151 @@ async function loadProductDetails() {
         ========================= */
         loadRelatedProducts(product);
 
+        /* =========================
+           VARIANT PROMPT (from wishlist/cart redirect flows)
+        ========================= */
+        const pendingAction = sessionStorage.getItem("prompt_variant_on_load");
+        if (pendingAction && Array.isArray(product.variants) && product.variants.length > 0) {
+            sessionStorage.removeItem("prompt_variant_on_load");
+            // let the DOM paint first, then nudge
+            setTimeout(() => requireVariantSelection(), 300);
+        }
+
     } catch (err) {
         console.error("PRODUCT DETAILS ERROR:", err);
     }
+}
+
+/* =========================
+   BADGES (bestseller / verified / etc.)
+========================= */
+function renderBadges(product) {
+    const wrap = document.getElementById("productBadges");
+    if (!wrap) return;
+
+    let html = "";
+    if (product.is_bestseller) {
+        html += `<span class="badge-chip badge-bestseller">🔥 Bestseller</span>`;
+    }
+    if (Number(product.discount_price) > 0 && Number(product.discount_price) < Number(product.price)) {
+        const off = Math.round(((product.price - product.discount_price) / product.price) * 100);
+        html += `<span class="badge-chip badge-discount">${off}% OFF</span>`;
+    }
+    wrap.innerHTML = html;
+}
+
+/* =========================
+   FEATURES TAB
+========================= */
+function renderFeatures(features) {
+    const grid = document.getElementById("featureGrid");
+    if (!grid) return;
+
+    if (!Array.isArray(features) || !features.length) {
+        grid.innerHTML = `<div class="feat-empty">No feature details added for this product yet.</div>`;
+        return;
+    }
+
+    grid.innerHTML = features.map(f => `
+        <div class="feat-card">
+            <span class="feat-icon">${escapeHtml(f.icon || "✔")}</span>
+            <div>
+                <div class="feat-name">${escapeHtml(f.title || "")}</div>
+                <div class="feat-desc">${escapeHtml(f.description || "")}</div>
+            </div>
+        </div>
+    `).join("");
+}
+
+/* =========================
+   SPEC TABLE (reuses features as name/value rows)
+========================= */
+function renderSpecTable(features) {
+    const table = document.getElementById("specTable");
+    if (!table) return;
+
+    if (!Array.isArray(features) || !features.length) {
+        table.innerHTML = "";
+        return;
+    }
+
+    table.innerHTML = features.map(f => `
+        <tr>
+            <td class="spec-key">${escapeHtml(f.title || "")}</td>
+            <td class="spec-val">${escapeHtml(f.description || "")}</td>
+        </tr>
+    `).join("");
+}
+
+/* =========================
+   REVIEWS TAB
+========================= */
+function renderReviews(reviews, rating, reviewCount) {
+    const scoreEl = document.getElementById("reviewScore");
+    const countEl = document.getElementById("reviewCountText");
+    const listEl = document.getElementById("reviewList");
+
+    if (scoreEl) scoreEl.textContent = rating.toFixed(1);
+    if (countEl) countEl.textContent = `${reviewCount} reviews`;
+
+    if (!listEl) return;
+
+    if (!Array.isArray(reviews) || !reviews.length) {
+        listEl.innerHTML = `<div class="rv-item"><p>No reviews yet</p></div>`;
+        return;
+    }
+
+    listEl.innerHTML = reviews.map(r => `
+        <div class="rv-item">
+            <div class="rv-item-head">
+                <span class="rv-name">${escapeHtml(r.name || "Anonymous")}</span>
+                ${r.verified ? `<span class="rv-verified">✔ Verified Purchase</span>` : ""}
+                <span class="rv-date">${escapeHtml(r.date || "")}</span>
+            </div>
+            <div class="rv-stars">${"★".repeat(Math.round(r.rating || 0))}${"☆".repeat(5 - Math.round(r.rating || 0))}</div>
+            <p class="rv-comment">${escapeHtml(r.comment || "")}</p>
+        </div>
+    `).join("");
+}
+
+/* =========================
+   FAQ TAB
+========================= */
+function renderFAQs(faqs) {
+    const listEl = document.getElementById("faqList");
+    if (!listEl) return;
+
+    if (!Array.isArray(faqs) || !faqs.length) {
+        listEl.innerHTML = `<div class="faq-item"><div class="faq-q"><span class="faq-q-txt">No FAQs available for this product yet.</span></div></div>`;
+        return;
+    }
+
+    listEl.innerHTML = faqs.map(f => `
+        <div class="faq-item">
+            <div class="faq-q" onclick="faqToggle(this)">
+                <span class="faq-q-txt">${escapeHtml(f.question || "")}</span>
+                <i class="faq-ico">▾</i>
+            </div>
+            <div class="faq-a">
+                <p>${escapeHtml(f.answer || "")}</p>
+            </div>
+        </div>
+    `).join("");
+}
+
+
+
+/* =========================
+   SMALL UTIL: escape user/CMS text before injecting as HTML
+========================= */
+function escapeHtml(str) {
+    if (str === null || str === undefined) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
 /* =========================
@@ -299,7 +466,7 @@ function selectVariantByAttributes(attrsWanted, variants, isUserClick = false) {
 
     // at the end of selectVariantByAttributes(), after renderPriceAndStock(...)
     initWishlist(CURRENT_PRODUCT.id);
-    
+
     // Update image if variant carries its own image(s)
     if (match.image) {
         setMainImage(match.image);
@@ -682,6 +849,40 @@ async function loadRelatedProducts(product) {
     }
 }
 
+// ===== Tap-to-zoom on product image =====
+(function () {
+    const galMain = document.getElementById('galMain');
+    const img = document.getElementById('productImage');
+    if (!galMain || !img) return;
+  
+    // zoom hint icon (+)
+    const hint = document.createElement('div');
+    hint.className = 'zoom-hint';
+    hint.textContent = '+';
+    galMain.appendChild(hint);
+  
+    let zoomed = false;
+  
+    function toggleZoom(e) {
+      zoomed = !zoomed;
+      galMain.classList.toggle('zoomed', zoomed);
+  
+      if (zoomed) {
+        // set transform-origin based on tap/click position
+        const rect = galMain.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const x = ((clientX - rect.left) / rect.width) * 100;
+        const y = ((clientY - rect.top) / rect.height) * 100;
+        img.style.transformOrigin = `${x}% ${y}%`;
+      } else {
+        img.style.transformOrigin = 'center center';
+      }
+    }
+  
+    img.addEventListener('click', toggleZoom);
+  })();
+
 /* =========================
    FAQ TOGGLE
 ========================= */
@@ -693,11 +894,12 @@ function faqToggle(el) {
 /* =========================
    TAB SWITCH
 ========================= */
-function switchTab(tab) {
+function switchTab(tab, evt) {
     document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("on"));
     document.querySelectorAll(".tab-pane").forEach(pane => pane.classList.remove("on"));
     document.getElementById(`pane-${tab}`)?.classList.add("on");
-    event.target.classList.add("on");
+    const target = evt?.target || window.event?.target;
+    target?.classList.add("on");
 }
 
 function openShare() {
@@ -738,10 +940,3 @@ window.addEventListener("DOMContentLoaded", () => {
     loadProductDetails();
     updateCartCountFromBackend?.();
 });
-
-const pendingAction = sessionStorage.getItem("prompt_variant_on_load");
-if (pendingAction && Array.isArray(product.variants) && product.variants.length > 0) {
-    sessionStorage.removeItem("prompt_variant_on_load");
-    // let the DOM paint first, then nudge
-    setTimeout(() => requireVariantSelection(), 300);
-}

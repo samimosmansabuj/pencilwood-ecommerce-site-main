@@ -11,13 +11,13 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 80vh;
-    padding: 20px;
+    padding: 14px;
 }
 
 /* ====== AUTH BOX ====== */
 .auth-box {
     background: #fff;
-    padding: 30px 25px;
+    padding: 24px 20px;
     border-radius: 12px;
     box-shadow: 0 4px 18px rgba(0,0,0,0.08);
     width: 100%;
@@ -27,7 +27,7 @@ body {
 /* ====== TABS ====== */
 .auth-tabs {
     display: flex;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     border-bottom: 1px solid #eee;
 }
 
@@ -135,8 +135,11 @@ body {
 
 /* ====== RESPONSIVE ====== */
 @media (max-width: 480px) {
+    .auth-page {
+        padding: 10px;
+    }
     .auth-box {
-        padding: 25px 20px;
+        padding: 20px 16px;
     }
     .auth-tabs .tab {
         font-size: 14px;

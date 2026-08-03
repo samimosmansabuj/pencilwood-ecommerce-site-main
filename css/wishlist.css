@@ -5,7 +5,7 @@
 .wishlist-grid{
     display:flex;
     flex-direction:column;
-    gap:12px;
+    gap:10px;
 }
 
 /* =========================
@@ -15,10 +15,10 @@
 .wishlist-row{
     background:#fff;
     border-radius:14px;
-    padding:12px;
+    padding:10px;
     display:flex;
     align-items:center;
-    gap:14px;
+    gap:12px;
     box-shadow:0 4px 14px rgba(0,0,0,.06);
     transition:.2s;
 }
@@ -185,9 +185,13 @@
         padding-right:10px;
     }
 
+    .wishlist-grid{
+        gap:8px;
+    }
+
     .wishlist-row{
         padding:8px;
-        gap:10px;
+        gap:8px;
     }
 
     .wishlist-image{
