@@ -1,9 +1,9 @@
 /* ====== PAGE TITLE ====== */
 .orders-title {
     font-family: 'Sora', sans-serif;
-    font-size: 28px;
+    font-size: 22px;
     font-weight: 600;
-    margin-bottom: 20px;
+    margin-bottom: 14px;
     text-align: center;
 }
 
@@ -11,9 +11,9 @@
 .orders-filter {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
     justify-content: center;
-    margin-bottom: 25px;
+    margin-bottom: 16px;
 }
 
 .of-btn {
@@ -190,12 +190,17 @@
 /* ====== RESPONSIVE ====== */
 @media (max-width: 768px) {
 
+    .orders-title {
+        font-size: 18px;
+        margin-bottom: 10px;
+    }
+
     .order-card {
         padding: 12px;
     }
 
     .orders-list {
-        gap: 12px;
+        gap: 10px;
     }
 
     .order-top {

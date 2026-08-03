@@ -6,26 +6,13 @@
 }
 
 body {
-    margin: 0;
-    font-family: 'Hind Siliguri', sans-serif;
-    background: #f9f9f9;
-    color: #333;
-    font-size: 15px;
-    line-height: 1.6;
     -webkit-tap-highlight-color: transparent;
-}
-
-/* Container */
-.page {
-    max-width: 900px;
-    margin: 16px auto;
-    padding: 0 16px;
 }
 
 /* ====== PAGE TITLE ====== */
 .page h1 {
-    font-size: 26px;
-    margin-bottom: 16px;
+    font-size: 22px;
+    margin-bottom: 12px;
     font-weight: 600;
 }
 
@@ -198,7 +185,7 @@ body {
     justify-content:space-between;
     align-items:center;
     gap:12px;
-    margin-bottom:20px;
+    margin-bottom:14px;
 }
 
 .address-count{
@@ -219,42 +206,41 @@ body {
 /* ====== RESPONSIVE (TABLET) ====== */
 @media (max-width: 768px) {
 
-    .page {
-        padding: 0 14px;
-    }
-
     .page h1 {
-        font-size: 24px;
+        font-size: 20px;
     }
 }
 
 /* ====== RESPONSIVE (MOBILE) ====== */
 @media (max-width: 480px) {
 
-    body {
-        font-size: 15px;
-    }
-
-    .page {
-        margin: 12px auto;
-        padding: 0 12px;
-    }
-
     .page h1 {
-        font-size: 22px;
+        font-size: 18px;
+        margin-bottom: 10px;
+    }
+
+    .address-list {
+        gap: 10px;
+        margin-bottom: 16px;
     }
 
     .address-card {
-        padding: 16px;
+        padding: 14px;
         border-radius: 12px;
+        gap: 4px;
     }
 
     .address-form {
-        padding: 16px;
+        padding: 14px;
+        gap: 10px;
     }
 
     .address-form h2 {
-        font-size: 18px;
+        font-size: 16px;
+    }
+
+    .address-head {
+        margin-bottom: 12px;
     }
 
     /* Stack buttons nicely */
@@ -264,6 +250,7 @@ body {
 
     .addr-actions button {
         width: 100%;
+        min-height: 38px;
     }
 }
 
@@ -271,7 +258,7 @@ body {
 @media (max-width: 360px) {
 
     .page h1 {
-        font-size: 20px;
+        font-size: 17px;
     }
 
     .addr-name {

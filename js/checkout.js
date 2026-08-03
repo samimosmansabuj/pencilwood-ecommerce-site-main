@@ -9,6 +9,8 @@ let selectedDeliveryCharge = 0;
 
 let districtsData = [];
 
+let CUSTOMER_PROFILE = null;
+
 /* =========================================
    INIT
 ========================================= */
@@ -18,6 +20,8 @@ window.addEventListener(
 
         await loadDistricts();
 
+        await loadCustomerProfile();
+
         await loadSavedAddresses();
 
         await loadCheckoutSummary();
@@ -25,6 +29,8 @@ window.addEventListener(
         bindDistrictChange();
 
         bindAddressSelect();
+
+        bindLiveValidationClear();
     }
 );
 
@@ -55,6 +61,53 @@ function getAuthHeaders() {
     }
 
     return headers;
+}
+
+/* =========================================
+   CUSTOMER PROFILE
+========================================= */
+async function loadCustomerProfile() {
+    if (!isLoggedIn()) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/api/auth/profile/`, {
+            method: "GET",
+            headers: getAuthHeaders()
+        });
+        const data = await res.json();
+
+        if (!data.status) return;
+
+        CUSTOMER_PROFILE = data.data;
+
+        const nameField = document.getElementById("ckName");
+        const phoneField = document.getElementById("ckPhone");
+
+        const phone = CUSTOMER_PROFILE.phone || "";
+        const name = CUSTOMER_PROFILE.name || "";
+
+        if (phoneField) {
+            phoneField.value = phone;
+            phoneField.readOnly = true;
+            phoneField.classList.add("field-locked");
+        }
+
+        const hasRealName = name && name !== phone;
+
+        if (nameField) {
+            if (hasRealName) {
+                nameField.value = name;
+                nameField.readOnly = true;
+                nameField.classList.add("field-locked");
+            } else {
+                nameField.readOnly = false;
+                nameField.classList.remove("field-locked");
+            }
+        }
+
+    } catch (err) {
+        console.error("PROFILE LOAD ERROR:", err);
+    }
 }
 
 /* =========================================
@@ -122,10 +175,10 @@ function bindDistrictChange() {
     districtSelect.addEventListener(
         "change",
         async () => {
-    
+
             selectedDistrictId =
                 districtSelect.value;
-    
+
             await loadCheckoutSummary();
         }
     );
@@ -163,28 +216,27 @@ async function loadCheckoutSummary() {
             renderSummary(data.data.items || [], data.data.subtotal || 0);
 
         } else {
-            // GUEST: fetch summary from backend, passing localStorage items + district
             const guestItems = JSON.parse(localStorage.getItem("checkout_guest_items")) || [];
-        
+
             if (!guestItems.length) {
                 toast("No items to checkout");
                 return;
             }
-        
+
             const params = new URLSearchParams();
             params.append("items", JSON.stringify(guestItems));
             if (district) params.append("district", district);
-        
+
             const res = await fetch(`${API_BASE}/api/checkout/summary/?${params.toString()}`, {
                 method: "GET"
             });
             const data = await res.json();
-        
+
             if (!data.status) {
                 toast(data.message || "Checkout failed");
                 return;
             }
-        
+
             checkoutData = data.data;
             selectedDeliveryCharge = Number(data.data.delivery_charge || 0);
             renderDeliveryChargeText();
@@ -241,6 +293,7 @@ function renderCheckoutProducts(items) {
         `;
     });
 }
+
 /* =========================================
    RENDER SUMMARY
 ========================================= */
@@ -286,6 +339,7 @@ function renderSummary(items, subtotal) {
 
     updateTotals();
 }
+
 /* =========================================
    UPDATE TOTALS
 ========================================= */
@@ -378,13 +432,16 @@ function bindAddressSelect() {
 
             if (!selected) return;
 
-            document.getElementById(
-                "ckName"
-            ).value = selected.name || "";
+            const nameField = document.getElementById("ckName");
+            const phoneField = document.getElementById("ckPhone");
 
-            document.getElementById(
-                "ckPhone"
-            ).value = selected.phone || "";
+            if (nameField && !nameField.readOnly) {
+                nameField.value = selected.name || "";
+            }
+
+            if (phoneField && !phoneField.readOnly) {
+                phoneField.value = selected.phone || "";
+            }
 
             document.getElementById(
                 "ckAddress"
@@ -395,15 +452,111 @@ function bindAddressSelect() {
                     "ckDistrict"
                 );
 
-                districtSelect.value =
-                    selected.district || "";
+            districtSelect.value =
+                selected.district || "";
 
-                selectedDistrictId =
-                    selected.district || "";
-                
-                loadCheckoutSummary();
+            selectedDistrictId =
+                selected.district || "";
+
+            loadCheckoutSummary();
         }
     );
+}
+
+/* =========================================
+   VALIDATION
+========================================= */
+
+// Fields checked on submit, in the order they appear on the form.
+// `label` is used in the toast message shown to the user.
+const CHECKOUT_REQUIRED_FIELDS = [
+    { id: "ckName", label: "Full Name" },
+    { id: "ckPhone", label: "Phone Number" },
+    { id: "ckAddress", label: "Delivery Address" },
+    { id: "ckDistrict", label: "District" },
+];
+
+function clearFieldError(el) {
+    if (!el) return;
+    el.classList.remove("field-error");
+    const wrap = el.closest(".ck-field") || el.parentElement;
+    wrap?.querySelector(".field-error-msg")?.remove();
+}
+
+function clearAllFieldErrors() {
+    CHECKOUT_REQUIRED_FIELDS.forEach(f => {
+        clearFieldError(document.getElementById(f.id));
+    });
+}
+
+function showFieldError(el, message) {
+    if (!el) return;
+    el.classList.add("field-error");
+
+    // avoid duplicate messages if validate runs more than once
+    const wrap = el.closest(".ck-field") || el.parentElement;
+    wrap?.querySelector(".field-error-msg")?.remove();
+
+    const msgEl = document.createElement("div");
+    msgEl.className = "field-error-msg";
+    msgEl.textContent = message;
+    wrap?.appendChild(msgEl);
+}
+
+// Re-validates a single field as the user types/selects, so the red
+// highlight clears the moment they fix it (no need to resubmit).
+function bindLiveValidationClear() {
+    CHECKOUT_REQUIRED_FIELDS.forEach(f => {
+        const el = document.getElementById(f.id);
+        if (!el) return;
+        const evt = (el.tagName === "SELECT") ? "change" : "input";
+        el.addEventListener(evt, () => {
+            if (el.value && el.value.trim()) {
+                clearFieldError(el);
+            }
+        });
+    });
+}
+
+/**
+ * Validates all required checkout fields.
+ * Highlights every missing field, shows an inline message under each one,
+ * shows a single summary toast, and scrolls to + focuses the first
+ * missing field.
+ * Returns true if the form is valid, false otherwise.
+ */
+function validateCheckoutForm() {
+    clearAllFieldErrors();
+
+    const missing = [];
+
+    CHECKOUT_REQUIRED_FIELDS.forEach(f => {
+        const el = document.getElementById(f.id);
+        if (!el) return;
+        const value = (el.value || "").trim();
+        if (!value) {
+            missing.push(f);
+            showFieldError(el, `${f.label} is required`);
+        }
+    });
+
+    if (missing.length) {
+        const first = document.getElementById(missing[0].id);
+
+        if (missing.length === 1) {
+            toast(`Please fill in ${missing[0].label}`);
+        } else {
+            const names = missing.map(f => f.label).join(", ");
+            toast(`Please fill in the highlighted fields: ${names}`);
+        }
+
+        first?.scrollIntoView({ behavior: "smooth", block: "center" });
+        first?.focus();
+
+        return false;
+    }
+
+    return true;
 }
 
 /* =========================================
@@ -411,15 +564,14 @@ function bindAddressSelect() {
 ========================================= */
 async function placeOrder() {
 
+    if (!validateCheckoutForm()) {
+        return;
+    }
+
     const name = document.getElementById("ckName").value.trim();
     const phone = document.getElementById("ckPhone").value.trim();
     const address = document.getElementById("ckAddress").value.trim();
     const district = document.getElementById("ckDistrict").value;
-
-    if (!name) { toast("Enter name"); return; }
-    if (!phone) { toast("Enter phone"); return; }
-    if (!address) { toast("Enter address"); return; }
-    if (!district) { toast("Select district"); return; }
 
     try {
         let body;
@@ -438,7 +590,7 @@ async function placeOrder() {
 
         const res = await fetch(`${API_BASE}/api/checkout/place-order/`, {
             method: "POST",
-            headers: getAuthHeaders(), // sends empty Bearer for guests — backend is AllowAny, fine
+            headers: getAuthHeaders(),
             body: JSON.stringify(body)
         });
 
@@ -449,7 +601,13 @@ async function placeOrder() {
             localStorage.removeItem("checkout_guest_items");
 
             if (!isLoggedIn()) {
-                clearGuestCart(); // from cart.js — guest cart is now placed as an order
+                clearGuestCart();
+            } else if (CUSTOMER_PROFILE && (!CUSTOMER_PROFILE.name || CUSTOMER_PROFILE.name === CUSTOMER_PROFILE.phone)) {
+                fetch(`${API_BASE}/api/auth/profile/`, {
+                    method: "PUT",
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ name })
+                }).catch(err => console.error("PROFILE NAME SAVE ERROR:", err));
             }
 
             showOrderSuccess();
@@ -457,12 +615,18 @@ async function placeOrder() {
                 window.location.href = isLoggedIn() ? "my-orders.html" : "index.html";
             }, 2500);
         } else {
+            // Backend validation error (e.g. out of stock, invalid district) —
+            // show it and, if the backend told us which field, highlight it too.
             toast(data.message || "Order failed");
+
+            if (data.field && document.getElementById(data.field)) {
+                showFieldError(document.getElementById(data.field), data.message || "Invalid value");
+            }
         }
 
     } catch (err) {
         console.error("ORDER ERROR:", err);
-        toast("Something went wrong");
+        toast("Something went wrong. Please try again.");
     }
 }
 
@@ -502,11 +666,11 @@ function toast(msg) {
             el.remove();
         }, 300);
 
-    }, 2200);
+    }, 2800);
 }
 
 /* =========================================
-   SUCESS POP-UP
+   SUCCESS POP-UP
 ========================================= */
 
 function showOrderSuccess() {
