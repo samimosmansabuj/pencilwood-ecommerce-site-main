@@ -215,6 +215,16 @@ async function loadCheckoutSummary() {
             renderCheckoutProducts(data.data.items || []);
             renderSummary(data.data.items || [], data.data.subtotal || 0);
 
+            GAInitiateCheckoutEvent(
+                (data.data.items || []).map(item => ({
+                    id: item.product_id,
+                    name: item.product,
+                    price: item.total / item.quantity,
+                    quantity: item.quantity
+                })),
+                data.data.subtotal || 0
+            );
+
         } else {
             const guestItems = JSON.parse(localStorage.getItem("checkout_guest_items")) || [];
 
@@ -242,6 +252,16 @@ async function loadCheckoutSummary() {
             renderDeliveryChargeText();
             renderCheckoutProducts(data.data.items || []);
             renderSummary(data.data.items || [], data.data.subtotal || 0);
+
+            GAInitiateCheckoutEvent(
+                (data.data.items || []).map(item => ({
+                    id: item.product_id,
+                    name: item.product,
+                    price: item.total / item.quantity,
+                    quantity: item.quantity
+                })),
+                data.data.subtotal || 0
+            );
         }
 
     } catch (err) {
@@ -597,6 +617,18 @@ async function placeOrder() {
         const data = await res.json();
 
         if (data.status) {
+
+            GAInitiatePurchaseEvent(
+                (checkoutData?.items || []).map(item => ({
+                    id: item.product_id,
+                    name: item.product,
+                    price: item.total / item.quantity,
+                    quantity: item.quantity
+                })),
+                checkoutData?.subtotal || 0,
+                data.order_id
+            );
+
             localStorage.removeItem("checkout_cart_ids");
             localStorage.removeItem("checkout_guest_items");
 

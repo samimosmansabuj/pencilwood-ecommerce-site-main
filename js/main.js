@@ -690,9 +690,15 @@ async function updateWishlistCount() {
 async function quickAddCart(productId, variantId = null, snapshot = null) {
 
     const token = localStorage.getItem("access") || localStorage.getItem("token");
+    const product = ALL_PRODUCTS.find(p => p.id === productId);
+
+    GAAddToCartEvent({
+        id: productId,
+        name: snapshot?.name || product?.name || "",
+        discount_price: snapshot?.discount_price ?? snapshot?.price ?? product?.discount_price ?? product?.price
+    });
 
     if (!token) {
-        const product = ALL_PRODUCTS.find(p => p.id === productId);
         guestCartAdd(productId, variantId, 1, snapshot || {
             name: product?.name || "",
             image: product?.image || "",
