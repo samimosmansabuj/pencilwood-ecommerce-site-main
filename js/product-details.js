@@ -6,6 +6,56 @@ let CURRENT_PRODUCT = null;
 let SELECTED_VARIANT = null;
 let VARIANT_ATTR_STATE = {};
 
+// ===== Hover (desktop) / drag (mobile) zoom on product image =====
+(function () {
+    const galMain = document.getElementById('galMain');
+    const img = document.getElementById('productImage');
+    if (!galMain || !img) return;
+
+    const hint = document.createElement('div');
+    hint.className = 'zoom-hint';
+    hint.textContent = '+';
+    galMain.appendChild(hint);
+
+    function setZoomPoint(clientX, clientY) {
+        const rect = galMain.getBoundingClientRect();
+        const x = Math.min(100, Math.max(0, ((clientX - rect.left) / rect.width) * 100));
+        const y = Math.min(100, Math.max(0, ((clientY - rect.top) / rect.height) * 100));
+        img.style.transformOrigin = `${x}% ${y}%`;
+    }
+
+    // ---- DESKTOP: hover to zoom, move to pan ----
+    galMain.addEventListener('mouseenter', () => {
+        galMain.classList.add('zoomed');
+    });
+
+    galMain.addEventListener('mousemove', (e) => {
+        setZoomPoint(e.clientX, e.clientY);
+    });
+
+    galMain.addEventListener('mouseleave', () => {
+        galMain.classList.remove('zoomed');
+        img.style.transformOrigin = 'center center';
+    });
+
+    // ---- MOBILE: touch and hold + slide to zoom/pan ----
+    galMain.addEventListener('touchstart', (e) => {
+        const t = e.touches[0];
+        setZoomPoint(t.clientX, t.clientY);
+        galMain.classList.add('zoomed');
+    }, { passive: true });
+
+    galMain.addEventListener('touchmove', (e) => {
+        const t = e.touches[0];
+        setZoomPoint(t.clientX, t.clientY);
+    }, { passive: true });
+
+    galMain.addEventListener('touchend', () => {
+        galMain.classList.remove('zoomed');
+        img.style.transformOrigin = 'center center';
+    });
+})();
+
 function requireVariantSelection() {
     toast?.("Please select a variant");
 
@@ -59,6 +109,8 @@ async function loadProductDetails() {
         CURRENT_PRODUCT = product;
         SELECTED_VARIANT = null;
         VARIANT_ATTR_STATE = {};
+
+        GAViewItemEvent(product);
 
         const name = product.name || "";
         const sku = product.sku || "";
@@ -227,24 +279,39 @@ function renderSpecTable(features) {
 }
 
 /* =========================
-   REVIEWS TAB
+   REVIEWS TAB — with pagination 
 ========================= */
+let ALL_REVIEWS = [];
+let REVIEWS_SHOWN = 3;
+const REVIEWS_INITIAL = 3;
+const REVIEWS_STEP = 10;
+
 function renderReviews(reviews, rating, reviewCount) {
     const scoreEl = document.getElementById("reviewScore");
     const countEl = document.getElementById("reviewCountText");
-    const listEl = document.getElementById("reviewList");
 
     if (scoreEl) scoreEl.textContent = rating.toFixed(1);
     if (countEl) countEl.textContent = `${reviewCount} reviews`;
 
+    ALL_REVIEWS = Array.isArray(reviews) ? reviews : [];
+    REVIEWS_SHOWN = REVIEWS_INITIAL;
+
+    renderReviewList();
+}
+
+function renderReviewList() {
+    const listEl = document.getElementById("reviewList");
     if (!listEl) return;
 
-    if (!Array.isArray(reviews) || !reviews.length) {
+    if (!ALL_REVIEWS.length) {
         listEl.innerHTML = `<div class="rv-item"><p>No reviews yet</p></div>`;
+        removeReviewToggle();
         return;
     }
 
-    listEl.innerHTML = reviews.map(r => `
+    const visible = ALL_REVIEWS.slice(0, REVIEWS_SHOWN);
+
+    listEl.innerHTML = visible.map(r => `
         <div class="rv-item">
             <div class="rv-item-head">
                 <span class="rv-name">${escapeHtml(r.name || "Anonymous")}</span>
@@ -255,8 +322,58 @@ function renderReviews(reviews, rating, reviewCount) {
             <p class="rv-comment">${escapeHtml(r.comment || "")}</p>
         </div>
     `).join("");
+
+    renderReviewToggle();
 }
 
+function renderReviewToggle() {
+    removeReviewToggle();
+
+    const container = document.getElementById("pane-reviews");
+    if (!container) return;
+
+    const total = ALL_REVIEWS.length;
+
+    // nothing to expand or collapse (e.g. total <= REVIEWS_INITIAL)
+    if (total <= REVIEWS_INITIAL) return;
+
+    const wrap = document.createElement("div");
+    wrap.className = "rv-toggle-wrap";
+    wrap.id = "rvToggleWrap";
+
+    const hasMore = REVIEWS_SHOWN < total;
+    const isExpanded = REVIEWS_SHOWN > REVIEWS_INITIAL;
+
+    if (hasMore) {
+        const moreBtn = document.createElement("button");
+        moreBtn.className = "rv-toggle-btn";
+        moreBtn.textContent = "See More";
+        moreBtn.onclick = () => {
+            REVIEWS_SHOWN = Math.min(REVIEWS_SHOWN + REVIEWS_STEP, total);
+            renderReviewList();
+            document.getElementById("rvToggleWrap")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        };
+        wrap.appendChild(moreBtn);
+    }
+
+    if (isExpanded) {
+        const lessBtn = document.createElement("button");
+        lessBtn.className = "rv-toggle-btn";
+        lessBtn.textContent = "See Less";
+        lessBtn.onclick = () => {
+            REVIEWS_SHOWN = REVIEWS_INITIAL;
+            renderReviewList();
+            document.getElementById("pane-reviews")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        };
+        wrap.appendChild(lessBtn);
+    }
+
+    container.appendChild(wrap);
+}
+
+function removeReviewToggle() {
+    document.getElementById("rvToggleWrap")?.remove();
+}
 /* =========================
    FAQ TAB
 ========================= */
@@ -569,6 +686,12 @@ function setupButtons(product, slug) {
                 return;
             }
 
+            GAAddToCartEvent({
+                id: product.id,
+                name: product.name,
+                discount_price: SELECTED_VARIANT ? SELECTED_VARIANT.discount_price : product.discount_price
+            });
+
             const token = localStorage.getItem("access") || localStorage.getItem("token");
 
             if (!token) {
@@ -848,40 +971,6 @@ async function loadRelatedProducts(product) {
         console.error("RELATED PRODUCTS ERROR:", err);
     }
 }
-
-// ===== Tap-to-zoom on product image =====
-(function () {
-    const galMain = document.getElementById('galMain');
-    const img = document.getElementById('productImage');
-    if (!galMain || !img) return;
-  
-    // zoom hint icon (+)
-    const hint = document.createElement('div');
-    hint.className = 'zoom-hint';
-    hint.textContent = '+';
-    galMain.appendChild(hint);
-  
-    let zoomed = false;
-  
-    function toggleZoom(e) {
-      zoomed = !zoomed;
-      galMain.classList.toggle('zoomed', zoomed);
-  
-      if (zoomed) {
-        // set transform-origin based on tap/click position
-        const rect = galMain.getBoundingClientRect();
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        const x = ((clientX - rect.left) / rect.width) * 100;
-        const y = ((clientY - rect.top) / rect.height) * 100;
-        img.style.transformOrigin = `${x}% ${y}%`;
-      } else {
-        img.style.transformOrigin = 'center center';
-      }
-    }
-  
-    img.addEventListener('click', toggleZoom);
-  })();
 
 /* =========================
    FAQ TOGGLE
