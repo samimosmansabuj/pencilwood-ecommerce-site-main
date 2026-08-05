@@ -48,7 +48,7 @@ body {
     color: var(--text);
     font-size: 14px;
     line-height: 1.6;
-    overflow-x: hidden;
+    padding-top: 52px; 
 }
 
 a {
@@ -104,10 +104,12 @@ img {
 
 .topnav {
     background: var(--br);
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 500;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, .2)
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, .2);
 }
 
 .topnav-in {
@@ -262,12 +264,15 @@ img {
 
 .subnav {
     background: var(--br-m);
+    position: sticky;
+    top: 52px;
+    z-index: 999;
     overflow-x: auto;
-    scrollbar-width: none
+    scrollbar-width: none;
 }
 
 .subnav::-webkit-scrollbar {
-    display: none
+    display: none;
 }
 
 .subnav-in {
@@ -2224,9 +2229,11 @@ img {
 }
 
 #footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
     display: flex;
     justify-content: space-between;
-    /* left + right */
     align-items: center;
     padding: 10px 20px;
 }
@@ -2237,6 +2244,8 @@ img {
 
 .footer-links {
     text-align: right;
+    margin-left: auto; 
+    flex-shrink: 0;
 }
 
 .footer-links a {
