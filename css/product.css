@@ -628,13 +628,10 @@
 }
 
 .faq-ico {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.25s ease;
-  font-style: normal;
+  width: 18px;
+  height: 18px;
   color: var(--br);
-  font-size: 13px;
+  transition: transform .3s ease;
   flex-shrink: 0;
   margin-left: 10px;
 }
