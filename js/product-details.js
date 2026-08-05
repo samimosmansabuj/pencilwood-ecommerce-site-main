@@ -390,7 +390,16 @@ function renderFAQs(faqs) {
         <div class="faq-item">
             <div class="faq-q" onclick="faqToggle(this)">
                 <span class="faq-q-txt">${escapeHtml(f.question || "")}</span>
-                <i class="faq-ico">▾</i>
+    
+                <svg class="faq-ico" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                    <path d="M6 9l6 6 6-6"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="3"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"/>
+                </svg>
+    
             </div>
             <div class="faq-a">
                 <p>${escapeHtml(f.answer || "")}</p>
