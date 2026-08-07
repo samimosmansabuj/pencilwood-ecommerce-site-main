@@ -831,6 +831,21 @@ function updateAuthButtons() {
 }
 
 /* =========================
+   LOGOUT
+========================= */
+function logoutUser() {
+    localStorage.removeItem("access");
+    localStorage.removeItem("refresh");
+    localStorage.removeItem("token");
+
+    toast("Logged out ✅");
+
+    setTimeout(() => {
+        window.location.href = "index.html";
+    }, 500);
+}
+
+/* =========================
    GLOBAL NAVIGATION
 ========================= */
 function openCart() {
@@ -922,6 +937,12 @@ function bindSearch() {
 
 /* =========================
    ── INIT
+   NOTE: site-content.js owns loadSiteContent() / nav / footer / social /
+   news rendering. It's called from loadComponents.js's initComponents()
+   after footer-container is injected. Do NOT redefine loadSiteContent()
+   or renderNavMenuLinks() here — a duplicate here will silently
+   overwrite the real one depending on script load order and the footer
+   links will stop rendering (this is what broke login.html).
 ========================= */
 window.addEventListener("DOMContentLoaded", () => {
 
@@ -930,6 +951,12 @@ window.addEventListener("DOMContentLoaded", () => {
     updateCartCountFromBackend();
 
     updateWishlistCount();
+
+
+    document.querySelector(".logout-btn")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        logoutUser();
+    });
 
     if (
         document.getElementById("productsGrid")
