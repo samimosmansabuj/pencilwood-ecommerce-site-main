@@ -6,18 +6,20 @@ async function loadComponent(id, file) {
         return;
     }
 
-    const resp = await fetch(file);
-    const html = await resp.text();
-
-    el.innerHTML = html;
+    try {
+        const resp = await fetch(file);
+        if (!resp.ok) throw new Error(`Failed to fetch ${file}: ${resp.status}`);
+        const html = await resp.text();
+        el.innerHTML = html;
+    } catch (err) {
+        console.error(`Error loading component "${id}" from "${file}":`, err);
+    }
 }
 
 /* =========================
    INIT COMPONENTS
 ========================= */
 async function initComponents() {
-
-    // 1. navbar load
     await loadComponent("topnavbar-container", "components/navbar.html");
 
     loadComponent("drawer-container", "components/drawer.html");
@@ -29,7 +31,6 @@ async function initComponents() {
         await loadComponent("footer-container", "components/footer.html");
     }
 
-    // 3. wait DOM injection complete
     setTimeout(() => {
         if (typeof bindSearch === "function") bindSearch();
         if (typeof updateAuthButtons === "function") updateAuthButtons();

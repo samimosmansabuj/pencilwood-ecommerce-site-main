@@ -1,17 +1,31 @@
 /* ====== GLOBAL STYLING ====== */
-body {
+html, body {
+    height: 100%;
     margin: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
     font-family: 'Hind Siliguri', sans-serif;
     background: #f9f9f9;
     color: #333;
 }
 
 .auth-page {
+    flex: 1 0 auto;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 80vh;
     padding: 14px;
+    min-height: 0;
+}
+
+.footer-section {
+    flex-shrink: 0;
+    width: 100%;
 }
 
 /* ====== AUTH BOX ====== */
@@ -135,9 +149,6 @@ body {
 
 /* ====== RESPONSIVE ====== */
 @media (max-width: 480px) {
-    .auth-page {
-        padding: 10px;
-    }
     .auth-box {
         padding: 20px 16px;
     }

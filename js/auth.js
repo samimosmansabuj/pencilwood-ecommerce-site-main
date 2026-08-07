@@ -58,6 +58,18 @@ async function submitPhoneStep() {
         document.getElementById("passwordStep").style.display = "flex";
 
         const label = document.getElementById("passwordStepLabel");
+        if (label) {
+            label.textContent = LOGIN_FLOW_ACTION === "set_password"
+                ? "Set Password"
+                : "Enter Password";
+        }
+
+        const input = document.getElementById("loginPassword");
+        if (input) {
+            input.placeholder = LOGIN_FLOW_ACTION === "set_password"
+                ? "Set your password"
+                : "Enter your password";
+        }
 
         document.getElementById("loginPassword")?.focus();
 
