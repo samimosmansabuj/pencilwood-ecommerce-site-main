@@ -588,6 +588,12 @@ async function placeOrder() {
         return;
     }
 
+    const placeBtn = document.getElementById("placeOrderBtn");
+    if (placeBtn) {
+        if (placeBtn.disabled) return;
+        placeBtn.disabled = true;
+    }
+
     const name = document.getElementById("ckName").value.trim();
     const phone = document.getElementById("ckPhone").value.trim();
     const address = document.getElementById("ckAddress").value.trim();
@@ -596,16 +602,18 @@ async function placeOrder() {
     try {
         let body;
 
+        const attribution = window.getAttributionData ? window.getAttributionData() : {};
+
         if (isLoggedIn()) {
             const selectedCartIds = JSON.parse(localStorage.getItem("checkout_cart_ids")) || [];
-            body = { cart_ids: selectedCartIds, name, phone, address, district };
+            body = { cart_ids: selectedCartIds, name, phone, address, district, ...attribution };
         } else {
             const guestItems = JSON.parse(localStorage.getItem("checkout_guest_items")) || [];
             if (!guestItems.length) {
                 toast("No items to checkout");
                 return;
             }
-            body = { items: guestItems, name, phone, address, district };
+            body = { items: guestItems, name, phone, address, district, ...attribution };
         }
 
         const res = await fetch(`${API_BASE}/api/checkout/place-order/`, {
@@ -659,6 +667,7 @@ async function placeOrder() {
     } catch (err) {
         console.error("ORDER ERROR:", err);
         toast("Something went wrong. Please try again.");
+        if (placeBtn) placeBtn.disabled = false;
     }
 }
 
