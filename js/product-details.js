@@ -107,6 +107,8 @@ async function loadProductDetails() {
         }
 
         CURRENT_PRODUCT = product;
+        window.__CURRENT_PRODUCT_ID__ = product.id;
+        if (window.__runTracking) window.__runTracking();
         SELECTED_VARIANT = null;
         VARIANT_ATTR_STATE = {};
 
