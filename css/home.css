@@ -48,7 +48,7 @@ body {
     color: var(--text);
     font-size: 14px;
     line-height: 1.6;
-    padding-top: 52px; 
+    padding-top: 52px;
 }
 
 a {
@@ -158,6 +158,14 @@ img {
     color: rgba(255, 255, 255, .5)
 }
 
+.nav-middle {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-shrink: 0;
+    width: 50%;
+}
+
 .search-wrap {
     flex: 1;
     max-width: 500px;
@@ -194,6 +202,15 @@ img {
 
 .search-go:hover {
     background: #b07a20
+}
+
+.nav-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 15px;
+    flex-shrink: 0;
 }
 
 .nav-ics {
@@ -451,7 +468,8 @@ img {
 .gal-main img {
     width: 100%;
     height: 100%;
-    object-fit: cover;   /* 🔥 same rule */
+    object-fit: cover;
+    /* 🔥 same rule */
     object-position: center;
     display: block;
 }
@@ -2244,7 +2262,7 @@ img {
 
 .footer-links {
     text-align: right;
-    margin-left: auto; 
+    margin-left: auto;
     flex-shrink: 0;
 }
 
@@ -2296,8 +2314,13 @@ img {
 }
 
 @keyframes news-feed-scroll {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-100%); }
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-100%);
+    }
 }
 
 @media (max-width: 600px) {
@@ -2873,74 +2896,75 @@ textarea {
 /* desktop default */
 .drawer {
     display: none;
-  }
-  
-  /* mobile drawer */
-  .drawer-overlay,
-  .drawer {
-    display: none;
-  }
-  
-  .drawer.on,
-  .drawer-overlay.on {
-    display: block;
-  }
-  
-  /* desktop subnav visible */
-  .subnav {
-    display: block;
-  }
-  
-  /* MOBILE MODE */
-  @media (max-width: 768px) {
-  
-    .subnav {
-      display: none; /* hide desktop subnav */
-    }
-  
-    .drawer {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 280px;
-      height: 100%;
-      background: #fff;
-      z-index: 9999;
-      transform: translateX(-100%);
-      transition: 0.3s;
-    }
-  
-    .drawer.on {
-      transform: translateX(0);
-    }
-  
-    .drawer-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.4);
-      z-index: 9998;
-    }
-  
-    .drawer-overlay.on {
-      display: block;
-    }
-  }
+}
 
-  .search-overlay{
+/* mobile drawer */
+.drawer-overlay,
+.drawer {
+    display: none;
+}
+
+.drawer.on,
+.drawer-overlay.on {
+    display: block;
+}
+
+/* desktop subnav visible */
+.subnav {
+    display: block;
+}
+
+/* MOBILE MODE */
+@media (max-width: 768px) {
+
+    .subnav {
+        display: none;
+        /* hide desktop subnav */
+    }
+
+    .drawer {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 280px;
+        height: 100%;
+        background: #fff;
+        z-index: 9999;
+        transform: translateX(-100%);
+        transition: 0.3s;
+    }
+
+    .drawer.on {
+        transform: translateX(0);
+    }
+
+    .drawer-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 9998;
+    }
+
+    .drawer-overlay.on {
+        display: block;
+    }
+}
+
+.search-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.6);
+    background: rgba(0, 0, 0, 0.6);
     display: none;
     z-index: 9999;
     flex-direction: column;
     padding: 20px;
 }
 
-.search-overlay.on{
+.search-overlay.on {
     display: flex;
 }
 
-.search-box{
+.search-box {
     display: flex;
     gap: 8px;
     background: white;
@@ -2948,25 +2972,25 @@ textarea {
     border-radius: 10px;
 }
 
-.search-box input{
+.search-box input {
     flex: 1;
     border: none;
     outline: none;
     font-size: 16px;
 }
 
-.search-box button{
+.search-box button {
     padding: 8px 12px;
     border-radius: 8px;
     background: var(--gold);
     color: white;
 }
 
-#closeSearch{
+#closeSearch {
     background: var(--red);
 }
 
-.search-suggestions{
+.search-suggestions {
     margin-top: 10px;
     background: white;
     border-radius: 10px;
@@ -2974,13 +2998,13 @@ textarea {
     overflow-y: auto;
 }
 
-.search-item{
+.search-item {
     padding: 10px;
     border-bottom: 1px solid #eee;
     cursor: pointer;
 }
 
-.search-item:hover{
+.search-item:hover {
     background: #f5f5f5;
 }
 
@@ -2989,13 +3013,13 @@ textarea {
 ========================= */
 
 .search-wrap {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .search-actions {
-  display: none;
+    display: none;
 }
 
 /* =========================
@@ -3003,126 +3027,139 @@ textarea {
 ========================= */
 
 @media (max-width: 768px) {
+    .nav-middle {
+        width: auto;
+    }
 
-  /* hide desktop search */
-  .search-wrap {
-    display: none;
-  }
+    /* hide desktop search */
+    .search-wrap {
+        display: none;
+    }
 
-  /* show mobile search icon */
-  .search-actions {
-    display: flex;
-    align-items: center;
-  }
+    /* show mobile search icon */
+    .search-actions {
+        display: flex;
+        align-items: center;
+    }
 
-  .mobile-search-open {
-    background: none;
-    border: none;
-    font-size: 20px;
-  }
+    .mobile-search-open {
+        background: none;
+        border: none;
+        font-size: 20px;
+    }
 }
 
 @media (max-width: 768px) {
 
     .nav-ics {
-      gap: 0px;              /* icon spacing komano */
+        gap: 0px;
+        /* icon spacing komano */
     }
-  
-    .nav-ic {
-      padding: 0;      /* আগের 5px 8px → কমানো */
-      font-size: 8px;        /* label text choto */
-    }
-  
-    .nav-ic-icon {
-      font-size: 15px;       /* icon size kom */
-    }
-  
-    .cart-dot {
-      width: 12px;
-      height: 12px;
-      font-size: 7px;
-      top: -2px;
-      right: -3px;
-    }
-  }
 
-  /* =========================
+    .nav-ic {
+        padding: 0;
+        /* আগের 5px 8px → কমানো */
+        font-size: 8px;
+        /* label text choto */
+    }
+
+    .nav-ic-icon {
+        font-size: 15px;
+        /* icon size kom */
+    }
+
+    .cart-dot {
+        width: 12px;
+        height: 12px;
+        font-size: 7px;
+        top: -2px;
+        right: -3px;
+    }
+}
+
+/* =========================
    LOGIN REQUIRED POPUP
 ========================= */
 
-.login-popup-overlay{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,.45);
-    backdrop-filter:blur(4px);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    z-index:99999;
-    animation:fadeIn .25s ease;
+.login-popup-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .45);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+    animation: fadeIn .25s ease;
 }
 
-.login-popup-box{
-    width:min(90%,340px);
-    background:#fff;
-    border-radius:22px;
-    padding:24px;
-    text-align:center;
-    animation:popupScale .25s ease;
+.login-popup-box {
+    width: min(90%, 340px);
+    background: #fff;
+    border-radius: 22px;
+    padding: 24px;
+    text-align: center;
+    animation: popupScale .25s ease;
 }
 
-.login-popup-icon{
-    font-size:48px;
-    margin-bottom:10px;
+.login-popup-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
 }
 
-.login-popup-box h3{
-    margin-bottom:8px;
-    font-size:22px;
+.login-popup-box h3 {
+    margin-bottom: 8px;
+    font-size: 22px;
 }
 
-.login-popup-box p{
-    color:#666;
-    font-size:14px;
-    line-height:1.5;
-    margin-bottom:20px;
+.login-popup-box p {
+    color: #666;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 20px;
 }
 
-.login-popup-actions{
-    display:flex;
-    gap:10px;
+.login-popup-actions {
+    display: flex;
+    gap: 10px;
 }
 
-.login-popup-actions button{
-    flex:1;
-    border:none;
-    cursor:pointer;
-    border-radius:12px;
-    padding:12px;
-    font-weight:600;
+.login-popup-actions button {
+    flex: 1;
+    border: none;
+    cursor: pointer;
+    border-radius: 12px;
+    padding: 12px;
+    font-weight: 600;
 }
 
-.popup-cancel-btn{
-    background:#f2f2f2;
+.popup-cancel-btn {
+    background: #f2f2f2;
 }
 
-.popup-login-btn{
-    background:#111;
-    color:#fff;
+.popup-login-btn {
+    background: #111;
+    color: #fff;
 }
 
-@keyframes fadeIn{
-    from{opacity:0}
-    to{opacity:1}
-}
-
-@keyframes popupScale{
-    from{
-        opacity:0;
-        transform:scale(.9);
+@keyframes fadeIn {
+    from {
+        opacity: 0
     }
-    to{
-        opacity:1;
-        transform:scale(1);
+
+    to {
+        opacity: 1
+    }
+}
+
+@keyframes popupScale {
+    from {
+        opacity: 0;
+        transform: scale(.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
     }
 }

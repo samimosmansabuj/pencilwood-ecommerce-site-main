@@ -9,33 +9,39 @@
 
     <!-- LOGO -->
     <a class="logo-wrap" href="/">
-      <div class="logo-icon">PW</div>
+      <div class="logo-icon">
+        <img src="../images/pencilwood-bd-logo.png" alt="pencilwood-bd-logo.png">
+      </div>
       <div class="logo-name">
-        Pencile Wood
+        <!-- Pencile Wood -->
+        <img src="../images/pencilwood-bd-spelling-logo.png" alt="pencilwood-bd-spelling-logo.png"
+          style="height: 20px; padding-bottom: 7px;">
         <small>Premium Goods</small>
       </div>
     </a>
 
-    <!-- SEARCH WRAP (DESKTOP ONLY) -->
-    <div class="search-wrap">
+    <div class="nav-middle">
+      <!-- SEARCH WRAP (DESKTOP ONLY) -->
+      <div class="search-wrap">
 
-      <input class="search-in" type="text"
-        placeholder="Search Cradle, Mobile Stands, Calendar Holders...">
+        <input class="search-in" type="text" placeholder="Search Cradle, Mobile Stands, Calendar Holders...">
 
-      <button class="search-go">🔍</button>
+        <button class="search-go">🔍</button>
 
+      </div>
+
+      <!-- SEARCH ACTIONS (MOBILE ONLY) -->
+      <div class="search-actions">
+
+        <!-- mobile open overlay -->
+        <button class="mobile-search-open" onclick="openSearch()">
+          🔍
+        </button>
+
+      </div>
     </div>
 
-    <!-- SEARCH ACTIONS (MOBILE ONLY) -->
-    <div class="search-actions">
-
-      <!-- mobile open overlay -->
-      <button class="mobile-search-open" onclick="openSearch()">
-        🔍
-      </button>
-
-    </div>
-
+    <div class="nav-right">
       <!-- LOGIN -->
       <div class="nav-ic login-btn" onclick="window.location.href='login.html'">
         <span class="nav-ic-icon">👤</span>
@@ -65,10 +71,11 @@
         </span>
         Cart
       </div>
-
     </div>
 
   </div>
+
+</div>
 </div>
 
 
@@ -115,4 +122,3 @@
   <div id="searchSuggestions" class="search-suggestions"></div>
 
 </div>
-
