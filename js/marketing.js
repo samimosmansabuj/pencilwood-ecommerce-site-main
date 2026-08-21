@@ -1,9 +1,5 @@
 // ======================================================================
 //  MARKETING / PIXEL TRACKING
-//  Pulls active tracking config (Facebook Pixel / GTM / GA4) from the
-//  backend dashboard settings, then injects base scripts + fires events.
-//  Nothing here is hardcoded — turning a provider ON/OFF in the dashboard
-//  controls what runs on the site, with zero frontend deploys.
 // ======================================================================
 
 window.dataLayer = window.dataLayer || [];
@@ -15,9 +11,9 @@ window.__TRACKING_READY__ = new Promise((resolve) => {
 // ---------------------------------------------------------------------
 // 1. Fetch active tracking settings from backend and inject base scripts
 // ---------------------------------------------------------------------
-(async function initTracking() {
-    try {
-        const res = await fetch(`${window.API_BASE}/api/tracking-settings/`);
+async function initTracking() {    try {
+        const pid = window.__CURRENT_PRODUCT_ID__ ? `?product_id=${window.__CURRENT_PRODUCT_ID__}` : "";
+        const res = await fetch(`${window.API_BASE}/api/tracking-settings/${pid}`);
         const json = await res.json();
         if (!json.status) throw new Error(json.error || "Failed to load tracking settings");
 
@@ -49,8 +45,12 @@ window.__TRACKING_READY__ = new Promise((resolve) => {
     } finally {
         window.__resolveTrackingReady();
     }
-})();
+}
 
+if (!window.__DEFER_TRACKING_INIT__) {
+    initTracking();
+}
+window.__runTracking = initTracking;
 function injectFacebookPixel(pixelId) {
     /* eslint-disable */
     !function (f, b, e, v, n, t, s) {
