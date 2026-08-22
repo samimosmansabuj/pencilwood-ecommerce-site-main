@@ -5,7 +5,7 @@
   align-items: center;
   gap: 10px;
   padding: 12px 14px;
-  background: #fff;
+  background: var(--br);
   border-bottom: 1px solid var(--border-l);
   flex-wrap: wrap;
 }
@@ -19,7 +19,7 @@
 .filter-bar label {
   font-size: 12px;
   font-weight: 600;
-  color: var(--mid);
+  color: var(--cream);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -36,7 +36,7 @@
 
 .filter-right {
   font-size: 12px;
-  color: var(--lighter);
+  color: var(--cream);
 }
 
 

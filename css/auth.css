@@ -5,8 +5,8 @@ html, body {
 }
 
 body {
-    display: flex;
-    flex-direction: column;
+    /* display: flex;
+    flex-direction: column; */
     min-height: 100vh;
     min-height: 100dvh;
     font-family: 'Hind Siliguri', sans-serif;

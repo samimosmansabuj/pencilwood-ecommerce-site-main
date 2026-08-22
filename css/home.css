@@ -1,8 +1,11 @@
 /* home css */
 :root {
-    --br: #4B2E1E;
-    --br-d: #2E1A0E;
-    --br-m: #7A4A32;
+    --br: #CA7200;
+    /* --br: #4B2E1E; */
+    --br-d: #CA7200;
+    /* --br-d: #2E1A0E; */
+    --br-m: #92662c;
+    /* --br-m: #7A4A32; */
     --br-l: #B07A50;
     --beige: #F5F0E6;
     --beige-d: #EAE0CE;
@@ -104,6 +107,8 @@ img {
 
 .topnav {
     background: var(--br);
+    max-width: 1200px;
+    margin: 0 auto;
     position: fixed;
     top: 0;
     left: 0;
@@ -388,7 +393,7 @@ img {
 .bc-br-section {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 12px 14px 0px 14px;
+    padding: 12px 14px;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -419,13 +424,20 @@ img {
     text-decoration: underline
 }
 
+
+#topnavbar-container {
+    max-width: 1200px;
+    margin: 0 auto
+}
+
+
 /* ══════════════════════════
      PAGE BODY
   ══════════════════════════ */
 .page {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 12px 14px;
+    /* padding: 12px 14px; */
     display: flex;
     flex-direction: column;
     gap: 12px
@@ -1348,6 +1360,7 @@ img {
 }
 
 .lp-head {
+    background: var(--br);
     padding: 16px 20px;
     border-bottom: 1px solid var(--border-l);
     display: flex;
@@ -1380,7 +1393,7 @@ img {
 
 /* Social proof banner */
 .proof-banner {
-    background: linear-gradient(135deg, var(--br-d) 0%, var(--br) 60%, var(--br-m) 100%);
+    background: linear-gradient(135deg, #2E1A0E 0%, var(--br) 60%, var(--br-m) 100%);
     color: white;
     border-radius: var(--r-lg);
     padding: 24px 20px;
@@ -2211,7 +2224,7 @@ img {
 .eco-lbl {
     font-size: 12px;
     font-weight: 700;
-    color: var(--beige)
+    color: black
 }
 
 .eco-links {
@@ -2253,7 +2266,7 @@ img {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 20px;
+    padding: 10px 10px;
 }
 
 #copy-right-footer {
@@ -2294,6 +2307,8 @@ img {
     overflow: hidden;
     white-space: nowrap;
     padding: 6px 12px;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .news-feed-track {
@@ -2325,7 +2340,7 @@ img {
 
 @media (max-width: 600px) {
     .bc-br-section {
-        padding: 10px 12px 0px 12px;
+        padding: 10px 12px;
         gap: 12px;
     }
 
@@ -2505,7 +2520,7 @@ img {
 .footer-section {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 12px 14px;
+    padding: 12px 0px;
     display: flex;
     flex-direction: column;
     gap: 10px
@@ -2563,7 +2578,7 @@ img {
 
 @media(max-width:640px) {
     .page {
-        padding: 8px 10px;
+        /* padding: 8px 10px; */
         gap: 8px
     }
 
