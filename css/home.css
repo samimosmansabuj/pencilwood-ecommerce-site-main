@@ -250,6 +250,10 @@ img {
     position: relative
 }
 
+.nav-right .nav-ic-icon i {
+    color: #FFF8E7;
+}
+
 .cart-dot {
     position: absolute;
     top: -3px;

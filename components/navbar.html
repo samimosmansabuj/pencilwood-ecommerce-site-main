@@ -23,41 +23,38 @@
     <div class="nav-middle">
       <!-- SEARCH WRAP (DESKTOP ONLY) -->
       <div class="search-wrap">
-
         <input class="search-in" type="text" placeholder="Search Cradle, Mobile Stands, Calendar Holders...">
-
         <button class="search-go">🔍</button>
-
       </div>
 
       <!-- SEARCH ACTIONS (MOBILE ONLY) -->
       <div class="search-actions">
-
         <!-- mobile open overlay -->
         <button class="mobile-search-open" onclick="openSearch()">
           🔍
         </button>
-
       </div>
     </div>
 
     <div class="nav-right">
       <!-- LOGIN -->
       <div class="nav-ic login-btn" onclick="window.location.href='login.html'">
-        <span class="nav-ic-icon">👤</span>
+        <span class="nav-ic-icon"><i class="fa fa-user"></i></span>
         Login
       </div>
 
       <!-- ACCOUNT -->
       <div class="nav-ic account-btn" onclick="window.location.href='profile.html'" style="display:none;">
-        <span class="nav-ic-icon">👤</span>
+        <span class="nav-ic-icon">
+          <i class="fa fa-user"></i>
+        </span>
         Account
       </div>
 
       <!-- WISHLIST -->
       <div class="nav-ic" onclick="openWishlist()">
         <span class="nav-ic-icon">
-          ❤️
+          <i class="fa fa-heart"></i>
           <span class="cart-dot" id="wishCount">0</span>
         </span>
         Wishlist
@@ -66,7 +63,8 @@
       <!-- CART -->
       <div class="nav-ic cart-wrap" onclick="openCart()">
         <span class="nav-ic-icon">
-          🛒
+           <!-- <i class="fa-solid fa-cart-shopping"></i> -->
+           🛒
           <span class="cart-dot" id="cartDot">0</span>
         </span>
         Cart
