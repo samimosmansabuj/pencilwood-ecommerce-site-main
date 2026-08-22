@@ -6,11 +6,26 @@ async function loadComponent(id, file) {
         return;
     }
 
+    let dynamicTitle = "";
+    if (id === "bc-br") {
+        const titleEl = el.querySelector("title");
+        if (titleEl) {
+            dynamicTitle = titleEl.textContent;
+        }
+    }
+
     try {
         const resp = await fetch(file);
         if (!resp.ok) throw new Error(`Failed to fetch ${file}: ${resp.status}`);
         const html = await resp.text();
         el.innerHTML = html;
+
+        if (id === "bc-br" && dynamicTitle) {
+            const bcCur = el.querySelector(".bc-cur");
+            if (bcCur) {
+                bcCur.textContent = dynamicTitle;
+            }
+        }
     } catch (err) {
         console.error(`Error loading component "${id}" from "${file}":`, err);
     }

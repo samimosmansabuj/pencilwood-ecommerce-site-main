@@ -71,88 +71,6 @@ function mkStars(id, score, sz) {
 }
 
 /* =========================
-   ── LOAD PRODUCTS
-========================= */
-async function loadProducts() {
-    const grid = document.getElementById("productsGrid");
-    const total = document.getElementById("totalProducts");
-
-    if (!grid) return;
-
-    try {
-
-        const params = new URLSearchParams(window.location.search);
-
-        const search = params.get("search");
-        const category = params.get("category");
-        const sort = params.get("sort");
-
-        let apiUrl = `${API_BASE}/api/ecom/products/`;
-
-        const queryParams = new URLSearchParams();
-
-        if (search) queryParams.append("search", search);
-        if (category) queryParams.append("category", category);
-        if (sort) queryParams.append("sort", sort);
-
-        if (queryParams.toString()) {
-            apiUrl += `?${queryParams.toString()}`;
-        }
-
-        const res = await fetch(apiUrl);
-
-        const data = await res.json();
-
-        let products = [];
-
-        if (data?.results?.data) {
-            products = data.results.data;
-        }
-        else if (data?.data) {
-            products = data.data;
-        }
-        else if (Array.isArray(data)) {
-            products = data;
-        }
-
-        if (!Array.isArray(products)) {
-            throw new Error("Invalid API response");
-        }
-
-        ALL_PRODUCTS = products;
-        filteredProducts = [...products];
-
-        /* DYNAMIC CATEGORY LOAD */
-        loadCategories(products);
-
-        /* NEWEST FIRST DEFAULT */
-        filteredProducts.sort((a, b) => {
-            return (b.id || 0) - (a.id || 0);
-        });
-
-        goPage(1);
-
-        if (total) {
-            total.textContent =
-                `${products.length} Products`;
-        }
-
-    } catch (err) {
-
-        console.error(
-            "LOAD PRODUCTS ERROR:",
-            err
-        );
-
-        grid.innerHTML = `
-            <p style="color:red">
-                Failed to load products
-            </p>
-        `;
-    }
-}
-
-/* =========================
    ── DYNAMIC CATEGORY
 ========================= */
 function loadCategories(products) {
@@ -527,7 +445,7 @@ function applyFilters() {
                 productCat =
                     p.category || "";
             }
-
+            console.log("filter: ", productCat)
             return (
                 productCat
                     .toString()
@@ -962,6 +880,10 @@ window.addEventListener("DOMContentLoaded", () => {
         document.getElementById("productsGrid")
     ) {
         loadProducts();
+    }
+
+    if (document.getElementById("kidzProductsGrid")){
+        loadKidzProducts();
     }
 
     if (document.querySelector(".hero-slider")) {
