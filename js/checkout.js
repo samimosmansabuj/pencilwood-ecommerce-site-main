@@ -662,6 +662,7 @@ async function placeOrder() {
             if (data.field && document.getElementById(data.field)) {
                 showFieldError(document.getElementById(data.field), data.message || "Invalid value");
             }
+            if (placeBtn) placeBtn.disabled = false;
         }
 
     } catch (err) {
