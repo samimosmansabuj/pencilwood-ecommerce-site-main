@@ -397,7 +397,8 @@ img {
 .bc-br-section {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 12px 14px;
+    /* padding: 12px 14px; */
+    padding-bottom: 10px;
     display: flex;
     flex-direction: column;
     gap: 10px;

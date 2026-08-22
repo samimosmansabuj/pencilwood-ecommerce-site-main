@@ -51,7 +51,8 @@ function renderFooterLinks(links) {
 
     container.innerHTML = links
         .map((link, i) => {
-            const separator = i < links.length - 1 ? " | " : "";
+            // const separator = i < links.length - 1 ? " | " : "";
+            const separator = i < links.length - 1 ? `<span class="footer-policy-sep" aria-hidden="true">|</span>` : "";
             return `<a href="${link.url || '#'}">${escapeHtml(link.name)}</a>${separator}`;
         })
         .join("");
