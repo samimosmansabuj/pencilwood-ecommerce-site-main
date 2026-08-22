@@ -80,8 +80,7 @@ async function loadProducts() {
     }
 }
 
-
-async function loadKidzProducts() {
+async function featureSectionAdd() {
     const kidzProductsGrid = document.getElementById("kidzProductsGrid");
     if (!kidzProductsGrid) return;
     try {
@@ -182,5 +181,4 @@ async function loadKidzProducts() {
         `;
     }
 }
-
 

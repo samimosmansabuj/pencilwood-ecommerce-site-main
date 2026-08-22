@@ -883,7 +883,7 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 
     if (document.getElementById("kidzProductsGrid")){
-        loadKidzProducts();
+        featureSectionAdd();
     }
 
     if (document.querySelector(".hero-slider")) {

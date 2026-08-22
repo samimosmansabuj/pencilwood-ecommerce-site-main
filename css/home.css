@@ -1368,7 +1368,7 @@ img {
 
 .lp-head {
     background: var(--br);
-    padding: 16px 20px;
+    padding: 10px 15px;
     border-bottom: 1px solid var(--border-l);
     display: flex;
     align-items: center;
@@ -2590,7 +2590,7 @@ img {
     }
 
     .lp-head {
-        padding: 12px 12px;
+        padding: 5px 10px;
         gap: 10px
     }
 
