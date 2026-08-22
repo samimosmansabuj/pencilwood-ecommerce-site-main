@@ -39,6 +39,7 @@ async function initComponents() {
 
     loadComponent("drawer-container", "components/drawer.html");
     loadComponent("toast-container", "components/toast.html");
+    loadComponent("float-wa", "components/float-wa.html");
     loadComponent("eco-container", "components/eco-bar.html");
     loadComponent("bc-br", "components/breadcrumb.html");
 
