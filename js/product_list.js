@@ -65,6 +65,8 @@ async function loadProducts() {
                 `${products.length} Products`;
         }
 
+        if (typeof window.hideLoader === "function") window.hideLoader();
+
     } catch (err) {
 
         console.error(
@@ -77,6 +79,8 @@ async function loadProducts() {
                 Failed to load products
             </p>
         `;
+        
+        if (typeof window.hideLoader === "function") window.hideLoader();
     }
 }
 

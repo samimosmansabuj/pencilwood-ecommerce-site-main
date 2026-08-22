@@ -214,8 +214,11 @@ async function loadProductDetails() {
             setTimeout(() => requireVariantSelection(), 300);
         }
 
+        if (typeof window.hideLoader === "function") window.hideLoader();
+
     } catch (err) {
         console.error("PRODUCT DETAILS ERROR:", err);
+        if (typeof window.hideLoader === "function") window.hideLoader();
     }
 }
 

@@ -139,11 +139,13 @@ async function loadHeroSlider() {
         }
 
         renderSlider();
+        if (typeof window.hideLoader === "function") window.hideLoader();
 
     } catch (err) {
         console.error("HERO SLIDER LOAD ERROR:", err);
         SLIDES = [];
         renderSlider();
+        if (typeof window.hideLoader === "function") window.hideLoader();
     }
 }
 
@@ -902,4 +904,28 @@ window.addEventListener("DOMContentLoaded", () => {
             sliderPaused = false;
         });
     }
+});
+
+/* ==========================================================
+   GLOBAL LOADER 
+========================================================== */
+window.hideLoader = function() {
+    const loader = document.getElementById("global-loader");
+    if (loader) {
+        loader.classList.add("hidden");
+        setTimeout(() => {
+            if (loader.parentNode) {
+                loader.parentNode.removeChild(loader);
+            }
+        }, 200);
+    }
+};
+
+window.addEventListener("load", () => {
+    // Fallback: hide loader after 1 second if no specific API call does it
+    setTimeout(() => {
+        if (typeof window.hideLoader === "function") {
+            window.hideLoader();
+        }
+    }, 1000);
 });
