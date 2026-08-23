@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="css/home.css?v=8">
   <link rel="stylesheet" href="css/orders.css?v=8">
   <link rel="stylesheet" href="css/info-pages.css?v=8">
+  <link rel="stylesheet" href="css/profile.css?v=8">
 </head>
 
 <body>
@@ -20,6 +21,8 @@
 
 
   <div id="toast-container"></div>
+  <div id="float-wa"></div>
+  <div id="float-cart"></div>
   <div id="drawer-container"></div>
   <div id="topnavbar-container"></div>
   <div id="subnavbar-container"></div>
@@ -28,7 +31,21 @@
 
   <div class="page">
 
-    <h1 class="orders-title">My Orders</h1>
+    <div class="account-links">
+      <a href="profile.html">
+        <i class="fa fa-user"></i> <span>Profile</span>
+      </a>
+      <a href="my-orders.html">
+        <!-- <i class="fa fa-box-open"></i> -->
+        📦 <span>My Orders</span>
+      </a>
+      <a href="address.html">
+        <i class="fa fa-location-arrow"></i> <span>Address Book</span>
+      </a>
+      <a onclick="logoutUser()">
+        ⏻ <span>Logout</span>
+      </a>
+    </div>
 
     <!-- FILTER -->
     <div class="orders-filter">

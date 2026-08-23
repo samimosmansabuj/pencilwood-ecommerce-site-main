@@ -142,36 +142,63 @@
    EMPTY
 ========================= */
 
-.wishlist-empty{
-    min-height:300px;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-    text-align:center;
-    gap:10px;
+.wishlist-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.04);
+  margin-top: 20px;
 }
 
-.empty-icon{
-    font-size:50px;
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  background: #f4f6f8;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #111;
 }
 
-.empty-title{
-    font-size:22px;
-    font-weight:700;
+.empty-title {
+  font-family: 'Sora', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 8px;
 }
 
-.empty-sub{
-    color:#777;
+.empty-sub {
+  font-size: 15px;
+  color: #666;
+  margin-bottom: 32px;
 }
 
-.btn-shop{
-    border:none;
-    background:#111;
-    color:#fff;
-    border-radius:999px;
-    padding:12px 22px;
-    cursor:pointer;
+.btn-shop {
+  border: none;
+  background: #111;
+  color: #fff;
+  border-radius: 12px;
+  padding: 16px 32px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 15px;
+  font-family: 'Sora', sans-serif;
+  transition: all 0.3s ease;
+}
+
+.btn-shop:hover {
+  background: #333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 /* =========================
