@@ -3220,13 +3220,60 @@ textarea {
 }
 
 /* ==========================================================
+   FLOAT CART
+========================================================== */
+.float-cart-btn {
+    position: fixed;
+    top: 230px;
+    right: 10px;
+    /* background-color: var(--br); */
+    background-color: #000;
+    color: white;
+    width: 50px;
+    height: 50px;
+    /* border-radius: 50%; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    z-index: 1000;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.float-cart-btn:hover {
+    transform: scale(1.1);
+}
+
+.float-cart-btn .cart-dot {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: var(--br);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 10px 10px;
+    border-radius: 10px;
+    border: 2px solid #fff;
+}
+
+@media (max-width: 768px) {
+    .float-cart-btn {
+        width: 50px;
+        height: 50px;
+    }
+}
+
+/* ==========================================================
    WHATSAPP FLOAT
 ========================================================== */
 .float-wa-btn {
     position: fixed;
     bottom: 20px;
-    right: 20px;
-    background-color: #25D366;
+    right: 10px;
+    background-color: var(--br);
     color: white;
     width: 50px;
     height: 50px;
