@@ -91,18 +91,26 @@ async function loadProductDetails() {
 
     if (!slug) {
         console.error("No slug found");
+        window.location.href = "/";
         return;
     }
 
     try {
 
         const res = await fetch(`${API_BASE}/api/ecom/products/${slug}/`);
+        
+        if (!res.ok) {
+            window.location.href = "/";
+            return;
+        }
+
         const data = await res.json();
 
         let product = data?.data ? data.data : data;
 
-        if (!product) {
+        if (!product || product.detail === "Not found." || data.status === false) {
             console.error("Product not found");
+            window.location.href = "/";
             return;
         }
 
@@ -219,6 +227,7 @@ async function loadProductDetails() {
     } catch (err) {
         console.error("PRODUCT DETAILS ERROR:", err);
         if (typeof window.hideLoader === "function") window.hideLoader();
+        window.location.href = "/";
     }
 }
 
