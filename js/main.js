@@ -1029,7 +1029,7 @@ function makeDraggable(el, storageKey) {
             const distLeft = rect.left;
             const distRight = w - rect.right;
 
-            const padding = 20;
+            const padding = 10;
             let percentTop = (rect.top / h) * 100;
             
             // Constrain top percentage so it doesn't go off screen
