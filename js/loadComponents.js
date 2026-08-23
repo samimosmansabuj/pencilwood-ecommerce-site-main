@@ -54,6 +54,11 @@ async function initComponents() {
         if (typeof updateCartCountFromBackend === "function") updateCartCountFromBackend();
         if (typeof updateWishlistCount === "function") updateWishlistCount();
         if (typeof loadSiteContent === "function") loadSiteContent();
+
+        if (typeof makeDraggable === "function") {
+            makeDraggable(document.querySelector(".float-cart-btn"), "floatCartPos");
+            makeDraggable(document.querySelector(".float-wa-btn"), "floatWaPos");
+        }
     }, 100);
 }
 

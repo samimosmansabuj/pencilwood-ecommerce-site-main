@@ -798,13 +798,10 @@ function applySearch(query) {
         filteredProducts = [...ALL_PRODUCTS];
     } else {
         filteredProducts = ALL_PRODUCTS.filter(p => {
-            return (
-                (p.name || "").toLowerCase().includes(query) ||
-                (p.category?.name || p.category || "")
-                    .toString()
-                    .toLowerCase()
-                    .includes(query)
-            );
+            const n = p.name ? p.name.toLowerCase() : "";
+            const cat = typeof p.category === 'object' ? (p.category?.name || "").toLowerCase() : (p.category || "").toLowerCase();
+            const desc = p.description ? p.description.toLowerCase() : "";
+            return n.includes(query) || cat.includes(query) || desc.includes(query);
         });
     }
 
@@ -929,3 +926,136 @@ window.addEventListener("load", () => {
         }
     }, 1000);
 });
+
+/* ==========================================================
+   DRAGGABLE FLOATING BUTTONS
+========================================================== */
+function makeDraggable(el, storageKey) {
+    if (!el) return;
+
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+        try {
+            const pos = JSON.parse(saved);
+            el.style.left = pos.left;
+            el.style.top = pos.top;
+            el.style.right = 'auto';
+            el.style.bottom = 'auto';
+            el.style.transform = 'none';
+        } catch (e) { }
+    }
+
+    let isDragging = false;
+    let startX, startY, initialLeft, initialTop;
+    let clickPrevented = false;
+
+    el.addEventListener('click', function (e) {
+        if (clickPrevented) {
+            e.preventDefault();
+            e.stopPropagation();
+            clickPrevented = false;
+        }
+    }, true);
+
+    function onStart(e) {
+        if (e.type === 'mousedown' && e.button !== 0) return;
+
+        isDragging = false;
+        clickPrevented = false;
+
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        startX = clientX;
+        startY = clientY;
+
+        const rect = el.getBoundingClientRect();
+        initialLeft = rect.left;
+        initialTop = rect.top;
+
+        el.style.transition = 'none';
+
+        document.addEventListener('mousemove', onMove, { passive: false });
+        document.addEventListener('mouseup', onEnd);
+        document.addEventListener('touchmove', onMove, { passive: false });
+        document.addEventListener('touchend', onEnd);
+    }
+
+    function onMove(e) {
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        const dx = clientX - startX;
+        const dy = clientY - startY;
+
+        if (!isDragging && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
+            isDragging = true;
+            clickPrevented = true;
+        }
+
+        if (isDragging) {
+            if(e.cancelable) e.preventDefault();
+
+            let newLeft = initialLeft + dx;
+            let newTop = initialTop + dy;
+
+            const maxX = window.innerWidth - el.offsetWidth;
+            const maxY = window.innerHeight - el.offsetHeight;
+
+            newLeft = Math.max(0, Math.min(newLeft, maxX));
+            newTop = Math.max(0, Math.min(newTop, maxY));
+
+            el.style.left = newLeft + 'px';
+            el.style.top = newTop + 'px';
+            el.style.right = 'auto';
+            el.style.bottom = 'auto';
+            el.style.transform = 'none';
+        }
+    }
+
+    function onEnd() {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onEnd);
+        document.removeEventListener('touchmove', onMove);
+        document.removeEventListener('touchend', onEnd);
+
+        if (isDragging) {
+            el.style.transition = 'left 0.3s ease, top 0.3s ease';
+
+            const rect = el.getBoundingClientRect();
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+
+            const distLeft = rect.left;
+            const distRight = w - rect.right;
+
+            const padding = 20;
+            let percentTop = (rect.top / h) * 100;
+            
+            // Constrain top percentage so it doesn't go off screen
+            percentTop = Math.max(0, Math.min(percentTop, 100));
+
+            if (distLeft < distRight) {
+                // Snap Left
+                el.style.left = padding + 'px';
+                el.style.top = percentTop + '%';
+            } else {
+                // Snap Right
+                el.style.left = 'calc(100% - ' + (rect.width + padding) + 'px)';
+                el.style.top = percentTop + '%';
+            }
+
+            setTimeout(() => {
+                localStorage.setItem(storageKey, JSON.stringify({
+                    left: el.style.left,
+                    top: el.style.top
+                }));
+            }, 300);
+        } else {
+            el.style.transition = '';
+        }
+    }
+
+    el.addEventListener('mousedown', onStart);
+    el.addEventListener('touchstart', onStart, { passive: false });
+}
