@@ -14,9 +14,10 @@
   <meta name="description" content="Secure checkout and place your order easily.">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap"
+  <link
+    href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap"
     rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="css/home.css?v=9">
   <link rel="stylesheet" href="css/checkout.css?v=9">
   <link rel="stylesheet" href="css/info-pages.css?v=9">
@@ -39,7 +40,9 @@
 
   <div id="subnavbar-container"></div>
 
-  <div id="bc-br" class="bc-br-section"><title>Checkout</title></div>
+  <div id="bc-br" class="bc-br-section">
+    <title>Checkout</title>
+  </div>
 
   <!-- PAGE -->
   <div class="page">
@@ -170,6 +173,23 @@
 
         <div class="summary-box">
 
+          <!-- COUPON -->
+          <div class="coupon-box">
+
+            <div class="coupon-row">
+
+              <input id="ckCouponInput" type="text" placeholder="Coupon code" autocomplete="off">
+
+              <button type="button" class="btn-coupon" id="couponApplyBtn" onclick="applyCoupon()">
+                Apply
+              </button>
+
+            </div>
+
+            <div id="couponMessage" class="coupon-message"></div>
+
+          </div>
+
           <div class="summary-title">
             Order Summary
           </div>
@@ -186,6 +206,37 @@
             <span>
               ৳
               <span id="ckSubtotal">
+                0
+              </span>
+            </span>
+
+          </div>
+
+          <div class="sum-row coupon-discount-row" id="couponDiscountRow" style="display:none;">
+
+            <span>
+              Coupon Discount
+              <span id="ckCouponCode" class="coupon-applied-code"></span>
+            </span>
+
+            <span>
+              − ৳
+              <span id="ckCouponDiscount">
+                0
+              </span>
+            </span>
+
+          </div>
+
+          <div class="sum-row" id="subtotalAfterDiscountRow" style="display:none; font-weight:600;">
+
+            <span>
+              Subtotal after discount
+            </span>
+
+            <span>
+              ৳
+              <span id="ckSubtotalAfterDiscount">
                 0
               </span>
             </span>

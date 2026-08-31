@@ -11,6 +11,10 @@ let districtsData = [];
 
 let CUSTOMER_PROFILE = null;
 
+let appliedCoupon = null;  
+
+let couponDiscount = 0;
+
 /* =========================================
    INIT
 ========================================= */
@@ -214,6 +218,7 @@ async function loadCheckoutSummary() {
             renderDeliveryChargeText();
             renderCheckoutProducts(data.data.items || []);
             renderSummary(data.data.items || [], data.data.subtotal || 0);
+            await revalidateAppliedCouponIfAny();
 
             GAInitiateCheckoutEvent(
                 (data.data.items || []).map(item => ({
@@ -252,6 +257,7 @@ async function loadCheckoutSummary() {
             renderDeliveryChargeText();
             renderCheckoutProducts(data.data.items || []);
             renderSummary(data.data.items || [], data.data.subtotal || 0);
+            await revalidateAppliedCouponIfAny();
 
             GAInitiateCheckoutEvent(
                 (data.data.items || []).map(item => ({
@@ -377,8 +383,27 @@ function updateTotals() {
             selectedDeliveryCharge || 0
         );
 
-    const total =
-        subtotal + shipping;
+    const subtotalAfterDiscount =
+        subtotal - couponDiscount;
+
+    const total = 
+        subtotalAfterDiscount + shipping;
+
+    const afterDiscountRow = 
+        document.getElementById(
+            "subtotalAfterDiscountRow"
+        );
+    const afterDiscountAmount = 
+        document.getElementById(
+            "ckSubtotalAfterDiscount"
+        );
+
+    if (couponDiscount > 0) {
+        if (afterDiscountRow) afterDiscountRow.style.display = "flex";
+        if (afterDiscountAmount) afterDiscountAmount.innerText = subtotalAfterDiscount;
+    } else {
+        if (afterDiscountRow) afterDiscountRow.style.display = "none";
+    }
 
     document.getElementById(
         "ckShipping"
@@ -387,6 +412,127 @@ function updateTotals() {
     document.getElementById(
         "ckTotal"
     ).innerText = total;
+}
+
+/* =========================================
+   COUPON
+========================================= */
+
+async function revalidateAppliedCouponIfAny() {
+    if (!appliedCoupon) return;
+    await applyCoupon(appliedCoupon.code, true);
+}
+
+function setCouponMessage(message, type) {
+    const el = document.getElementById("couponMessage");
+    if (!el) return;
+    el.textContent = message || "";
+    el.className = "coupon-message" + (type ? ` ${type}` : "");
+}
+
+function updateCouponUI() {
+    const row = document.getElementById("couponDiscountRow");
+    const codeEl = document.getElementById("ckCouponCode");
+    const amountEl = document.getElementById("ckCouponDiscount");
+    const input = document.getElementById("ckCouponInput");
+    const btn = document.getElementById("couponApplyBtn");
+
+    if (appliedCoupon) {
+        if (row) row.style.display = "flex";
+        if (codeEl) codeEl.textContent = appliedCoupon.code;
+        if (amountEl) amountEl.innerText = couponDiscount;
+
+        if (input) {
+            input.value = appliedCoupon.code;
+            input.disabled = true;
+        }
+        if (btn) {
+            btn.textContent = "Remove";
+            btn.classList.add("remove");
+            btn.setAttribute("onclick", "removeCoupon()");
+        }
+    } else {
+        if (row) row.style.display = "none";
+        if (input) input.disabled = false;
+        if (btn) {
+            btn.textContent = "Apply";
+            btn.classList.remove("remove");
+            btn.setAttribute("onclick", "applyCoupon()");
+        }
+    }
+
+    updateTotals();
+}
+
+
+async function applyCoupon(code, silent) {
+    const input = document.getElementById("ckCouponInput");
+    const btn = document.getElementById("couponApplyBtn");
+
+    const couponCode = (code || input?.value || "").trim();
+
+    if (!couponCode) {
+        if (!silent) setCouponMessage("Enter a coupon code", "error");
+        return;
+    }
+
+    const phone = document.getElementById("ckPhone")?.value.trim();
+    if (!phone) {
+        if (!silent) {
+            setCouponMessage("", "");
+            toast("Please enter your phone number first");
+        }
+        return;
+    }
+
+    const subtotal = Number(document.getElementById("ckSubtotal")?.innerText || 0);
+    const productIds = (checkoutData?.items || []).map(item => item.product_id);
+
+    if (btn && !silent) btn.disabled = true;
+
+    try {
+        const res = await fetch(`${API_BASE}/site/api/apply-coupon/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                code: couponCode,
+                phone,
+                subtotal,
+                product_ids: productIds
+            })
+        });
+        const data = await res.json();
+
+        if (data.status) {
+            appliedCoupon = { code: data.data.code };
+            couponDiscount = Number(data.data.discount_amount || 0);
+            setCouponMessage(`Coupon "${data.data.code}" applied`, "success");
+        } else {
+            appliedCoupon = null;
+            couponDiscount = 0;
+            setCouponMessage(data.message || "Invalid coupon code", "error");
+        }
+
+    } catch (err) {
+        console.error("COUPON ERROR:", err);
+        appliedCoupon = null;
+        couponDiscount = 0;
+        if (!silent) setCouponMessage("Failed to apply coupon", "error");
+    }
+
+    if (btn) btn.disabled = false;
+    updateCouponUI();
+}
+
+function removeCoupon() {
+    appliedCoupon = null;
+    couponDiscount = 0;
+    setCouponMessage("", "");
+
+    const input = document.getElementById("ckCouponInput");
+    if (input) input.value = "";
+
+    updateCouponUI();
 }
 
 /* =========================================
@@ -604,16 +750,18 @@ async function placeOrder() {
 
         const attribution = window.getAttributionData ? window.getAttributionData() : {};
 
+        const couponCode = appliedCoupon ? appliedCoupon.code : null;
+
         if (isLoggedIn()) {
             const selectedCartIds = JSON.parse(localStorage.getItem("checkout_cart_ids")) || [];
-            body = { cart_ids: selectedCartIds, name, phone, address, district, ...attribution };
+            body = { cart_ids: selectedCartIds, name, phone, address, district, coupon_code: couponCode, ...attribution };
         } else {
             const guestItems = JSON.parse(localStorage.getItem("checkout_guest_items")) || [];
             if (!guestItems.length) {
                 toast("No items to checkout");
                 return;
             }
-            body = { items: guestItems, name, phone, address, district, ...attribution };
+            body = { items: guestItems, name, phone, address, district, coupon_code: couponCode, ...attribution };
         }
 
         const res = await fetch(`${API_BASE}/api/checkout/place-order/`, {
@@ -639,6 +787,9 @@ async function placeOrder() {
 
             localStorage.removeItem("checkout_cart_ids");
             localStorage.removeItem("checkout_guest_items");
+
+            appliedCoupon = null;
+            couponDiscount = 0;
 
             if (!isLoggedIn()) {
                 clearGuestCart();
