@@ -754,14 +754,16 @@ async function placeOrder() {
 
         if (isLoggedIn()) {
             const selectedCartIds = JSON.parse(localStorage.getItem("checkout_cart_ids")) || [];
-            body = { cart_ids: selectedCartIds, name, phone, address, district, coupon_code: couponCode, ...attribution };
+            const guestItemsFallback = JSON.parse(localStorage.getItem("checkout_guest_items")) || [];
+            body = { cart_ids: selectedCartIds, items: guestItemsFallback, name, phone, address, district, coupon_code: couponCode, ...attribution };
         } else {
             const guestItems = JSON.parse(localStorage.getItem("checkout_guest_items")) || [];
             if (!guestItems.length) {
                 toast("No items to checkout");
                 return;
             }
-            body = { items: guestItems, name, phone, address, district, coupon_code: couponCode, ...attribution };
+            const cartIdsFallback = JSON.parse(localStorage.getItem("checkout_cart_ids")) || [];
+            body = { items: guestItems, cart_ids: cartIdsFallback, name, phone, address, district, coupon_code: couponCode, ...attribution };
         }
 
         const res = await fetch(`${API_BASE}/api/checkout/place-order/`, {
@@ -801,13 +803,27 @@ async function placeOrder() {
                 }).catch(err => console.error("PROFILE NAME SAVE ERROR:", err));
             }
 
+            localStorage.removeItem("checkout_cart_ids");
+            localStorage.removeItem("checkout_guest_items");
+            if (!isLoggedIn()) clearGuestCart();
+
             showOrderSuccess();
-            setTimeout(() => {
-                window.location.href = isLoggedIn() ? "my-orders.html" : "index.html";
-            }, 2500);
         } else {
-            // Backend validation error (e.g. out of stock, invalid district) —
-            // show it and, if the backend told us which field, highlight it too.
+            if (data.otp_required) {
+                showOtpVerifyModal({
+                    phone: data.phone || phone,
+                    message: data.message,
+                    apiBase: API_BASE,
+                    orderEndpoint: "/api/checkout/place-order/",
+                    orderPayload: body,
+                    onSuccess: function (successData) {
+                        showOrderSuccess(successData);
+                    }
+                });
+                if (placeBtn) placeBtn.disabled = false;
+                return;
+            }
+            
             toast(data.message || "Order failed");
 
             if (data.field && document.getElementById(data.field)) {
@@ -866,7 +882,14 @@ function toast(msg) {
    SUCCESS POP-UP
 ========================================= */
 
-function showOrderSuccess() {
+function showOrderSuccess(data) {
+
+    localStorage.removeItem("checkout_cart_ids");
+    localStorage.removeItem("checkout_guest_items");
+
+    if (!isLoggedIn()) {
+        clearGuestCart();
+    }
 
     const overlay = document.createElement("div");
 
@@ -899,8 +922,8 @@ function showOrderSuccess() {
     document.body.appendChild(overlay);
 
     setTimeout(() => {
-        overlay.remove();
-    }, 2400);
+        window.location.href = isLoggedIn() ? "my-orders.html" : "index.html";
+    }, 2500);
 }
 
 function toggleDeliveryBreakdown() {
