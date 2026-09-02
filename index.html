@@ -187,31 +187,17 @@
       </div>
     </div>
 
-    <!-- LIFESTYLE -->
-    <div class="lp-section">
+    <!-- LIFESTYLE / SHOWCASE -->
+    <div class="lp-section" id="showcaseSection" style="display:none;">
       <div class="lp-head">
         <div class="lp-title">See It in Real Life</div>
       </div>
 
       <div class="lp-body">
-        <div class="lifestyle-grid">
-
-          <div class="ls-card">
-            <div class="ls-img a">👔</div>
-            <div class="ls-copy">
-              <div class="ls-copy-title">Designed for Professionals</div>
-              <div class="ls-copy-sub">Office-ready</div>
-            </div>
-          </div>
-
-          <div class="ls-card">
-            <div class="ls-img b">✈️</div>
-            <div class="ls-copy">
-              <div class="ls-copy-title">Travel Companion</div>
-              <div class="ls-copy-sub">Safe & stylish</div>
-            </div>
-          </div>
-
+        <div class="showcase-row-wrap">
+          <div class="showcase-row" id="showcaseRow"></div>
+          <button class="showcase-nav prev" onclick="showcaseScroll(-1)" aria-label="Previous">‹</button>
+          <button class="showcase-nav next" onclick="showcaseScroll(1)" aria-label="Next">›</button>
         </div>
       </div>
     </div>
@@ -236,6 +222,7 @@
   <script src="js/wishlist.js?v=9"></script>
   <script src="js/auth.js?v=9"></script>
   <script src="js/product_list.js?v=9"></script>
+  <script src="js/showcase.js?v=1"></script>
 
   <script src="https://kit.fontawesome.com/6965595432.js" crossorigin="anonymous"></script>
 </body>

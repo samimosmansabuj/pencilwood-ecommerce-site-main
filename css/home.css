@@ -1601,6 +1601,118 @@ img {
     color: rgba(255, 255, 255, .65)
 }
 
+/* Showcase (See It in Real Life) — dynamic media row */
+.showcase-row-wrap {
+    position: relative;
+}
+
+.showcase-row {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+}
+
+.showcase-row::-webkit-scrollbar {
+    display: none;
+}
+
+.showcase-card {
+    position: relative;
+    flex: 0 0 auto;
+    width: 220px;
+    aspect-ratio: 9/16;
+    border-radius: var(--r);
+    overflow: hidden;
+    background: linear-gradient(135deg, #F5EDE5, #D9C5AE);
+    cursor: pointer;
+}
+
+.showcase-card img,
+.showcase-card video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.showcase-card .showcase-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(0deg, rgba(30, 15, 5, .72) 0%, transparent 55%);
+}
+
+.showcase-card .showcase-play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: var(--br);
+    pointer-events: none;
+}
+
+.showcase-card.is-playing .showcase-play {
+    display: none;
+}
+
+.showcase-copy {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 14px;
+    z-index: 2;
+}
+
+.showcase-copy-title {
+    font-family: var(--ffb);
+    font-size: .9rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 2px;
+}
+
+.showcase-copy-sub {
+    font-size: 11px;
+    color: rgba(255, 255, 255, .7);
+}
+
+.showcase-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+    z-index: 3;
+}
+
+.showcase-nav.prev { left: -4px; }
+.showcase-nav.next { right: -4px; }
+
+@media (max-width: 640px) {
+    .showcase-card { width: 150px; }
+    .showcase-nav { display: none; }
+}
+
 /* Tabs */
 .tabs-nav {
     display: flex;
