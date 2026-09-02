@@ -222,7 +222,7 @@ body {
   background: #fff;
   border-radius: 20px;
   box-shadow: 0 10px 40px rgba(0,0,0,0.04);
-  margin-top: 20px;
+  /* margin-top: 20px; */
 }
 
 .cart-empty .empty-icon {

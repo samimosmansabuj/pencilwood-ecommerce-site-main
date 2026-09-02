@@ -1622,7 +1622,8 @@ img {
 .showcase-card {
     position: relative;
     flex: 0 0 auto;
-    width: 220px;
+    height: 225px;
+    width: 400px;
     aspect-ratio: 9/16;
     border-radius: var(--r);
     overflow: hidden;
@@ -1709,7 +1710,7 @@ img {
 .showcase-nav.next { right: -4px; }
 
 @media (max-width: 640px) {
-    .showcase-card { width: 150px; }
+    .showcase-card { width: 300px; height: 200px; }
     .showcase-nav { display: none; }
 }
 

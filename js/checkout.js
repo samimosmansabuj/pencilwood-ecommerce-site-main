@@ -738,6 +738,7 @@ async function placeOrder() {
     if (placeBtn) {
         if (placeBtn.disabled) return;
         placeBtn.disabled = true;
+        placeBtn.textContent = "Placing Order...";
     }
 
     const name = document.getElementById("ckName").value.trim();
@@ -747,9 +748,7 @@ async function placeOrder() {
 
     try {
         let body;
-
         const attribution = window.getAttributionData ? window.getAttributionData() : {};
-
         const couponCode = appliedCoupon ? appliedCoupon.code : null;
 
         if (isLoggedIn()) {
@@ -771,11 +770,9 @@ async function placeOrder() {
             headers: getAuthHeaders(),
             body: JSON.stringify(body)
         });
-
         const data = await res.json();
 
         if (data.status) {
-
             GAInitiatePurchaseEvent(
                 (checkoutData?.items || []).map(item => ({
                     id: item.product_id,
@@ -820,22 +817,30 @@ async function placeOrder() {
                         showOrderSuccess(successData);
                     }
                 });
-                if (placeBtn) placeBtn.disabled = false;
+                // if (placeBtn) {
+                //     placeBtn.textContent = "Place Order";
+                //     placeBtn.disabled = false;
+                // }
                 return;
-            }
-            
-            toast(data.message || "Order failed");
+            } else {
+                toast(data.message || "Order failed");
 
-            if (data.field && document.getElementById(data.field)) {
-                showFieldError(document.getElementById(data.field), data.message || "Invalid value");
+                if (data.field && document.getElementById(data.field)) {
+                    showFieldError(document.getElementById(data.field), data.message || "Invalid value");
+                }
+                if (placeBtn) {
+                    placeBtn.textContent = "Place Order";
+                    placeBtn.disabled = false;
+                }
             }
-            if (placeBtn) placeBtn.disabled = false;
         }
-
     } catch (err) {
         console.error("ORDER ERROR:", err);
         toast("Something went wrong. Please try again.");
-        if (placeBtn) placeBtn.disabled = false;
+        if (placeBtn) {
+            placeBtn.textContent = "Place Order";
+            placeBtn.disabled = false;
+        }
     }
 }
 

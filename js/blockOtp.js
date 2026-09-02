@@ -67,6 +67,11 @@ function showOtpVerifyModal(options) {
 
     document.getElementById("otpCancelBtn").addEventListener("click", () => {
         overlay.remove();
+        const placeBtn = document.getElementById("placeOrderBtn");
+        if (placeBtn) {
+            placeBtn.textContent = "Place Order";
+            placeBtn.disabled = false;
+        }
     });
 
     document.getElementById("otpSendBtn").addEventListener("click", async function () {
