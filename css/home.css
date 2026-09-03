@@ -3405,3 +3405,37 @@ textarea {
     transform: scale(1.1);
     color: white;
 }
+
+/* Custom homepage sections */
+.custom-home-section {
+    width: 100%;
+    box-sizing: border-box;
+}
+.custom-home-section .custom-section-body {
+    text-align: center;
+    padding: 20px 0;
+}
+.custom-section-image {
+    max-width: 100%;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+.custom-section-subheading {
+    font-size: 15px;
+    color: #666;
+    margin-bottom: 8px;
+}
+.custom-section-text {
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 12px;
+}
+.custom-section-btn {
+    display: inline-block;
+    padding: 10px 24px;
+    background: #b8722e;
+    color: #fff;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+}

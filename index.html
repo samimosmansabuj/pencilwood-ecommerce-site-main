@@ -34,10 +34,10 @@
   <div class="page">
 
     <!-- HERO -->
-    <div class="hero-slider"></div>
+    <div class="hero-slider" id="heroSliderSection"></div>
 
     <!-- Feature Product -->
-    <div class="lp-section">
+    <div class="lp-section" id="kidzProductSection">
       <div class="lp-head">
         <div class="lp-title">Kidz Product</div>
       </div>
@@ -47,8 +47,9 @@
       </div>
     </div>
 
-    <!-- FILTER -->
-    <div class="filter-bar">
+       <!-- FILTER + PRODUCTS GRID -->
+       <div id="filterProductsSection">
+        <div class="filter-bar">
       <div class="filter-left">
         <label>
           <span>Category:</span>
@@ -115,9 +116,11 @@
       </button>
 
     </div>
+    </div>
+    <!-- /FILTER + PRODUCTS GRID -->
 
     <!-- SOCIAL PROOF -->
-    <div class="proof-banner">
+    <div class="proof-banner" id="socialProofSection">
 
       <div class="proof-stat">
         <div class="proof-num">500+</div>
@@ -151,14 +154,13 @@
 
 
     <!-- WHY SECTION -->
-    <div class="lp-section">
+    <div class="lp-section" id="whyChooseSection">
       <div class="lp-head">
         <div class="lp-title">Why Choose Pencilwood</div>
       </div>
 
       <div class="lp-body">
-        <div class="why-grid">
-
+        <div class="why-grid" id="whyChooseGrid">
           <div class="why-card">
             <div class="why-icon">✨</div>
             <div class="why-name">Elegant Minimal Design</div>
@@ -182,7 +184,6 @@
             <div class="why-name">WhatsApp Support</div>
             <div class="why-desc">Fast support available.</div>
           </div>
-
         </div>
       </div>
     </div>
@@ -205,11 +206,10 @@
   </div>
 
   <!-- FOOTER -->
-  <div class="footer-section">
+  <div class="footer-section" id="ecoSection">
     <div id="eco-container"></div>
     <div id="footer-container"></div>
   </div>
-
   <!-- JS -->
   <script src="js/env.js?v=10"></script>
   <script src="js/tracking.js?v=10"></script>
