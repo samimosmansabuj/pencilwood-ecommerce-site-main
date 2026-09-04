@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -29,10 +29,13 @@
   <div id="float-wa"></div>
   <div id="float-cart"></div>
   <div id="drawer-container"></div>
+  <div id="mobile-bottom-nav-container"></div>
   <div id="topnavbar-container"></div>
   <div id="subnavbar-container"></div>
 
-  <div id="bc-br" class="bc-br-section"><title>Contact Us</title></div>
+  <div id="bc-br" class="bc-br-section">
+    <title>Contact Us</title>
+  </div>
 
   <!-- PAGE -->
   <div class="page">
@@ -60,29 +63,19 @@
               <div class="contact-form-row">
                 <!-- Name -->
                 <div class="cf-group">
-                  <label class="cf-label" for="cfName">Full Name <span class="cf-req" aria-label="required">*</span></label>
-                  <input
-                    class="cf-input"
-                    type="text"
-                    id="cfName"
-                    name="name"
-                    placeholder="Your full name"
-                    autocomplete="name"
-                    required>
+                  <label class="cf-label" for="cfName">Full Name <span class="cf-req"
+                      aria-label="required">*</span></label>
+                  <input class="cf-input" type="text" id="cfName" name="name" placeholder="Your full name"
+                    autocomplete="name" required>
                   <span class="cf-error-msg" id="cfNameErr">Please enter your name.</span>
                 </div>
 
                 <!-- Email -->
                 <div class="cf-group">
-                  <label class="cf-label" for="cfEmail">Email Address <span class="cf-req" aria-label="required">*</span></label>
-                  <input
-                    class="cf-input"
-                    type="email"
-                    id="cfEmail"
-                    name="email"
-                    placeholder="your@email.com"
-                    autocomplete="email"
-                    required>
+                  <label class="cf-label" for="cfEmail">Email Address <span class="cf-req"
+                      aria-label="required">*</span></label>
+                  <input class="cf-input" type="email" id="cfEmail" name="email" placeholder="your@email.com"
+                    autocomplete="email" required>
                   <span class="cf-error-msg" id="cfEmailErr">Please enter a valid email address.</span>
                 </div>
               </div>
@@ -91,18 +84,14 @@
                 <!-- Phone -->
                 <div class="cf-group">
                   <label class="cf-label" for="cfPhone">Phone Number</label>
-                  <input
-                    class="cf-input"
-                    type="tel"
-                    id="cfPhone"
-                    name="phone"
-                    placeholder="01XXXXXXXXX"
+                  <input class="cf-input" type="tel" id="cfPhone" name="phone" placeholder="01XXXXXXXXX"
                     autocomplete="tel">
                 </div>
 
                 <!-- Subject -->
                 <div class="cf-group">
-                  <label class="cf-label" for="cfSubject">Subject <span class="cf-req" aria-label="required">*</span></label>
+                  <label class="cf-label" for="cfSubject">Subject <span class="cf-req"
+                      aria-label="required">*</span></label>
                   <select class="cf-select cf-input" id="cfSubject" name="subject" required>
                     <option value="">Select a subject…</option>
                     <option value="order">Order Enquiry</option>
@@ -119,13 +108,10 @@
 
               <!-- Message -->
               <div class="cf-group">
-                <label class="cf-label" for="cfMessage">Message <span class="cf-req" aria-label="required">*</span></label>
-                <textarea
-                  class="cf-textarea"
-                  id="cfMessage"
-                  name="message"
-                  placeholder="Describe your question or issue in detail…"
-                  required></textarea>
+                <label class="cf-label" for="cfMessage">Message <span class="cf-req"
+                    aria-label="required">*</span></label>
+                <textarea class="cf-textarea" id="cfMessage" name="message"
+                  placeholder="Describe your question or issue in detail…" required></textarea>
                 <span class="cf-error-msg" id="cfMessageErr">Please enter a message (at least 10 characters).</span>
               </div>
 
@@ -202,14 +188,16 @@
 
             <!-- QUICK LINKS -->
             <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 8px;">
-              <a href="return-policy.html" class="feat-card" style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
+              <a href="return-policy.html" class="feat-card"
+                style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
                 <div class="ci-icon" aria-hidden="true">↩️</div>
                 <div>
                   <div style="font-size: 13px; font-weight: 600; color: var(--text);">Return &amp; Refund Policy</div>
                   <div style="font-size: 11.5px; color: var(--mid);">Know your rights &amp; options</div>
                 </div>
               </a>
-              <a href="privacy-policy.html" class="feat-card" style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
+              <a href="privacy-policy.html" class="feat-card"
+                style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
                 <div class="ci-icon" aria-hidden="true">🔒</div>
                 <div>
                   <div style="font-size: 13px; font-weight: 600; color: var(--text);">Privacy Policy</div>

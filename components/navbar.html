@@ -2,11 +2,6 @@
 <div class="topnav">
   <div class="topnav-in">
 
-    <!-- HAMBURGER -->
-    <button class="hburg" onclick="openDrw()" aria-label="Menu">
-      <span></span><span></span><span></span>
-    </button>
-
     <!-- LOGO -->
     <a class="logo-wrap" href="/">
       <div class="logo-icon">
@@ -26,33 +21,30 @@
         <input class="search-in" type="text" placeholder="Search Cradle, Mobile Stands, Calendar Holders...">
         <button class="search-go">🔍</button>
       </div>
-
-      <!-- SEARCH ACTIONS (MOBILE ONLY) -->
-      <div class="search-actions">
-        <!-- mobile open overlay -->
-        <button class="mobile-search-open" onclick="openSearch()">
-          🔍
-        </button>
-      </div>
     </div>
 
     <div class="nav-right">
-      <!-- LOGIN -->
-      <div class="nav-ic login-btn" onclick="window.location.href='login.html'">
+      <!-- SEARCH ICON (MOBILE ONLY) -->
+      <button class="mobile-search-open nav-search-mob" onclick="openSearch()" aria-label="Search">
+        <i class="fa fa-search"></i>
+      </button>
+
+      <!-- LOGIN (DESKTOP ONLY) -->
+      <div class="nav-ic login-btn nav-desktop-only" onclick="window.location.href='login.html'">
         <span class="nav-ic-icon"><i class="fa fa-user"></i></span>
         Login
       </div>
 
-      <!-- ACCOUNT -->
-      <div class="nav-ic account-btn" onclick="window.location.href='profile.html'" style="display:none;">
+      <!-- ACCOUNT (DESKTOP ONLY) -->
+      <div class="nav-ic account-btn nav-desktop-only" onclick="window.location.href='profile.html'" style="display:none;">
         <span class="nav-ic-icon">
           <i class="fa fa-user"></i>
         </span>
         Account
       </div>
 
-      <!-- WISHLIST -->
-      <div class="nav-ic" onclick="openWishlist()">
+      <!-- WISHLIST (DESKTOP ONLY) -->
+      <div class="nav-ic nav-desktop-only" onclick="openWishlist()">
         <span class="nav-ic-icon">
           <i class="fa fa-heart"></i>
           <span class="cart-dot" id="wishCount">0</span>

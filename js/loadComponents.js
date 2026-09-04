@@ -38,6 +38,7 @@ async function initComponents() {
     await loadComponent("topnavbar-container", "components/navbar.html");
     await loadComponent("global-loader", "components/global-loader.html")
     loadComponent("drawer-container", "components/drawer.html");
+    loadComponent("mobile-bottom-nav-container", "components/mobile-bottom-nav.html");
     loadComponent("toast-container", "components/toast.html");
     loadComponent("float-wa", "components/float-wa.html");
     loadComponent("float-cart", "components/float-cart.html");

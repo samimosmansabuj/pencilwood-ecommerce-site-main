@@ -391,10 +391,12 @@ async function moveWishlistToCart(key) {
 ========================= */
 async function updateWishlistCount() {
     const dot = document.getElementById("wishCount");
-    if (!dot) return;
+    const mbnDot = document.getElementById("mbnWishCount");
 
     if (!isLoggedIn()) {
-        dot.textContent = guestWishlistCount();
+        const count = guestWishlistCount();
+        if (dot) dot.textContent = count;
+        if (mbnDot) mbnDot.textContent = count;
         return;
     }
 
@@ -403,11 +405,15 @@ async function updateWishlistCount() {
             headers: { "Authorization": `Bearer ${getToken()}` }
         });
         const data = await res.json();
-        dot.textContent = (data.status && Array.isArray(data.data)) ? data.data.length : "0";
+        const count = (data.status && Array.isArray(data.data)) ? data.data.length : "0";
+        if (dot) dot.textContent = count;
+        if (mbnDot) mbnDot.textContent = count;
     } catch (err) {
         console.error("Wishlist Count Error:", err);
-        dot.textContent = "0";
+        if (dot) dot.textContent = "0";
+        if (mbnDot) mbnDot.textContent = "0";
     }
+
 }
 
 /* =========================

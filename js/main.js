@@ -561,10 +561,12 @@ async function updateWishlistCount() {
     const dot =
         document.getElementById("wishCount");
 
-    if (!dot) return;
+    const mbnDot =
+        document.getElementById("mbnWishCount");
 
     if (!token) {
-        dot.textContent = "0";
+        if (dot) dot.textContent = "0";
+        if (mbnDot) mbnDot.textContent = "0";
         return;
     }
 
@@ -585,11 +587,14 @@ async function updateWishlistCount() {
             data.status &&
             Array.isArray(data.data)
         ) {
-            dot.textContent =
+            if (dot) dot.textContent =
+                data.data.length;
+            if (mbnDot) mbnDot.textContent =
                 data.data.length;
         }
         else {
-            dot.textContent = "0";
+            if (dot) dot.textContent = "0";
+            if (mbnDot) mbnDot.textContent = "0";
         }
 
     }
@@ -600,7 +605,8 @@ async function updateWishlistCount() {
             err
         );
 
-        dot.textContent = "0";
+        if (dot) dot.textContent = "0";
+        if (mbnDot) mbnDot.textContent = "0";
     }
 }
 

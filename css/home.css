@@ -1706,12 +1706,23 @@ img {
     z-index: 3;
 }
 
-.showcase-nav.prev { left: -4px; }
-.showcase-nav.next { right: -4px; }
+.showcase-nav.prev {
+    left: -4px;
+}
+
+.showcase-nav.next {
+    right: -4px;
+}
 
 @media (max-width: 640px) {
-    .showcase-card { width: 300px; height: 200px; }
-    .showcase-nav { display: none; }
+    .showcase-card {
+        width: 300px;
+        height: 200px;
+    }
+
+    .showcase-nav {
+        display: none;
+    }
 }
 
 /* Tabs */
@@ -3328,8 +3339,13 @@ textarea {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* ==========================================================
@@ -3349,8 +3365,8 @@ textarea {
     justify-content: center;
     align-items: center;
     font-size: 20px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-    z-index: 1000;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    z-index: 10000;
     cursor: pointer;
     transition: transform 0.3s ease;
 }
@@ -3395,7 +3411,7 @@ textarea {
     justify-content: center;
     align-items: center;
     font-size: 30px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
     z-index: 1000;
     transition: transform 0.3s ease;
     text-decoration: none;
@@ -3411,25 +3427,30 @@ textarea {
     width: 100%;
     box-sizing: border-box;
 }
+
 .custom-home-section .custom-section-body {
     text-align: center;
     padding: 20px 0;
 }
+
 .custom-section-image {
     max-width: 100%;
     border-radius: 8px;
     margin-bottom: 12px;
 }
+
 .custom-section-subheading {
     font-size: 15px;
     color: #666;
     margin-bottom: 8px;
 }
+
 .custom-section-text {
     font-size: 14px;
     color: #333;
     margin-bottom: 12px;
 }
+
 .custom-section-btn {
     display: inline-block;
     padding: 10px 24px;
@@ -3438,4 +3459,189 @@ textarea {
     border-radius: 6px;
     text-decoration: none;
     font-weight: 600;
+}
+
+/* ══════════════════════════════════════
+   MOBILE BOTTOM NAVIGATION BAR
+══════════════════════════════════════ */
+
+/* Desktop: hide mobile bottom nav */
+.mob-bottom-nav {
+    display: none;
+}
+
+/* Desktop: show desktop-only nav items */
+.nav-desktop-only {
+    display: flex;
+}
+
+/* Desktop: hide mobile search icon */
+.nav-search-mob {
+    display: none;
+}
+
+/* Desktop: hide hamburger */
+.hburg {
+    display: none !important;
+}
+
+@media (max-width: 768px) {
+
+    /* Hide desktop-only nav items on mobile */
+    .nav-desktop-only {
+        display: none !important;
+    }
+
+    /* Show mobile search icon button */
+    .nav-search-mob {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.15);
+        border: none;
+        color: white;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        font-size: 15px;
+        cursor: pointer;
+        transition: background 0.2s;
+        margin-left: auto;
+    }
+
+    .nav-search-mob:hover {
+        background: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Hide desktop search wrap on mobile */
+    .nav-middle {
+        display: none;
+    }
+
+    /* Adjust topnav-in for mobile: logo left, search right */
+    .topnav-in {
+        justify-content: space-between;
+        gap: 0;
+    }
+
+    /* Mobile bottom nav: show */
+    .mob-bottom-nav {
+        display: flex;
+        align-items: stretch;
+        justify-content: space-around;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--br);
+        z-index: 1100;
+        height: 62px;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.22);
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Each nav item */
+    .mob-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        gap: 3px;
+        color: rgba(255, 255, 255, 0.6);
+        text-decoration: none;
+        font-size: 9.5px;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        transition: color 0.2s;
+        position: relative;
+        padding: 6px 4px;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .mob-nav-item:hover,
+    .mob-nav-item:active {
+        color: rgba(255, 255, 255, 0.95);
+    }
+
+    /* Nav icon container */
+    .mob-nav-icon {
+        font-size: 18px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+    }
+
+    /* Nav label */
+    .mob-nav-label {
+        font-size: 9px;
+        line-height: 1;
+    }
+
+    /* Wishlist count badge */
+    .mbn-dot {
+        position: absolute;
+        top: -4px;
+        right: -6px;
+        min-width: 14px;
+        height: 14px;
+        background: var(--red, #e74c3c);
+        border-radius: 999px;
+        font-size: 8px;
+        font-weight: 700;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 2px;
+    }
+
+    /* CENTER HOME BUTTON - special design */
+    .mob-nav-home {
+        flex: 1.2;
+        color: white;
+        justify-content: flex-end;
+        padding-bottom: 4px;
+    }
+
+    .mob-nav-home-ring {
+        width: 52px;
+        height: 52px;
+        background: var(--gold, #c8922a);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        color: white;
+        margin-top: -24px;
+        box-shadow: 0 4px 16px rgba(200, 146, 42, 0.5);
+        border: 3px solid var(--br, #5c3d11);
+        transition: transform 0.2s, box-shadow 0.2s;
+        position: relative;
+    }
+
+    .mob-nav-home:active .mob-nav-home-ring {
+        transform: scale(0.93);
+        box-shadow: 0 2px 8px rgba(200, 146, 42, 0.4);
+    }
+
+    .mob-nav-home .mob-nav-label {
+        font-size: 9px;
+        margin-top: 2px;
+        color: rgba(255, 255, 255, 0.75);
+    }
+
+    /* Add bottom padding to page body so content isn't hidden behind mobile nav */
+    body {
+        padding-bottom: 62px;
+    }
+
+    /* Subnav already hidden, but double-ensure */
+    .subnav {
+        display: none;
+    }
 }
