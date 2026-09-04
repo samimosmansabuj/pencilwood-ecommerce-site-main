@@ -1,4 +1,6 @@
 /* home css */
+@import url("cart-drawer.css?v=12");
+
 :root {
     --br: #CA7200;
     /* --br: #4B2E1E; */
@@ -3412,7 +3414,7 @@ textarea {
     align-items: center;
     font-size: 30px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-    z-index: 1000;
+    z-index: 6000;
     transition: transform 0.3s ease;
     text-decoration: none;
 }

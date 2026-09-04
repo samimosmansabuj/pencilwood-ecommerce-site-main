@@ -526,13 +526,27 @@ function openProduct(slug) {
 ========================= */
 function updateCartCountFromBackend() {
 
-    const dot = document.getElementById("cartDot");
-    if (!dot) return;
+    const dots = [
+        document.getElementById("cartDot"),
+        document.getElementById("navCartDot"),
+        document.getElementById("drawerCartCount")
+    ].filter(Boolean);
+
+    if (!dots.length) return;
 
     const token = localStorage.getItem("access") || localStorage.getItem("token");
 
     if (!token) {
-        dot.textContent = typeof guestCartCount === "function" ? guestCartCount() : "0";
+        let count = "0";
+        if (typeof guestCartCount === "function") {
+            count = guestCartCount();
+        } else {
+            try {
+                const gc = JSON.parse(localStorage.getItem("guest_cart")) || [];
+                count = gc.reduce((s, i) => s + Number(i.quantity || 0), 0);
+            } catch { count = "0"; }
+        }
+        dots.forEach(d => d.textContent = count);
         return;
     }
 
@@ -543,8 +557,8 @@ function updateCartCountFromBackend() {
         .then(data => {
             const items = data.data || data.results || data.cart_items || [];
             let total = 0;
-            items.forEach(i => { total += i.quantity || 0; });
-            dot.textContent = total;
+            items.forEach(i => { total += Number(i.quantity || 0); });
+            dots.forEach(d => d.textContent = total);
         })
         .catch(console.error);
 }
@@ -775,7 +789,11 @@ function logoutUser() {
    GLOBAL NAVIGATION
 ========================= */
 function openCart() {
-    window.location.href = "cart.html";
+    if (typeof openCartDrawer === "function") {
+        openCartDrawer();
+    } else {
+        window.location.href = "cart.html";
+    }
 }
 
 function openWishlist() {

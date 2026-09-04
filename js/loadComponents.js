@@ -39,6 +39,22 @@ async function initComponents() {
     await loadComponent("global-loader", "components/global-loader.html")
     loadComponent("drawer-container", "components/drawer.html");
     loadComponent("mobile-bottom-nav-container", "components/mobile-bottom-nav.html");
+
+    // Cart Drawer Component
+    if (!document.getElementById("cart-drawer-container")) {
+        const cdc = document.createElement("div");
+        cdc.id = "cart-drawer-container";
+        document.body.appendChild(cdc);
+    }
+    loadComponent("cart-drawer-container", "components/cart-drawer.html");
+
+    // Ensure cart-drawer.js is loaded
+    if (!window.openCartDrawer && !document.querySelector('script[src*="cart-drawer.js"]')) {
+        const cdScript = document.createElement("script");
+        cdScript.src = "js/cart-drawer.js?v=12";
+        document.body.appendChild(cdScript);
+    }
+
     loadComponent("toast-container", "components/toast.html");
     loadComponent("float-wa", "components/float-wa.html");
     loadComponent("float-cart", "components/float-cart.html");

@@ -1,0 +1,70 @@
+<!-- CART DRAWER OVERLAY -->
+<div id="cartDrawerOverlay" class="cart-drawer-overlay" onclick="closeCartDrawer()"></div>
+
+<!-- CART DRAWER PANEL -->
+<div id="cartDrawer" class="cart-drawer" role="dialog" aria-modal="true" aria-labelledby="cartDrawerTitle">
+
+  <!-- DRAWER HEADER -->
+  <div class="cart-drawer-header">
+    <div class="cart-drawer-header-left">
+      <h3 class="cart-drawer-title" id="cartDrawerTitle">Shopping Cart</h3>
+      <span class="cart-drawer-badge" id="drawerCartCount">0</span>
+    </div>
+    <button class="cart-drawer-close" onclick="closeCartDrawer()" aria-label="Close cart drawer">
+      ✕
+    </button>
+  </div>
+
+  <!-- FREE SHIPPING NOTICE / ANNOUNCEMENT -->
+  <div class="cart-drawer-notice">
+    <i class="fa fa-truck"></i> Fast Delivery across Bangladesh
+  </div>
+
+  <!-- DRAWER BODY (SCROLLABLE) -->
+  <div class="cart-drawer-body">
+
+    <!-- LOADING STATE -->
+    <div class="cart-drawer-loading" id="drawerCartLoading" style="display: none;">
+      <div class="drawer-spinner"></div>
+      <span>Loading cart items...</span>
+    </div>
+
+    <!-- ITEMS CONTAINER -->
+    <div class="cart-drawer-items" id="drawerCartItems">
+      <!-- Items dynamically populated via cart-drawer.js -->
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div class="cart-drawer-empty" id="drawerCartEmpty" style="display: none;">
+      <div class="drawer-empty-icon">🛒</div>
+      <h4 class="drawer-empty-title">Your cart is empty</h4>
+      <p class="drawer-empty-sub">Explore our premium collection and discover high-quality products.</p>
+      <button class="drawer-btn-shopping" onclick="continueShoppingFromDrawer()">
+        Start Shopping
+      </button>
+    </div>
+
+  </div>
+
+  <!-- DRAWER FOOTER -->
+  <div class="cart-drawer-footer" id="drawerCartFooter">
+    <div class="drawer-summary">
+      <div class="drawer-summary-row">
+        <span class="drawer-subtotal-label">Subtotal</span>
+        <span class="drawer-subtotal-amount" id="drawerCartSubtotal">৳ 0</span>
+      </div>
+      <p class="drawer-tax-note">Taxes and shipping calculated at checkout</p>
+    </div>
+
+    <div class="drawer-btn-group">
+      <button class="btn-drawer-checkout" onclick="goToCheckoutFromDrawer()" id="drawerCheckoutBtn">
+        <span>Proceed to Checkout</span>
+        <i class="fa fa-arrow-right"></i>
+      </button>
+      <button class="btn-drawer-view-cart" onclick="window.location.href='cart.html'">
+        View Cart Page
+      </button>
+    </div>
+  </div>
+
+</div>
