@@ -23,6 +23,13 @@ if ("serviceWorker" in navigator) {
         });
 }
 
+// Clean trailing slash from address bar for clean display (e.g. /profile/ -> /profile)
+try {
+    if (window.location.pathname.length > 1 && window.location.pathname.endsWith("/")) {
+        window.history.replaceState(null, document.title, window.location.pathname.slice(0, -1) + window.location.search + window.location.hash);
+    }
+} catch (e) {}
+
 /* PAGINATION */
 let currentPage = 1;
 let perPage = 6;

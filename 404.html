@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base href="/">
+  <title>Pencilwood — Loading...</title>
+  <script>
+    (function() {
+      // Dynamic client-side fallback for static servers (Live Server, GitHub Pages, etc.)
+      var pathname = window.location.pathname;
+      var search = window.location.search;
+      var hash = window.location.hash;
+
+      var segments = pathname.split('/').filter(Boolean);
+      if (segments.length === 1) {
+        var slug = segments[0].replace(/\.html$/i, '');
+        var staticPages = [
+          'product-list', 'about-us', 'contact-us', 'privacy-policy',
+          'terms-and-conditions', 'return-policy', 'login', 'profile',
+          'my-orders', 'order', 'checkout', 'wishlist', 'cart',
+          'address', 'all_product', 'product-details'
+        ];
+
+        if (staticPages.indexOf(slug.toLowerCase()) !== -1) {
+          // Static page fallback
+          window.location.replace('/' + slug + (search || '') + (hash || ''));
+          return;
+        } else {
+          // Dynamic product slug fallback: redirect to product-details.html with slug preserved
+          window.location.replace('/product-details.html?slug=' + encodeURIComponent(slug) + (search ? '&' + search.slice(1) : '') + (hash || ''));
+          return;
+        }
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="css/home.css?v=13">
+  <style>
+    .not-found-wrap {
+      min-height: 70vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .not-found-code {
+      font-size: 72px;
+      font-weight: 700;
+      color: #9C413D;
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+    .not-found-msg {
+      font-size: 18px;
+      color: #555;
+      margin-bottom: 24px;
+    }
+    .not-found-btn {
+      display: inline-block;
+      padding: 12px 28px;
+      background: #9C413D;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .not-found-btn:hover {
+      background: #7F3430;
+    }
+  </style>
+</head>
+<body>
+  <div id="topnavbar-container"></div>
+  <div class="not-found-wrap">
+    <div class="not-found-code">404</div>
+    <div class="not-found-msg">The page you are looking for does not exist or has moved.</div>
+    <a href="/" class="not-found-btn">Back to Home</a>
+  </div>
+  <div id="footer-container"></div>
+  <div id="mobile-bottom-nav-container"></div>
+
+  <script src="js/env.js?v=13"></script>
+  <script src="js/config.js?v=13"></script>
+  <script src="js/main.js?v=13"></script>
+  <script src="js/loadComponents.js?v=13"></script>
+</body>
+</html>
