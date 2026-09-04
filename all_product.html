@@ -4,6 +4,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base href="/">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function() {});
+    }
+  </script>
   <title>All Products — Pencilwood Wood Decor Bangladesh</title>
   <meta name="description"
     content="Explore Pencilwood Wood Decor's collection of wallets, belts, card holders, and accessories. Premium genuine products. Free delivery in Dhaka.">
@@ -83,7 +89,7 @@
         <div class="prod-card" data-category="wallet" data-price="2500" data-popularity="340">
           <div class="prod-img" style="background:linear-gradient(135deg,#F0E8DC,#E0D0BC)">💼<span
               class="prod-badge">Top</span></div>
-          <div class="prod-name" onclick="window.location.href='index.html'">Premium Leather Wallet</div>
+          <div class="prod-name" onclick="window.location.href='/'">Premium Leather Wallet</div>
           <div class="prod-price">৳ 2,500 <span class="prod-orig">৳ 3,000</span></div>
           <div class="prod-stars">★★★★★ (340)</div>
           <button class="prod-cart" onclick="toast('Added to cart')">+ Cart</button>

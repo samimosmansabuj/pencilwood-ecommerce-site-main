@@ -5,6 +5,12 @@
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base href="/">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function() {});
+    }
+  </script>
 
   <title>Shopping Cart — Pencilwood</title>
 
@@ -77,7 +83,7 @@
       <div class="empty-title">Your cart is empty</div>
       <div class="empty-sub">Browse premium Pencilwood products</div>
 
-      <button class="btn-checkout" onclick="window.location.href='product-list.html'">
+      <button class="btn-checkout" onclick="window.location.href='/product-list'">
         Continue Shopping
       </button>
     </div>

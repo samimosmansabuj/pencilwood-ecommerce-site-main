@@ -4,6 +4,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base href="/">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function() {});
+    }
+  </script>
   <title>Order Details — Pencilwood</title>
   <meta name="description" content="View full order details, items, delivery info and reorder easily.">
 
@@ -44,14 +50,14 @@
     <div class="page order-page">
 
       <div class="account-links">
-        <a href="profile.html">
+        <a href="/profile">
           <i class="fa fa-user"></i> <span>Profile</span>
         </a>
-        <a href="my-orders.html">
+        <a href="/my-orders">
           <!-- <i class="fa fa-box-open"></i> -->
           📦 <span>My Orders</span>
         </a>
-        <a href="address.html">
+        <a href="/address">
           <i class="fa fa-location-arrow"></i> <span>Address Book</span>
         </a>
         <a onclick="logoutUser()">

@@ -4,6 +4,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base href="/">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function() {});
+    }
+  </script>
   <title>Contact Us — Pencilwood Wood Decor Bangladesh</title>
   <meta name="description"
     content="Get in touch with Pencilwood Bangladesh. Send us a message, find our contact details, or reach us via WhatsApp. We're available 9am–9pm, 7 days a week.">
@@ -189,7 +195,7 @@
 
             <!-- QUICK LINKS -->
             <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 8px;">
-              <a href="return-policy.html" class="feat-card"
+              <a href="/return-policy" class="feat-card"
                 style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
                 <div class="ci-icon" aria-hidden="true">↩️</div>
                 <div>
@@ -197,7 +203,7 @@
                   <div style="font-size: 11.5px; color: var(--mid);">Know your rights &amp; options</div>
                 </div>
               </a>
-              <a href="privacy-policy.html" class="feat-card"
+              <a href="/privacy-policy" class="feat-card"
                 style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
                 <div class="ci-icon" aria-hidden="true">🔒</div>
                 <div>

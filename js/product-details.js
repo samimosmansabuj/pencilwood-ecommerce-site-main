@@ -82,25 +82,63 @@ function clearVariantGlow() {
 }
 
 /* =========================
+   GET PRODUCT SLUG (FROM QUERY OR PATH)
+========================= */
+function getProductSlug() {
+    // 1. Check query parameter (?slug=...)
+    const params = new URLSearchParams(window.location.search);
+    const querySlug = params.get("slug");
+    if (querySlug && querySlug.trim()) {
+        return decodeURIComponent(querySlug.trim());
+    }
+
+    // 2. Check path segment (/:slug)
+    const segments = window.location.pathname.split("/").filter(Boolean);
+    if (segments.length > 0) {
+        let last = segments[segments.length - 1].replace(/\.html$/i, "");
+        const reserved = [
+            "index", "product-details", "product-list", "about-us", "contact-us",
+            "privacy-policy", "terms-and-conditions", "return-policy", "login",
+            "profile", "my-orders", "order", "checkout", "wishlist", "cart",
+            "address", "all_product"
+        ];
+        if (!reserved.includes(last.toLowerCase())) {
+            return decodeURIComponent(last);
+        }
+    }
+    return null;
+}
+
+/* =========================
    LOAD PRODUCT DETAILS
 ========================= */
 async function loadProductDetails() {
 
-    const params = new URLSearchParams(window.location.search);
-    const slug = params.get("slug");
+    const slug = getProductSlug();
 
     if (!slug) {
-        console.error("No slug found");
-        window.location.href = "/";
+        console.warn("No slug found for product details");
+        if (typeof window.hideLoader === "function") window.hideLoader();
         return;
     }
+
+    // Modernize address bar cleanly to /:slug without page reload if accessed via query
+    try {
+        const cleanPath = "/" + encodeURIComponent(slug);
+        if (window.location.pathname !== cleanPath && !window.location.pathname.endsWith(".html")) {
+            window.history.replaceState({ slug }, document.title, cleanPath);
+        }
+    } catch (e) {}
 
     try {
 
         const res = await fetch(`${API_BASE}/api/ecom/products/${slug}/`);
         
         if (!res.ok) {
-            window.location.href = "/";
+            console.error("Failed to load product details, status:", res.status);
+            if (typeof window.hideLoader === "function") window.hideLoader();
+            const titleEl = document.getElementById("productTitle");
+            if (titleEl) titleEl.textContent = "Product Not Found";
             return;
         }
 
@@ -110,7 +148,9 @@ async function loadProductDetails() {
 
         if (!product || product.detail === "Not found." || data.status === false) {
             console.error("Product not found");
-            window.location.href = "/";
+            if (typeof window.hideLoader === "function") window.hideLoader();
+            const titleEl = document.getElementById("productTitle");
+            if (titleEl) titleEl.textContent = "Product Not Found";
             return;
         }
 
@@ -227,7 +267,6 @@ async function loadProductDetails() {
     } catch (err) {
         console.error("PRODUCT DETAILS ERROR:", err);
         if (typeof window.hideLoader === "function") window.hideLoader();
-        window.location.href = "/";
     }
 }
 
@@ -734,7 +773,7 @@ function setupButtons(product, slug) {
                 }]));
                 localStorage.removeItem("checkout_cart_ids");
 
-                window.location.href = "checkout.html";
+                window.location.href = "/checkout";
                 return;
             }
 
@@ -774,7 +813,7 @@ function setupButtons(product, slug) {
                 localStorage.setItem("checkout_cart_ids", JSON.stringify([cartItem.id]));
                 localStorage.removeItem("checkout_guest_items");
 
-                window.location.href = "checkout.html";
+                window.location.href = "/checkout";
 
             } catch (err) {
                 console.error("BUY NOW ERROR:", err);

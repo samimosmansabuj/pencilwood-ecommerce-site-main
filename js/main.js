@@ -13,14 +13,23 @@ let currentSlide = 0;
 let sliderInterval = null;
 let sliderPaused = false;
 
+/* =========================
+   SERVICE WORKER REGISTRATION (Clean URL Routing)
+========================= */
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/sw.js", { scope: "/" })
+        .catch((err) => {
+            console.warn("SW registration error:", err);
+        });
+}
+
 /* PAGINATION */
 let currentPage = 1;
 let perPage = 6;
 
 /* PRODUCT LIST PAGE = 10 */
 if (
-    window.location.pathname
-        .includes("product-list.html")
+    window.location.pathname.includes("product-list")
 ) {
     perPage = 10;
 }
@@ -344,7 +353,7 @@ function renderProducts(products) {
 function handleListCartClick(productId, slug, hasVariants) {
     if (hasVariants) {
         sessionStorage.setItem("prompt_variant_on_load", "cart");
-        window.location.href = `product-details.html?slug=${slug}`;
+        window.location.href = "/" + encodeURIComponent(slug);
         return;
     }
     quickAddCart(productId);
@@ -516,9 +525,8 @@ function applyFilters() {
    ── OPEN PRODUCT
 ========================= */
 function openProduct(slug) {
-
-    window.location.href =
-        `product-details.html?slug=${slug}`;
+    if (!slug) return;
+    window.location.href = "/" + encodeURIComponent(slug);
 }
 
 /* =========================
@@ -781,7 +789,7 @@ function logoutUser() {
     toast("Logged out ✅");
 
     setTimeout(() => {
-        window.location.href = "index.html";
+        window.location.href = "/";
     }, 500);
 }
 
@@ -792,12 +800,12 @@ function openCart() {
     if (typeof openCartDrawer === "function") {
         openCartDrawer();
     } else {
-        window.location.href = "cart.html";
+        window.location.href = "/cart";
     }
 }
 
 function openWishlist() {
-    window.location.href = "wishlist.html";
+    window.location.href = "/wishlist";
 }
 
 function openSearch() {
@@ -836,7 +844,7 @@ function goSearch(query) {
     if (!query) return;
 
     window.location.href =
-        `product-list.html?search=${encodeURIComponent(query)}`;
+        `/product-list?search=${encodeURIComponent(query)}`;
 }
 
 function bindSearch() {

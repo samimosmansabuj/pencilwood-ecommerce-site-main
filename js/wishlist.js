@@ -80,7 +80,7 @@ function fixImage(img) {
 
 function openProduct(slug) {
     if (!slug) return;
-    window.location.href = `product-details.html?slug=${slug}`;
+    window.location.href = "/" + encodeURIComponent(slug);
 }
 
 /* =========================

@@ -4,6 +4,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base href="/">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function() {});
+    }
+  </script>
   <title>About Us — Pencilwood Wood Decor Bangladesh</title>
   <meta name="description"
     content="Learn about Pencilwood — Bangladesh's premium destination for elegant wooden decor, cradles, key holders, mobile stands, and handcrafted accessories. Discover our story, mission, and values.">
@@ -187,8 +193,8 @@
         </div>
       </div>
       <div class="lp-cta-btns">
-        <button class="lp-cta-btn-buy" onclick="window.location.href='index.html'">Shop Now</button>
-        <button class="lp-cta-btn-wa" onclick="window.location.href='contact-us.html'">
+        <button class="lp-cta-btn-buy" onclick="window.location.href='/'">Shop Now</button>
+        <button class="lp-cta-btn-wa" onclick="window.location.href='/contact-us'">
           <span>📨</span> Contact Us
         </button>
       </div>
