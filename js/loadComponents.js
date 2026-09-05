@@ -51,7 +51,7 @@ async function initComponents() {
     // Ensure cart-drawer.js is loaded
     if (!window.openCartDrawer && !document.querySelector('script[src*="cart-drawer.js"]')) {
         const cdScript = document.createElement("script");
-        cdScript.src = "js/cart-drawer.js?v=13";
+        cdScript.src = "js/cart-drawer.js?v=211";
         document.body.appendChild(cdScript);
     }
 
