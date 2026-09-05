@@ -4,12 +4,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <base href="/">
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function () { });
-    }
-  </script>
   <title>My Profile — Pencilwood</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,9 +12,9 @@
     rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
-  <link rel="stylesheet" href="css/home.css?v=20">
-  <link rel="stylesheet" href="css/profile.css?v=20">
-  <link rel="stylesheet" href="css/info-pages.css?v=20">
+  <link rel="stylesheet" href="css/home.css?v=13">
+  <link rel="stylesheet" href="css/profile.css?v=13">
+  <link rel="stylesheet" href="css/info-pages.css?v=13">
 </head>
 
 <body>
@@ -42,14 +36,14 @@
 
   <div class="page">
     <div class="account-links">
-      <a href="/profile">
+      <a href="profile.html">
         <i class="fa fa-user"></i> <span>Profile</span>
       </a>
-      <a href="/my-orders">
+      <a href="my-orders.html">
         <!-- <i class="fa fa-box-open"></i> -->
         📦 <span>My Orders</span>
       </a>
-      <a href="/address">
+      <a href="address.html">
         <i class="fa fa-location-arrow"></i> <span>Address Book</span>
       </a>
       <a onclick="logoutUser()">
@@ -91,20 +85,20 @@
   </div>
 
   <!-- JS -->
-  <script src="js/env.js?v=20"></script>
-  <script src="js/tracking.js?v=20"></script>
-  <script src="js/marketing.js?v=20"></script>
-  <script src="js/config.js?v=20"></script>
+  <script src="js/env.js?v=13"></script>
+  <script src="js/tracking.js?v=13"></script>
+  <script src="js/marketing.js?v=13"></script>
+  <script src="js/config.js?v=13"></script>
 
-  <script src="js/main.js?v=20"></script>
-  <script src="js/cart-drawer.js?v=20"></script>
-  <script src="js/loadComponents.js?v=20"></script>
-  <script src="js/site-content.js?v=20"></script>
+  <script src="js/main.js?v=13"></script>
+  <script src="js/cart-drawer.js?v=13"></script>
+  <script src="js/loadComponents.js?v=13"></script>
+  <script src="js/site-content.js?v=13"></script>
 
-  <script src="js/profile.js?v=20"></script>
+  <script src="js/profile.js?v=13"></script>
 
-  <script src="js/auth.js?v=20"></script>
-  <script src="js/product_list.js?v=20"></script>
+  <script src="js/auth.js?v=13"></script>
+  <script src="js/product_list.js?v=13"></script>
 
 </body>
 

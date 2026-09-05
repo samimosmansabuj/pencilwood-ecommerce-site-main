@@ -4,7 +4,10 @@
 window.addEventListener("DOMContentLoaded", () => {
 
     if (!isLoggedIn()) {
-        window.location.href = "/login";
+
+        window.location.href =
+            "login.html";
+
         return;
     }
 

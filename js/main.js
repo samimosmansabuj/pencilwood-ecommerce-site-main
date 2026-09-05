@@ -13,30 +13,14 @@ let currentSlide = 0;
 let sliderInterval = null;
 let sliderPaused = false;
 
-/* =========================
-   SERVICE WORKER REGISTRATION (Clean URL Routing)
-========================= */
-if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("/sw.js", { scope: "/" })
-        .catch((err) => {
-            console.warn("SW registration error:", err);
-        });
-}
-
-// Clean trailing slash from address bar for clean display (e.g. /profile/ -> /profile)
-try {
-    if (window.location.pathname.length > 1 && window.location.pathname.endsWith("/")) {
-        window.history.replaceState(null, document.title, window.location.pathname.slice(0, -1) + window.location.search + window.location.hash);
-    }
-} catch (e) {}
-
 /* PAGINATION */
 let currentPage = 1;
 let perPage = 6;
 
 /* PRODUCT LIST PAGE = 10 */
 if (
-    window.location.pathname.includes("product-list")
+    window.location.pathname
+        .includes("product-list.html")
 ) {
     perPage = 10;
 }
@@ -360,7 +344,7 @@ function renderProducts(products) {
 function handleListCartClick(productId, slug, hasVariants) {
     if (hasVariants) {
         sessionStorage.setItem("prompt_variant_on_load", "cart");
-        window.location.href = "/" + encodeURIComponent(slug);
+        window.location.href = `product-details.html?slug=${slug}`;
         return;
     }
     quickAddCart(productId);
@@ -532,8 +516,9 @@ function applyFilters() {
    ── OPEN PRODUCT
 ========================= */
 function openProduct(slug) {
-    if (!slug) return;
-    window.location.href = "/" + encodeURIComponent(slug);
+
+    window.location.href =
+        `product-details.html?slug=${slug}`;
 }
 
 /* =========================
@@ -796,7 +781,7 @@ function logoutUser() {
     toast("Logged out ✅");
 
     setTimeout(() => {
-        window.location.href = "/";
+        window.location.href = "index.html";
     }, 500);
 }
 
@@ -807,12 +792,12 @@ function openCart() {
     if (typeof openCartDrawer === "function") {
         openCartDrawer();
     } else {
-        window.location.href = "/cart";
+        window.location.href = "cart.html";
     }
 }
 
 function openWishlist() {
-    window.location.href = "/wishlist";
+    window.location.href = "wishlist.html";
 }
 
 function openSearch() {
@@ -851,7 +836,7 @@ function goSearch(query) {
     if (!query) return;
 
     window.location.href =
-        `/product-list?search=${encodeURIComponent(query)}`;
+        `product-list.html?search=${encodeURIComponent(query)}`;
 }
 
 function bindSearch() {

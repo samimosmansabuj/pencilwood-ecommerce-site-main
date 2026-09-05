@@ -27,25 +27,13 @@ async function loadSiteContent() {
     }
 }
 
-function cleanDashboardUrl(url) {
-    if (!url) return "#";
-    if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("mailto:") || url.startsWith("tel:") || url.startsWith("#")) {
-        return url;
-    }
-    let clean = url.replace(/\.html(\?.*)?$/i, "$1");
-    if (!clean.startsWith("/")) {
-        clean = "/" + clean;
-    }
-    return clean;
-}
-
 function renderNavMenu(links) {
     const subnav = document.querySelector(".subnav-in");
     if (!subnav) return;
 
     links.forEach((link) => {
         const a = document.createElement("a");
-        a.href = cleanDashboardUrl(link.url);
+        a.href = link.url || "#";
         a.textContent = link.name;
         if (link.open_new_tab) {
             a.target = "_blank";
@@ -66,8 +54,9 @@ function renderFooterLinks(links) {
 
     container.innerHTML = links
         .map((link, i) => {
+            // const separator = i < links.length - 1 ? " | " : "";
             const separator = i < links.length - 1 ? `<span class="footer-policy-sep" aria-hidden="true">|</span>` : "";
-            return `<a href="${cleanDashboardUrl(link.url)}">${escapeHtml(link.name)}</a>${separator}`;
+            return `<a href="${link.url || '#'}">${escapeHtml(link.name)}</a>${separator}`;
         })
         .join("");
 }

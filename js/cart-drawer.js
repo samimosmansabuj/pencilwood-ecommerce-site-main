@@ -75,8 +75,8 @@
     const overlay = document.getElementById("cartDrawerOverlay");
 
     if (!drawer || !overlay) {
-      // If component not yet in DOM, fallback to /cart
-      window.location.href = "/cart";
+      // If component not yet in DOM, fallback to cart.html
+      window.location.href = "cart.html";
       return;
     }
 
@@ -98,9 +98,9 @@
 
   function continueShoppingFromDrawer() {
     closeCartDrawer();
-    const current = window.location.pathname.split("/").pop().replace(/\.html$/i, "");
-    if (current !== "product-list" && current !== "all_product") {
-      window.location.href = "/product-list";
+    const current = window.location.pathname.split("/").pop();
+    if (current !== "product-list.html" && current !== "all_product.html") {
+      window.location.href = "product-list.html";
     }
   }
 
@@ -459,7 +459,7 @@
     }
 
     closeCartDrawer();
-    window.location.href = "/checkout";
+    window.location.href = "checkout.html";
   }
 
   /* =========================
