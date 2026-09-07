@@ -173,8 +173,11 @@ function renderCustomSections(customSections) {
 
     customSections.forEach((section) => {
         const wrapper = document.createElement("div");
-        wrapper.className = "lp-section custom-home-section";
+        wrapper.className = `lp-section custom-home-section size-${section.size || "normal"}`;
         wrapper.id = `customSection_${section.section_key}`;
+        if (section.min_height_px) {
+            wrapper.style.minHeight = section.min_height_px + "px";
+        }
 
         const imageHtml = section.image
             ? `<img src="${resolveSiteAssetUrl(section.image)}" alt="${escapeHtml(section.heading)}" class="custom-section-image">`
