@@ -3432,7 +3432,31 @@ textarea {
 
 .custom-home-section .custom-section-body {
     text-align: center;
+}
+.custom-home-section.size-compact .custom-section-body {
+    padding: 12px 0;
+}
+.custom-home-section.size-normal .custom-section-body {
     padding: 20px 0;
+}
+.custom-home-section.size-spacious .custom-section-body {
+    padding: 48px 0;
+}
+.custom-home-section .custom-section-image {
+    display: block;
+    width: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    margin: 0 auto 12px;
+}
+.custom-home-section.size-compact .custom-section-image {
+    height: 180px;
+}
+.custom-home-section.size-normal .custom-section-image {
+    height: 320px;
+}
+.custom-home-section.size-spacious .custom-section-image {
+    height: 480px;
 }
 
 .custom-section-image {
