@@ -22,6 +22,7 @@ async function loadProducts() {
         if (search) queryParams.append("search", search);
         if (category) queryParams.append("category", category);
         if (sort) queryParams.append("sort", sort);
+        queryParams.append("page_size", 500);
 
         if (queryParams.toString()) {
             apiUrl += `?${queryParams.toString()}`;
@@ -101,6 +102,7 @@ async function featureSectionAdd() {
         if (search) queryParams.append("search", search);
         if (category) queryParams.append("category", category);
         if (sort) queryParams.append("sort", sort);
+        queryParams.append("page_size", 500);
 
         if (queryParams.toString()) {
             apiUrl += `?${queryParams.toString()}`;

@@ -17,13 +17,22 @@ let sliderPaused = false;
 let currentPage = 1;
 let perPage = 6;
 
-/* PRODUCT LIST PAGE = 10 */
+/* PRODUCT LIST PAGE = 12 */
 if (
     window.location.pathname
         .includes("product-list.html")
 ) {
-    perPage = 10;
+    perPage = 12;
 }
+
+/* PRODUCT LIST PAGE = SHOW ALL */
+// if (
+//     window.location.pathname
+//         .includes("product-list.html")
+// ) {
+//     perPage = 500;
+// }
+
 /* DYNAMIC CATEGORY */
 let ALL_CATEGORIES = [];
 

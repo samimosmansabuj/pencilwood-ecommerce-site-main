@@ -3,6 +3,9 @@
 ========================= */
 window.API_BASE;
 
+let CURRENT_ADDRESSES = [];
+let EDITING_ADDRESS_ID = null;
+
 /* =========================
    INIT
 ========================= */
@@ -19,6 +22,13 @@ window.addEventListener("DOMContentLoaded", () => {
         btn.addEventListener("click", addAddress);
     }
 });
+
+function getAuthHeaders() {
+    const token = localStorage.getItem("access") || localStorage.getItem("token");
+    return token
+        ? { "Content-Type": "application/json", "Authorization": `Bearer ${token}` }
+        : { "Content-Type": "application/json" };
+}
 
 /* =========================
    DISTRICTS API
@@ -43,8 +53,6 @@ async function loadDistricts() {
         );
 
         const data = await res.json();
-
-        console.log("DISTRICTS:", data);
 
         if (
             data.status === 200 &&
@@ -75,17 +83,36 @@ async function loadDistricts() {
 /* =========================
    LOAD ADDRESSES
 ========================= */
-function loadAddresses() {
+async function loadAddresses() {
 
     const list =
         document.getElementById("addressList");
 
     if (!list) return;
 
-    const addresses =
-        JSON.parse(
-            localStorage.getItem("pw_addresses")
-        ) || [];
+    const token = localStorage.getItem("access") || localStorage.getItem("token");
+    let addresses = [];
+
+    if (token) {
+        try {
+            const res = await fetch(`${API_BASE}/api/addresses/`, {
+                headers: getAuthHeaders()
+            });
+            const data = await res.json();
+            if (data.status && Array.isArray(data.data)) {
+                addresses = data.data;
+            }
+        } catch (err) {
+            console.error("LOAD ADDRESSES ERROR:", err);
+        }
+    } else {
+        addresses =
+            JSON.parse(
+                localStorage.getItem("pw_addresses")
+            ) || [];
+    }
+
+    CURRENT_ADDRESSES = addresses;
 
     const countEl =
         document.getElementById("addressCount");
@@ -115,19 +142,19 @@ function loadAddresses() {
             <div class="address-card">
 
                 <div class="addr-name">
-                    ${addr.name}
+                    ${addr.name || ""}
                 </div>
 
                 <div class="addr-phone">
-                    ${addr.phone}
+                    ${addr.phone || ""}
                 </div>
 
                 <div class="addr-district">
-                    ${addr.district}
+                    ${addr.district || ""}
                 </div>
 
                 <div class="addr-text">
-                    ${addr.address}
+                    ${addr.address || ""}
                 </div>
 
                 <div class="addr-actions">
@@ -154,9 +181,9 @@ function loadAddresses() {
 }
 
 /* =========================
-   ADD ADDRESS
+   ADD / UPDATE ADDRESS
 ========================= */
-function addAddress() {
+async function addAddress() {
 
     const name =
         document.getElementById("addrName").value.trim();
@@ -190,6 +217,42 @@ function addAddress() {
         return;
     }
 
+    const token = localStorage.getItem("access") || localStorage.getItem("token");
+
+    if (token) {
+        try {
+            const isEditing = EDITING_ADDRESS_ID !== null;
+            const url = isEditing
+                ? `${API_BASE}/api/addresses/${EDITING_ADDRESS_ID}/`
+                : `${API_BASE}/api/addresses/`;
+
+            const res = await fetch(url, {
+                method: isEditing ? "PUT" : "POST",
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ name, phone, district, address })
+            });
+
+            const data = await res.json();
+
+            if (!data.status) {
+                toast(data.message || "Failed to save address");
+                return;
+            }
+
+            EDITING_ADDRESS_ID = null;
+            clearAddressForm();
+            await loadAddresses();
+            toast(isEditing ? "Address updated ✅" : "Address added ✅");
+
+        } catch (err) {
+            console.error("SAVE ADDRESS ERROR:", err);
+            toast("Failed to save address");
+        }
+
+        return;
+    }
+
+    // Guest fallback — localStorage
     const addresses =
         JSON.parse(
             localStorage.getItem("pw_addresses")
@@ -207,14 +270,16 @@ function addAddress() {
         JSON.stringify(addresses)
     );
 
+    clearAddressForm();
+    loadAddresses();
+    toast("Address added ✅");
+}
+
+function clearAddressForm() {
     document.getElementById("addrName").value = "";
     document.getElementById("addrPhone").value = "";
     document.getElementById("deliverydistrict").value = "";
     document.getElementById("addrText").value = "";
-
-    loadAddresses();
-
-    toast("Address added ✅");
 }
 
 /* =========================
@@ -222,13 +287,7 @@ function addAddress() {
 ========================= */
 function editAddress(index) {
 
-    const addresses =
-        JSON.parse(
-            localStorage.getItem("pw_addresses")
-        ) || [];
-
-    const addr =
-        addresses[index];
+    const addr = CURRENT_ADDRESSES[index];
 
     if (!addr) return;
 
@@ -244,14 +303,23 @@ function editAddress(index) {
     document.getElementById("addrText").value =
         addr.address || "";
 
-    addresses.splice(index, 1);
+    const token = localStorage.getItem("access") || localStorage.getItem("token");
 
-    localStorage.setItem(
-        "pw_addresses",
-        JSON.stringify(addresses)
-    );
-
-    loadAddresses();
+    if (token && addr.id) {
+        EDITING_ADDRESS_ID = addr.id;
+    } else {
+        EDITING_ADDRESS_ID = null;
+        const addresses =
+            JSON.parse(
+                localStorage.getItem("pw_addresses")
+            ) || [];
+        addresses.splice(index, 1);
+        localStorage.setItem(
+            "pw_addresses",
+            JSON.stringify(addresses)
+        );
+        loadAddresses();
+    }
 
     window.scrollTo({
         top: 0,
@@ -264,7 +332,32 @@ function editAddress(index) {
 /* =========================
    DELETE ADDRESS
 ========================= */
-function deleteAddress(index) {
+async function deleteAddress(index) {
+
+    const addr = CURRENT_ADDRESSES[index];
+    if (!addr) return;
+
+    const token = localStorage.getItem("access") || localStorage.getItem("token");
+
+    if (token && addr.id) {
+        try {
+            const res = await fetch(`${API_BASE}/api/addresses/${addr.id}/`, {
+                method: "DELETE",
+                headers: getAuthHeaders()
+            });
+            const data = await res.json();
+            if (!data.status) {
+                toast(data.message || "Failed to delete address");
+                return;
+            }
+            await loadAddresses();
+            toast("Address removed");
+        } catch (err) {
+            console.error("DELETE ADDRESS ERROR:", err);
+            toast("Failed to delete address");
+        }
+        return;
+    }
 
     const addresses =
         JSON.parse(
