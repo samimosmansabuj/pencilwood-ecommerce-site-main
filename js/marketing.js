@@ -206,9 +206,27 @@ function GAInitiateCheckoutEvent(products, total) {
     logEventToBackend('begin_checkout', { total, items: products.length });
 }
 
-function GAInitiatePurchaseEvent(products, total, orderId) {
+function GAInitiatePurchaseEvent(products, total, orderId, customer) {
     if (!products || !products.length) return;
     const transactionId = orderId ? String(orderId) : Date.now().toString();
+
+    customer = customer || {};
+    const fullName = (customer.name || "").trim();
+    const nameParts = fullName.split(/\s+/).filter(Boolean);
+    const firstName = nameParts[0] || "";
+    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
+
+    const userData = {
+        email_address: customer.email || undefined,
+        phone_number: customer.phone || undefined,
+        address: {
+            first_name: firstName || undefined,
+            last_name: lastName || undefined,
+            street: customer.address || undefined,
+            city: customer.district || undefined,
+            country: "BD"
+        }
+    };
 
     dataLayer.push({
         event: "purchase",
@@ -222,10 +240,33 @@ function GAInitiatePurchaseEvent(products, total, orderId) {
                 price: Number(product.price),
                 quantity: Number(product.quantity)
             }))
+        },
+        user_data: userData,
+        customer_data: {
+            name: fullName || undefined,
+            phone: customer.phone || undefined,
+            email: customer.email || undefined,
+            address: customer.address || undefined,
+            district: customer.district || undefined,
+            order_id: transactionId
         }
     });
 
     if (window.__TRACKING_CONFIG__?.facebook_pixel?.enabled && window.fbq) {
+        try {
+            const pixelId = window.__TRACKING_CONFIG__.facebook_pixel.pixel_id;
+            if (pixelId && (customer.phone || customer.email || fullName)) {
+                fbq('init', pixelId, {
+                    ph: customer.phone || undefined,
+                    em: customer.email || undefined,
+                    fn: firstName || undefined,
+                    ln: lastName || undefined,
+                    ct: customer.district || undefined,
+                    country: "bd"
+                });
+            }
+        } catch (e) { /* non-blocking */ }
+
         fbq('track', 'Purchase', {
             content_ids: products.map(p => String(p.id)),
             contents: products.map(p => ({ id: String(p.id), quantity: Number(p.quantity) })),
@@ -236,5 +277,16 @@ function GAInitiatePurchaseEvent(products, total, orderId) {
         });
     }
 
-    logEventToBackend('purchase', { order_id: transactionId, total, items: products.length });
+    logEventToBackend('purchase', {
+        order_id: transactionId,
+        total,
+        items: products.length,
+        customer: {
+            name: fullName || null,
+            phone: customer.phone || null,
+            email: customer.email || null,
+            address: customer.address || null,
+            district: customer.district || null
+        }
+    });
 }

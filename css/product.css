@@ -271,6 +271,60 @@
   animation: variantPulse 0.9s ease-in-out 3;
 }
 
+.product-gift-wrap {
+  margin: 10px 0 4px;
+  padding: 10px 12px;
+  border: 1px dashed #16a34a;
+  border-radius: 10px;
+  background: #f0fdf4;
+}
+.product-gift-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #16a34a;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.product-gift-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+}
+.product-gift-item + .product-gift-item {
+  border-top: 1px dashed #d1fae5;
+}
+.product-gift-item img {
+  width: 42px;
+  height: 42px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #d1fae5;
+  background: #fff;
+  flex-shrink: 0;
+}
+.product-gift-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.product-gift-item-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #14532d;
+}
+.product-gift-item-tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: #16a34a;
+  background: #dcfce7;
+  padding: 1px 7px;
+  border-radius: 999px;
+  width: fit-content;
+}
+
 /* ================= SHARE MODAL ================= */
 
 .share-overlay {

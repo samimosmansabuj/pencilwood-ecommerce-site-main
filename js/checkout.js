@@ -299,11 +299,15 @@ function renderCheckoutProducts(items) {
             ? Object.values(item.variant).join(" / ")
             : "";
 
+        const giftBadge = item.is_gift
+            ? `<span style="color:#16a34a;font-size:11px;font-weight:700;background:#dcfce7;padding:1px 7px;border-radius:999px;margin-left:6px;">🎁 GIFT</span>`
+            : "";
+
         container.innerHTML += `
-            <div class="ck-product">
+            <div class="ck-product${item.is_gift ? ' ck-product-gift' : ''}">
                 <div class="ck-product-info">
                     <div class="ck-product-name">
-                        ${item.product}
+                        ${item.product}${giftBadge}
                         ${variantText ? `<span style="color:#888;font-size:12px"> (${variantText})</span>` : ""}
                     </div>
                     <div class="ck-product-meta">
@@ -334,10 +338,14 @@ function renderSummary(items, subtotal) {
             ? Object.values(item.variant).join(" / ")
             : "";
 
+        const giftBadge = item.is_gift
+            ? `<span style="color:#16a34a;font-size:11px;font-weight:700;background:#dcfce7;padding:1px 7px;border-radius:999px;margin-left:6px;">🎁 GIFT</span>`
+            : "";
+
         summaryBox.innerHTML += `
             <div class="sum-row">
                 <span>
-                    ${item.product}${variantText ? ` (${variantText})` : ""}
+                    ${item.product}${giftBadge}${variantText ? ` (${variantText})` : ""}
                     × ${item.quantity}
                 </span>
                 <span>
@@ -547,12 +555,32 @@ async function loadSavedAddresses() {
 
     if (!select) return;
 
-    const addresses =
-        JSON.parse(
-            localStorage.getItem(
-                "pw_addresses"
-            )
-        ) || [];
+    let addresses = [];
+
+    const token = localStorage.getItem("access") || localStorage.getItem("token");
+
+    if (token) {
+        try {
+            const res = await fetch(`${API_BASE}/api/addresses/`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.status && Array.isArray(data.data)) {
+                addresses = data.data;
+            }
+        } catch (err) {
+            console.error("LOAD SAVED ADDRESSES ERROR:", err);
+        }
+    } else {
+        addresses =
+            JSON.parse(
+                localStorage.getItem(
+                    "pw_addresses"
+                )
+            ) || [];
+    }
+
+    window.__SAVED_ADDRESSES__ = addresses;
 
     select.innerHTML = `
         <option value="">
@@ -564,7 +592,7 @@ async function loadSavedAddresses() {
 
         select.innerHTML += `
             <option value="${index}">
-                ${addr.name} — ${addr.district}
+                ${addr.address} — ${addr.district}
             </option>
         `;
     });
@@ -586,20 +614,33 @@ function bindAddressSelect() {
         "change",
         () => {
 
-            const addresses =
-                JSON.parse(
-                    localStorage.getItem(
-                        "pw_addresses"
-                    )
-                ) || [];
+            const addresses = window.__SAVED_ADDRESSES__ || [];
 
             const selected =
                 addresses[select.value];
 
-            if (!selected) return;
-
+            const addressField = document.getElementById("ckAddress");
+            const districtSelect = document.getElementById("ckDistrict");
             const nameField = document.getElementById("ckName");
             const phoneField = document.getElementById("ckPhone");
+
+            const addressLabel = document.getElementById("ckAddressFieldLabel");
+
+            if (!selected) {
+                if (addressField) {
+                    addressField.value = "";
+                    addressField.readOnly = false;
+                    addressField.placeholder = "Area / Road / House";
+                }
+                if (districtSelect) {
+                    districtSelect.disabled = false;
+                    districtSelect.value = "";
+                }
+                if (addressLabel) addressLabel.textContent = "Or Enter New Address";
+                return;
+            }
+
+            if (addressLabel) addressLabel.textContent = "Using Saved Address";
 
             if (nameField && !nameField.readOnly) {
                 nameField.value = selected.name || "";
@@ -609,17 +650,16 @@ function bindAddressSelect() {
                 phoneField.value = selected.phone || "";
             }
 
-            document.getElementById(
-                "ckAddress"
-            ).value = selected.address || "";
+            if (addressField) {
+                addressField.value = selected.address || "";
+                addressField.readOnly = true;
+            }
 
-            const districtSelect =
-                document.getElementById(
-                    "ckDistrict"
-                );
-
-            districtSelect.value =
-                selected.district || "";
+            if (districtSelect) {
+                districtSelect.value = selected.district || "";
+                districtSelect.disabled = true;
+                districtSelect.dispatchEvent(new Event("change"));
+            }
 
             selectedDistrictId =
                 selected.district || "";
@@ -781,7 +821,8 @@ async function placeOrder() {
                     quantity: item.quantity
                 })),
                 checkoutData?.subtotal || 0,
-                data.order_id
+                data.order_id,
+                { name, phone, address, district }
             );
 
             localStorage.removeItem("checkout_cart_ids");

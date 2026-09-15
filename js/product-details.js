@@ -151,6 +151,7 @@ async function loadProductDetails() {
            BADGES (bestseller etc.)
         ========================= */
         renderBadges(product);
+        renderGifts(product);
 
         /* =========================
            IMAGES (default = product-level images)
@@ -247,6 +248,52 @@ function renderBadges(product) {
         html += `<span class="badge-chip badge-discount">${off}% OFF</span>`;
     }
     wrap.innerHTML = html;
+}
+
+function renderGifts(product) {
+    const wrap = document.getElementById("productGiftWrap");
+    if (!wrap) return;
+
+    const gifts = Array.isArray(product.gift_product) ? product.gift_product : [];
+    if (!gifts.length) {
+        wrap.style.display = "none";
+        wrap.innerHTML = "";
+        return;
+    }
+
+    let itemsHtml = "";
+    gifts.forEach(g => {
+        const giftProd = g.gift_product;
+        if (!giftProd) return;
+
+        let tag = "";
+        if (g.gift_type === "FREE") tag = "FREE";
+        else if (g.gift_type === "FLAT") tag = `−৳${g.value} OFF`;
+        else if (g.gift_type === "DISCOUNT") tag = `${g.value}% OFF`;
+
+        let image = giftProd.image || "";
+        if (image && !image.startsWith("http")) image = API_BASE + image;
+        if (!image) image = "https://placehold.co/80x80?text=Gift";
+
+        itemsHtml += `
+            <div class="product-gift-item">
+                <img src="${image}" alt="${escapeHtml(giftProd.name || "")}">
+                <div class="product-gift-item-info">
+                    <span class="product-gift-item-name">${escapeHtml(giftProd.name || "")}</span>
+                    <span class="product-gift-item-tag">🎁 ${tag}</span>
+                </div>
+            </div>
+        `;
+    });
+
+    if (!itemsHtml) {
+        wrap.style.display = "none";
+        wrap.innerHTML = "";
+        return;
+    }
+
+    wrap.innerHTML = `<div class="product-gift-title">🎁 This product comes with a Free Gift</div>${itemsHtml}`;
+    wrap.style.display = "block";
 }
 
 /* =========================
