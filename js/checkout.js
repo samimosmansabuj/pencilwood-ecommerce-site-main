@@ -821,7 +821,8 @@ async function placeOrder() {
                     quantity: item.quantity
                 })),
                 checkoutData?.subtotal || 0,
-                data.order_id
+                data.order_id,
+                { name, phone, address, district }
             );
 
             localStorage.removeItem("checkout_cart_ids");
