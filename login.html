@@ -90,11 +90,54 @@
 
         <button id="submitPasswordBtn" onclick="submitPasswordStep()">Continue</button>
 
+        <button type="button" id="forgotPasswordBtn" onclick="startForgotPassword()"
+          style="display:none; background:transparent; color:#a15c2b; box-shadow:none; font-size:13px; text-decoration:underline;">
+          Forgot Password?
+        </button>
+
         <button type="button" onclick="backToPhoneStep()" style="background:transparent; color:#666; box-shadow:none;">
           ← Back
         </button>
 
       </div>
+
+            <!-- STEP 3: FORGOT PASSWORD -> OTP -->
+            <div id="otpStep" class="auth-form" style="display:none">
+
+              <p style="margin:0 0 5px; font-size:14px; color:#555;">
+                Enter the OTP sent to your phone
+              </p>
+      
+              <input type="text" id="resetOtp" placeholder="6-digit OTP" maxlength="6" inputmode="numeric">
+      
+              <button id="submitOtpBtn" onclick="submitOtpStep()">Verify OTP</button>
+      
+              <button type="button" onclick="resendOtp()" style="background:transparent; color:#a15c2b; box-shadow:none; font-size:13px;">
+                Resend OTP
+              </button>
+      
+              <button type="button" onclick="backToPhoneStep()" style="background:transparent; color:#666; box-shadow:none;">
+                ← Back
+              </button>
+      
+            </div>
+      
+            <!-- STEP 4: FORGOT PASSWORD -> SET NEW PASSWORD -->
+            <div id="newPasswordStep" class="auth-form" style="display:none">
+      
+              <p style="margin:0 0 5px; font-size:14px; color:#555;">
+                Set a new password
+              </p>
+      
+              <input type="password" id="newPassword" placeholder="New password">
+      
+              <button id="submitNewPasswordBtn" onclick="submitResetPasswordStep()">Reset Password</button>
+      
+              <button type="button" onclick="backToPhoneStep()" style="background:transparent; color:#666; box-shadow:none;">
+                ← Back
+              </button>
+      
+            </div>
 
     </div>
 

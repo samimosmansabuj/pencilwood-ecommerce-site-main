@@ -35,6 +35,8 @@ window.addEventListener(
         bindAddressSelect();
 
         bindLiveValidationClear();
+
+        bindOrderAttemptCapture();
     }
 );
 
@@ -724,13 +726,48 @@ function bindLiveValidationClear() {
     });
 }
 
-/**
- * Validates all required checkout fields.
- * Highlights every missing field, shows an inline message under each one,
- * shows a single summary toast, and scrolls to + focuses the first
- * missing field.
- * Returns true if the form is valid, false otherwise.
- */
+/* =========================================
+   ORDER ATTEMPT (pre-purchase phone capture)
+========================================= */
+function bindOrderAttemptCapture() {
+    const phoneField = document.getElementById("ckPhone");
+    if (!phoneField) return;
+    phoneField.addEventListener("blur", saveOrderAttemptIfPossible);
+}
+
+async function saveOrderAttemptIfPossible() {
+    const phone = document.getElementById("ckPhone")?.value.trim();
+    if (!phone || phone.length < 11) return;
+
+    const items = checkoutData?.items || [];
+    if (!items.length) return;
+
+    const payload = {
+        customer: {
+            name: document.getElementById("ckName")?.value.trim() || "",
+            phone,
+            address: document.getElementById("ckAddress")?.value.trim() || "",
+            district: document.getElementById("ckDistrict")?.value || ""
+        },
+        products: items.map(item => ({
+            id: item.product_id,
+            quantity: item.quantity
+        })),
+        source: "checkout"
+    };
+
+    try {
+        await fetch(`${API_BASE}/site/api/order-attempt/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+    } catch (err) {
+        console.error("ORDER ATTEMPT SAVE ERROR:", err);
+    }
+}
+
+
 function validateCheckoutForm() {
     clearAllFieldErrors();
 

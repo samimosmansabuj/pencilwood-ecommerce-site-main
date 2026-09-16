@@ -65,66 +65,78 @@
       </a>
     </div>
 
-    <div class="address-head">
+    <div class="address-page-layout">
 
-      <div class="address-count" id="addressCount">
+      <!-- LEFT: SCROLLABLE SAVED ADDRESS LIST -->
+      <div class="address-list-col">
 
-        0 Saved
+        <div class="address-list-header">
+          <span class="address-list-title" id="addressCount">0 Saved Address</span>
+        </div>
 
-      </div>
+        <div class="address-list" id="addressList">
 
-    </div>
+          <div class="addr-card">
+            Loading addresses...
+          </div>
 
-    <!-- ADDRESS LIST -->
-    <div class="address-list" id="addressList">
-
-      <div class="addr-card">
-        Loading addresses...
-      </div>
-
-    </div>
-
-    <!-- ADD NEW -->
-    <div class="address-form">
-
-      <h2>
-        Add New Address
-      </h2>
-
-      <div class="form-grid">
-
-        <input type="text" id="addrName" placeholder="Full Name">
-
-        <input type="text" id="addrPhone" placeholder="Phone Number">
+        </div>
 
       </div>
 
-      <!-- DISTRICT -->
-      <select id="deliverydistrict">
+      <!-- RIGHT: FIXED ADD/EDIT FORM -->
+      <div class="address-form-col">
 
-        <option value="">
-          Select District
-        </option>
+        <div class="address-form">
 
-      </select>
+          <h2 id="addressFormTitle">
+            Add New Address
+          </h2>
 
-      <!-- DELIVERY CHARGE -->
-      <div class="delivery-charge-box" id="deliveryChargeBox">
+          <div class="form-grid">
 
-        Delivery Charge:
-        <span id="deliveryChargeText">
-          ৳ 0
-        </span>
+            <input type="text" id="addrName" placeholder="Full Name">
+
+            <input type="text" id="addrPhone" placeholder="Phone Number">
+
+          </div>
+
+          <!-- DISTRICT -->
+          <select id="deliverydistrict">
+
+            <option value="">
+              Select District
+            </option>
+
+          </select>
+
+          <!-- DELIVERY CHARGE -->
+          <div class="delivery-charge-box" id="deliveryChargeBox">
+
+            <!-- Delivery Charge:
+            <span id="deliveryChargeText">
+              ৳ 0
+            </span> -->
+
+          </div>
+
+          <textarea id="addrText" placeholder="Full Address"></textarea>
+
+          <button id="addAddressBtn">
+
+            Save Address
+
+          </button>
+
+          <button id="cancelEditBtn" type="button" style="display:none;">
+
+            Cancel Edit
+
+          </button>
+
+        </div>
 
       </div>
-
-      <textarea id="addrText" placeholder="Full Address"></textarea>
-
-      <button id="addAddressBtn">
-
-        Save Address
-
-      </button>
 
     </div>
 
