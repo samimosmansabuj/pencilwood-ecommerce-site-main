@@ -14,14 +14,17 @@ async function loadProducts() {
         const search = params.get("search");
         const category = params.get("category");
         const sort = params.get("sort");
-
         let apiUrl = `${API_BASE}/api/ecom/products/`;
 
         const queryParams = new URLSearchParams();
 
         if (search) queryParams.append("search", search);
         if (category) queryParams.append("category", category);
-        if (sort) queryParams.append("sort", sort);
+        if (sort){
+            queryParams.append("sort", sort);
+        } else {
+            queryParams.append("sort", "last_update");
+        }
         queryParams.append("page_size", 500);
 
         if (queryParams.toString()) {
@@ -55,9 +58,9 @@ async function loadProducts() {
         loadCategories(products);
 
         /* NEWEST FIRST DEFAULT */
-        filteredProducts.sort((a, b) => {
-            return (b.id || 0) - (a.id || 0);
-        });
+        // filteredProducts.sort((a, b) => {
+        //     return (b.id || 0) - (a.id || 0);
+        // });
 
         goPage(1);
 
@@ -93,7 +96,7 @@ async function featureSectionAdd() {
 
         const search = params.get("search");
         const category = params.get("category");
-        const sort = params.get("sort");
+        const sort = params.get("sort", "last_update");
 
         let apiUrl = `${API_BASE}/api/ecom/products/`;
 
@@ -101,7 +104,11 @@ async function featureSectionAdd() {
 
         if (search) queryParams.append("search", search);
         if (category) queryParams.append("category", category);
-        if (sort) queryParams.append("sort", sort);
+        if (sort){
+            queryParams.append("sort", sort);
+        } else {
+            queryParams.append("sort", "last_update");
+        }
         queryParams.append("page_size", 500);
 
         if (queryParams.toString()) {
