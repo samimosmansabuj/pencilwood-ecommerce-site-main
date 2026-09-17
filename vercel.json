@@ -1,0 +1,65 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/product/:slug",
+      "destination": "/product-details.html?slug=:slug"
+    },
+    {
+      "source": "/product/css/:path*",
+      "destination": "/css/:path*"
+    },
+    {
+      "source": "/product/js/:path*",
+      "destination": "/js/:path*"
+    },
+    {
+      "source": "/product/images/:path*",
+      "destination": "/images/:path*"
+    },
+    {
+      "source": "/product/components/:path*",
+      "destination": "/components/:path*"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/product-details.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "slug",
+          "value": "(?<slug>.*)"
+        }
+      ],
+      "destination": "/product/:slug",
+      "permanent": true
+    },
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/:page.html",
+      "destination": "/:page",
+      "permanent": true
+    }
+  ],
+  "headers": [
+    {
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/"
+        }
+      ]
+    }
+  ]
+}

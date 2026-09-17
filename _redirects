@@ -1,0 +1,49 @@
+# ====================================================================
+# Pencilwood E-Commerce - Netlify Redirects & Rewrites
+# ====================================================================
+
+# 1. Old URL 301 Redirects
+/product-details.html  slug=:slug   /product/:slug  301!
+/index.html                         /               301!
+/product-list.html                  /product-list   301!
+/about-us.html                      /about-us       301!
+/contact-us.html                    /contact-us     301!
+/cart.html                          /cart           301!
+/checkout.html                      /checkout       301!
+/wishlist.html                      /wishlist       301!
+/login.html                         /login          301!
+/profile.html                       /profile        301!
+/my-orders.html                     /my-orders      301!
+/address.html                       /address        301!
+/order.html                         /order          301!
+/privacy-policy.html                /privacy-policy 301!
+/return-policy.html                 /return-policy  301!
+/terms-and-conditions.html          /terms-and-conditions 301!
+
+# 2. Asset Rewrites under /product/
+/product/css/*                      /css/:splat     200
+/product/js/*                       /js/:splat      200
+/product/images/*                   /images/:splat  200
+/product/components/*               /components/:splat 200
+
+# 3. Dynamic Product Details Routing
+/product/:slug                      /product-details.html  200
+
+# 4. Clean Page Rewrites
+/product-list                       /product-list.html     200
+/about-us                           /about-us.html         200
+/contact-us                         /contact-us.html       200
+/cart                               /cart.html             200
+/checkout                           /checkout.html         200
+/wishlist                           /wishlist.html         200
+/login                              /login.html            200
+/profile                            /profile.html          200
+/my-orders                          /my-orders.html        200
+/address                            /address.html          200
+/order                              /order.html            200
+/privacy-policy                     /privacy-policy.html   200
+/return-policy                      /return-policy.html    200
+/terms-and-conditions               /terms-and-conditions.html 200
+
+# 5. 404 Fallback
+/*                                  /404.html              404
