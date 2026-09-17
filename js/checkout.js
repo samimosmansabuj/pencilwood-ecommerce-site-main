@@ -495,8 +495,13 @@ async function applyCoupon(code, silent) {
         return;
     }
 
-    const subtotal = Number(document.getElementById("ckSubtotal")?.innerText || 0);
-    const productIds = (checkoutData?.items || []).map(item => item.product_id);
+    const items = (checkoutData?.items || [])
+        .filter(item => !item.is_gift)
+        .map(item => ({
+            product_id: item.product_id,
+            variant_id: item.variant_id || null,
+            quantity: item.quantity
+        }));
 
     if (btn && !silent) btn.disabled = true;
 
@@ -507,8 +512,7 @@ async function applyCoupon(code, silent) {
             body: JSON.stringify({
                 code: couponCode,
                 phone,
-                subtotal,
-                product_ids: productIds
+                items
             })
         });
         const data = await res.json();
@@ -838,8 +842,7 @@ async function placeOrder() {
                 toast("No items to checkout");
                 return;
             }
-            const cartIdsFallback = JSON.parse(localStorage.getItem("checkout_cart_ids")) || [];
-            body = { items: guestItems, cart_ids: cartIdsFallback, name, phone, address, district, coupon_code: couponCode, ...attribution };
+            body = { items: guestItems, name, phone, address, district, coupon_code: couponCode, ...attribution };
         }
 
         const res = await fetch(`${API_BASE}/api/checkout/place-order/`, {
