@@ -1045,7 +1045,9 @@ async function loadRelatedProducts(product) {
                     <img src="${image}" alt="${p.name}">
                 </div>
                 <div class="prod-name" onclick="openProduct('${slug}')">${p.name}</div>
-                <div class="prod-price">৳ ${p.discount_price || p.price}</div>
+                <div class="prod-price">
+                    ৳ ${p.discount_price || p.price} <span class="price-orig">${p.discount_price ? `৳ ${p.price}` : ""}</span>
+                </div>
                 <button class="prod-cart" onclick="quickAddCart(${p.id})">+ Cart</button>
             </div>
             `;

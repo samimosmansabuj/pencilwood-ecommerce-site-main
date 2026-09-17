@@ -167,7 +167,7 @@ async function featureSectionAdd() {
                 </div>
 
                 <div class="prod-price">
-                    ৳ ${p.discount_price || p.price}
+                    ৳ ${p.discount_price || p.price} <span class="price-orig">${p.discount_price ? `৳ ${p.price}` : ""}</span>
                 </div>
 
                 <button
