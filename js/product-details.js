@@ -144,12 +144,14 @@ async function loadProductDetails() {
            TITLE / SKU / DESC
         ========================= */
         document.getElementById("productTitle").textContent = name;
-        document.getElementById("productShortDescription").textContent = product.description || "";
+        document.getElementById("productShortDescription").textContent = product.short_description || "";
         document.getElementById("productSKU").textContent = sku ? `SKU: ${sku}` : "";
 
         const desc = document.getElementById("productDescription");
-        if (desc) desc.textContent = product.description || "No description available.";
-
+        if (desc) {
+            desc.innerHTML = product.description || "No description available.";
+        }
+        
         /* =========================
            RATING
         ========================= */

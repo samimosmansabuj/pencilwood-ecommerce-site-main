@@ -58,45 +58,27 @@
 
     <!-- ① PRODUCT HERO -->
     <div class="prod-hero">
-
       <div class="prod-hero-inner">
-
         <!-- GALLERY -->
         <div class="gal-col">
-
           <div class="gal-main" id="galMain">
-
             <div class="gal-top-badges" id="productBadges"></div>
-
             <div class="gal-top-right">
-
               <div class="g-act" id="wishIco" title="Wishlist">
-
                 ♡
-
               </div>
-
               <div class="g-act" onclick="openShare()" title="Share">
-
                 🔗
-
               </div>
-
             </div>
-
             <img id="productImage" src="" alt="product">
-
           </div>
-
           <div class="thumbs" id="thumbGrid"></div>
-
         </div>
 
         <!-- INFO -->
         <div class="info-col">
-
           <div class="brand-row">
-
             <span class="brand-lnk">
               Pencilwood
             </span>
@@ -106,56 +88,38 @@
             </span>
 
             <span class="sku-lbl" id="productSKU"></span>
-
           </div>
 
           <div>
-
             <div class="prod-title" id="productTitle">
-
               Loading...
-
             </div>
 
-            <div class="prod-bn bn" id="productShortDescription"></div>
-
+            <div class="prod-bn bn" id="productShortDescription" style="white-space: pre-line;"></div>
           </div>
 
           <div class="stars-row">
-
             <div class="stars" id="prodStars"></div>
-
             <span class="r-score">
               0.0
             </span>
-
             <span class="r-cnt">
               0 ratings
             </span>
-
             <div class="r-sep"></div>
-
             <span class="r-sold">
               0 sold
             </span>
-
             <span class="stock-chip" id="stockStatus"></span>
-
           </div>
 
           <!-- PRICE -->
           <div class="price-box">
-
             <div class="price-row">
-
               <span class="price-main" id="productPrice"></span>
-
               <span class="price-orig" id="productOldPrice"></span>
-
               <span class="price-disc" id="productDiscount"></span>
-
             </div>
-
           </div>
           <div id="variantPickerWrap" class="variant-picker-wrap"></div>
 
@@ -163,97 +127,60 @@
 
           <!-- QUANTITY -->
           <div class="qty-row-wrap">
-
             <span class="qty-note">
-
               Only
               <span id="stockLeft"></span>
               left
-
             </span>
-
           </div>
 
           <!-- BUTTONS -->
           <div>
-
             <div class="btn-group" style="margin-bottom:7px">
-
               <button class="btn-buy" id="buyBtn">
-
                 🛒 Buy Now
-
               </button>
-
               <button class="btn-cart" id="cartBtn">
-
                 + Add to Cart
-
               </button>
-
             </div>
-
             <div class="btn-sec-row">
-
               <button class="btn-wish" id="wishBtn">
-
                 ♡ Wishlist
-
               </button>
-
             </div>
-
           </div>
-
         </div>
-
       </div>
-
     </div>
 
 
     <!-- ⑤ TABS -->
     <div class="lp-section" id="tabsSection">
-
       <div class="tabs-nav">
-
         <button class="tab-btn on" onclick="switchTab('desc', event)">
-
           Description
-
         </button>
 
         <button class="tab-btn" onclick="switchTab('feat', event)">
-
           Features & Specs
-
         </button>
 
         <button class="tab-btn" onclick="switchTab('reviews', event)">
-
           Reviews
-
         </button>
 
         <button class="tab-btn" onclick="switchTab('faq', event)">
-
           FAQ
-
         </button>
-
       </div>
 
       <!-- DESCRIPTION -->
       <div class="tab-pane on" id="pane-desc">
-
-        <p class="desc-body" id="productDescription">
-
+        <div class="desc-body" id="productDescription">
           Loading description...
-
-        </p>
-
+        </div>
         <table class="spec-tbl" id="specTable"></table>
-
       </div>
 
       <!-- FEATURES (populated by renderFeatures() in product-details.js) -->
