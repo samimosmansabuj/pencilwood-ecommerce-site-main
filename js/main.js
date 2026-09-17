@@ -15,23 +15,18 @@ let sliderPaused = false;
 
 /* PAGINATION */
 let currentPage = 1;
-let perPage = 6;
+let perPage = 12; // index.html (home page) = 12 items per page
 
-/* PRODUCT LIST PAGE = 12 */
+/* PRODUCT LIST PAGE = 18 */
 if (
     window.location.pathname
-        .includes("product-list")
+        .includes("product-list") ||
+    window.location.pathname
+        .includes("all_product")
 ) {
-    perPage = 12;
+    perPage = 18; // product-list.html = 18 items per page
 }
 
-/* PRODUCT LIST PAGE = SHOW ALL */
-// if (
-//     window.location.pathname
-//         .includes("product-list.html")
-// ) {
-//     perPage = 500;
-// }
 
 /* DYNAMIC CATEGORY */
 let ALL_CATEGORIES = [];

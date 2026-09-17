@@ -61,6 +61,15 @@ async function loadProducts() {
         // filteredProducts.sort((a, b) => {
         //     return (b.id || 0) - (a.id || 0);
         // });
+        /* SET PER-PAGE DYNAMICALLY: 18 for product-list, 12 for home/index */
+        if (
+            window.location.pathname.includes("product-list") ||
+            window.location.pathname.includes("all_product")
+        ) {
+            perPage = 18;
+        } else {
+            perPage = 12;
+        }
 
         goPage(1);
 
