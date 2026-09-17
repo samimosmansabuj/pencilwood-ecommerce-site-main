@@ -21,6 +21,17 @@ window.addEventListener("DOMContentLoaded", () => {
     if (btn) {
         btn.addEventListener("click", addAddress);
     }
+
+    const cancelBtn =
+        document.getElementById("cancelEditBtn");
+
+    if (cancelBtn) {
+        cancelBtn.addEventListener("click", () => {
+            EDITING_ADDRESS_ID = null;
+            clearAddressForm();
+            resetAddressFormUI();
+        });
+    }
 });
 
 function getAuthHeaders() {
@@ -120,7 +131,7 @@ async function loadAddresses() {
     if (countEl) {
 
         countEl.textContent =
-            `${addresses.length} Saved`;
+            `${addresses.length} Saved Address${addresses.length === 1 ? "" : "es"}`;
     }
 
     list.innerHTML = "";
@@ -141,35 +152,47 @@ async function loadAddresses() {
         list.innerHTML += `
             <div class="address-card">
 
-                <div class="addr-name">
-                    ${addr.name || ""}
-                </div>
+                <div class="address-card-info">
 
-                <div class="addr-phone">
-                    ${addr.phone || ""}
-                </div>
+                    <div class="addr-name-row">
+                        <span class="addr-name">${addr.name || ""}</span>
+                        <span class="addr-phone">${addr.phone || ""}</span>
+                    </div>
 
-                <div class="addr-district">
-                    ${addr.district || ""}
-                </div>
+                    <div class="addr-line-row">
+                        <span class="addr-text" title="${addr.address || ""}">
+                            ${addr.address || ""}
+                        </span>
+                        <span class="addr-district">${addr.district || ""}</span>
+                    </div>
 
-                <div class="addr-text">
-                    ${addr.address || ""}
                 </div>
 
                 <div class="addr-actions">
 
                     <button
+                        class="icon-btn icon-btn-edit"
+                        title="Edit"
                         onclick="editAddress(${index})">
 
-                        Edit
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                        </svg>
 
                     </button>
 
                     <button
+                        class="icon-btn icon-btn-delete"
+                        title="Delete"
                         onclick="deleteAddress(${index})">
 
-                        Delete
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                            <path d="M10 11v6"></path>
+                            <path d="M14 11v6"></path>
+                            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+                        </svg>
 
                     </button>
 
@@ -240,9 +263,11 @@ async function addAddress() {
             }
 
             EDITING_ADDRESS_ID = null;
+            resetAddressFormUI();
             clearAddressForm();
             await loadAddresses();
             toast(isEditing ? "Address updated ✅" : "Address added ✅");
+
 
         } catch (err) {
             console.error("SAVE ADDRESS ERROR:", err);
@@ -270,6 +295,7 @@ async function addAddress() {
         JSON.stringify(addresses)
     );
 
+    resetAddressFormUI();
     clearAddressForm();
     loadAddresses();
     toast("Address added ✅");
@@ -280,6 +306,14 @@ function clearAddressForm() {
     document.getElementById("addrPhone").value = "";
     document.getElementById("deliverydistrict").value = "";
     document.getElementById("addrText").value = "";
+}
+
+function resetAddressFormUI() {
+    const titleEl = document.getElementById("addressFormTitle");
+    if (titleEl) titleEl.textContent = "Add New Address";
+
+    const cancelBtn = document.getElementById("cancelEditBtn");
+    if (cancelBtn) cancelBtn.style.display = "none";
 }
 
 /* =========================
@@ -303,11 +337,20 @@ function editAddress(index) {
     document.getElementById("addrText").value =
         addr.address || "";
 
+    const titleEl = document.getElementById("addressFormTitle");
+    if (titleEl) titleEl.textContent = "Edit Address";
+
+    const cancelBtn = document.getElementById("cancelEditBtn");
+    if (cancelBtn) cancelBtn.style.display = "block";
+
+    highlightAddressForm();
+
     const token = localStorage.getItem("access") || localStorage.getItem("token");
 
     if (token && addr.id) {
         EDITING_ADDRESS_ID = addr.id;
     } else {
+
         EDITING_ADDRESS_ID = null;
         const addresses =
             JSON.parse(
@@ -320,11 +363,6 @@ function editAddress(index) {
         );
         loadAddresses();
     }
-
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
 
     toast("Address loaded for editing");
 }
@@ -410,4 +448,35 @@ function toast(msg) {
         }, 300);
 
     }, 2200);
+}
+
+/* =========================
+   HIGHLIGHT + SCROLL TO FORM ON EDIT
+========================= */
+function highlightAddressForm() {
+
+    const formBox =
+        document.querySelector(".address-form");
+
+    if (!formBox) return;
+
+    formBox.classList.remove("address-form-highlight");
+    void formBox.offsetWidth;
+    formBox.classList.add("address-form-highlight");
+
+    setTimeout(() => {
+        formBox.classList.remove("address-form-highlight");
+    }, 1600);
+
+    formBox.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+    });
+
+    const nameField = document.getElementById("addrName");
+    if (nameField) {
+        setTimeout(() => {
+            nameField.focus();
+        }, 350);
+    }
 }
