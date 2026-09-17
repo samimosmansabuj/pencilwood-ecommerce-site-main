@@ -264,11 +264,13 @@ async function loadCartItems() {
                     ${stockWarning}
                 </div>
                 <div class="cart-qty">
-                    <button onclick="changeQty('${item.key}', ${item.quantity - 1})">−</button>
-                    <span>${item.quantity}</span>
-                    <button onclick="changeQty('${item.key}', ${item.quantity + 1})">+</button>
+                    <button class="cart-qty-btn cart-qty-minus ${item.quantity <= 1 ? "disabled" : ""}"
+                        onclick="stepCartQty('${item.key}', -1)" aria-label="Decrease quantity" ${item.quantity <= 1 ? "disabled" : ""}>−</button>
+                    <span class="cart-qty-val">${item.quantity}</span>
+                    <button class="cart-qty-btn cart-qty-plus"
+                        onclick="stepCartQty('${item.key}', 1)" aria-label="Increase quantity">+</button>
                 </div>
-                <button class="remove-btn" onclick="removeCartItem('${item.key}')">×</button>
+                <button class="remove-btn" onclick="removeCartItem('${item.key}')" title="Remove item" aria-label="Remove item">×</button>
             </div>
         `;
     });
@@ -306,24 +308,87 @@ function goToCheckout() {
 /* =========================
    QTY / REMOVE (auth or guest, dispatched by key)
 ========================= */
-async function changeQty(key, quantity) {
-    if (quantity < 1) return;
+const pendingCartPageUpdates = new Map();
+
+async function stepCartQty(key, delta) {
     const item = CART_ITEMS_CACHE.find(i => i.key === key);
     if (!item) return;
 
+    const currentQty = Number(item.quantity || 1);
+    const newQty = currentQty + delta;
+
+    // Minimum is 1! Never 0 or negative, never auto-remove on minus!
+    if (newQty < 1) return;
+
+    // Synchronous update in memory
+    item.quantity = newQty;
+    item.total = Math.round(item.price * newQty);
+
+    // Optimistic DOM update on card
+    const card = document.querySelector(`.cart-check[data-key="${key}"]`)?.closest(".cart-item");
+    if (card) {
+        const valSpan = card.querySelector(".cart-qty-val") || card.querySelector(".cart-qty span");
+        const totalDiv = card.querySelector(".cart-total-price");
+        const subtotalMini = card.querySelector(".cart-subtotal-mini");
+        const minusBtn = card.querySelector(".cart-qty-minus");
+
+        if (valSpan) valSpan.textContent = newQty;
+        if (totalDiv) totalDiv.textContent = `৳ ${item.total.toLocaleString()}`;
+        if (subtotalMini) subtotalMini.textContent = `${newQty} x ৳ ${item.price.toLocaleString()}`;
+
+        if (minusBtn) {
+            if (newQty <= 1) {
+                minusBtn.classList.add("disabled");
+                minusBtn.setAttribute("disabled", "true");
+            } else {
+                minusBtn.classList.remove("disabled");
+                minusBtn.removeAttribute("disabled");
+            }
+        }
+    }
+
+    updateSummaryFromSelection();
+
     if (item.server_id) {
-        const res = await fetch(`${API_BASE}/cart/update/${item.server_id}/`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${getToken()}` },
-            body: JSON.stringify({ quantity })
-        });
-        const data = await res.json();
-        if (data.status) loadCartItems();
+        if (pendingCartPageUpdates.has(key)) {
+            clearTimeout(pendingCartPageUpdates.get(key));
+        }
+        const timer = setTimeout(async () => {
+            pendingCartPageUpdates.delete(key);
+            try {
+                const res = await fetch(`${API_BASE}/cart/update/${item.server_id}/`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${getToken()}` },
+                    body: JSON.stringify({ quantity: item.quantity })
+                });
+                const data = await res.json();
+                if (!data.status) {
+                    loadCartItems();
+                }
+            } catch (err) {
+                console.error("Cart qty update error:", err);
+                loadCartItems();
+            }
+        }, 250);
+        pendingCartPageUpdates.set(key, timer);
     } else {
-        guestCartUpdateQty(item.product_id, item.variant_id, quantity);
-        loadCartItems();
+        guestCartUpdateQty(item.product_id, item.variant_id, newQty);
         updateCartCountFromBackend?.();
     }
+
+    if (typeof loadCartDrawerItems === "function") {
+        loadCartDrawerItems();
+    }
+}
+
+async function changeQty(key, val) {
+    if (val === 1 || val === -1) {
+        return stepCartQty(key, val);
+    }
+    const item = CART_ITEMS_CACHE.find(i => i.key === key);
+    if (!item) return;
+    const delta = val - item.quantity;
+    return stepCartQty(key, delta);
 }
 
 async function removeCartItem(key) {
@@ -385,8 +450,12 @@ function toast(msg) {
 }
 
 /* =========================
-   INIT
+   EXPORTS & INIT
 ========================= */
+window.stepCartQty = stepCartQty;
+window.changeQty = changeQty;
+window.removeCartItem = removeCartItem;
+
 window.addEventListener("DOMContentLoaded", () => {
     loadCartItems();
 });

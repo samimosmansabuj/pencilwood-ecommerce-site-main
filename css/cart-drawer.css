@@ -397,6 +397,13 @@ body.cart-drawer-open {
   background: #dfd6c5;
 }
 
+.drawer-qty-btn.disabled,
+.drawer-qty-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .drawer-qty-val {
   min-width: 20px;
   text-align: center;

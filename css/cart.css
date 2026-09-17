@@ -120,6 +120,14 @@ body {
   font-size: 16px;
 }
 
+.cart-qty button.disabled,
+.cart-qty button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+
 .cart-qty span {
   min-width: 20px;
   text-align: center;

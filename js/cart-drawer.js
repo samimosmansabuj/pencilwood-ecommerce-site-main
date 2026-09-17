@@ -276,9 +276,11 @@
               <i class="fa fa-trash-o"></i>
             </button>
             <div class="drawer-qty-pill">
-              <button class="drawer-qty-btn" onclick="changeDrawerQty('${item.key}', ${item.quantity - 1})" aria-label="Decrease quantity">−</button>
+              <button class="drawer-qty-btn drawer-qty-minus ${item.quantity <= 1 ? "disabled" : ""}"
+                onclick="stepDrawerQty('${item.key}', -1)" aria-label="Decrease quantity" ${item.quantity <= 1 ? "disabled" : ""}>−</button>
               <span class="drawer-qty-val">${item.quantity}</span>
-              <button class="drawer-qty-btn" onclick="changeDrawerQty('${item.key}', ${item.quantity + 1})" aria-label="Increase quantity">+</button>
+              <button class="drawer-qty-btn drawer-qty-plus"
+                onclick="stepDrawerQty('${item.key}', 1)" aria-label="Increase quantity">+</button>
             </div>
           </div>
         </div>
@@ -323,49 +325,78 @@
   /* =========================
      QUANTITY & REMOVAL
   ========================= */
-  async function changeDrawerQty(key, quantity) {
-    if (quantity < 1) {
-      // If reduced to 0, ask or directly remove
-      removeDrawerItem(key);
-      return;
-    }
+  const pendingDrawerUpdates = new Map();
 
+  async function stepDrawerQty(key, delta) {
     const item = DRAWER_ITEMS_CACHE.find(i => i.key === key);
     if (!item) return;
 
-    // Optimistic UI update on quantity pill
+    const currentQty = Number(item.quantity || 1);
+    const newQty = currentQty + delta;
+
+    // Minimum quantity is 1! Never 0 or negative, never auto-remove on minus!
+    if (newQty < 1) {
+      return;
+    }
+
+    // Update state synchronously in cache
+    item.quantity = newQty;
+    item.total = Math.round(item.price * newQty);
+
+    // Immediate optimistic UI update
     const itemCard = document.querySelector(`.drawer-item[data-key="${key}"]`);
     if (itemCard) {
       const valEl = itemCard.querySelector(".drawer-qty-val");
       const totalEl = itemCard.querySelector(".drawer-item-total");
       const unitEl = itemCard.querySelector(".drawer-item-unit");
-      if (valEl) valEl.textContent = quantity;
-      if (totalEl) totalEl.textContent = `৳ ${(item.price * quantity).toLocaleString()}`;
-      if (unitEl) unitEl.textContent = `${quantity} × ৳ ${item.price.toLocaleString()}`;
-      item.quantity = quantity;
-      item.total = item.price * quantity;
-      updateDrawerSummary();
+      const minusBtn = itemCard.querySelector(".drawer-qty-minus");
+
+      if (valEl) valEl.textContent = newQty;
+      if (totalEl) totalEl.textContent = `৳ ${item.total.toLocaleString()}`;
+      if (unitEl) unitEl.textContent = `${newQty} × ৳ ${item.price.toLocaleString()}`;
+
+      if (minusBtn) {
+        if (newQty <= 1) {
+          minusBtn.classList.add("disabled");
+          minusBtn.setAttribute("disabled", "true");
+        } else {
+          minusBtn.classList.remove("disabled");
+          minusBtn.removeAttribute("disabled");
+        }
+      }
     }
 
+    updateDrawerSummary();
+
+    // Persist changes
     if (item.server_id) {
-      try {
-        const res = await fetch(`${getApiBase()}/cart/update/${item.server_id}/`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${getAuthToken()}`
-          },
-          body: JSON.stringify({ quantity })
-        });
-        const data = await res.json();
-        if (!data.status) {
-          // If update failed, revert by reloading
+      // Debounce server requests by 250ms for smooth multiple rapid clicks
+      if (pendingDrawerUpdates.has(key)) {
+        clearTimeout(pendingDrawerUpdates.get(key));
+      }
+
+      const timer = setTimeout(async () => {
+        pendingDrawerUpdates.delete(key);
+        try {
+          const res = await fetch(`${getApiBase()}/cart/update/${item.server_id}/`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${getAuthToken()}`
+            },
+            body: JSON.stringify({ quantity: item.quantity })
+          });
+          const data = await res.json();
+          if (!data.status) {
+            loadCartDrawerItems();
+          }
+        } catch (err) {
+          console.error("Drawer qty update error:", err);
           loadCartDrawerItems();
         }
-      } catch (err) {
-        console.error("Drawer qty update error:", err);
-        loadCartDrawerItems();
-      }
+      }, 250);
+
+      pendingDrawerUpdates.set(key, timer);
     } else {
       // Guest cart update
       let guestCart = getLocalGuestCart();
@@ -373,7 +404,7 @@
         i.product_id === item.product_id && (i.variant_id || null) === (item.variant_id || null)
       );
       if (gi) {
-        gi.quantity = quantity;
+        gi.quantity = newQty;
         saveLocalGuestCart(guestCart);
       }
     }
@@ -382,6 +413,17 @@
     if (typeof loadCartItems === "function" && document.getElementById("cartItemsContainer")) {
       loadCartItems();
     }
+  }
+
+  // Backward compatibility: handles either delta or absolute target
+  async function changeDrawerQty(key, val) {
+    if (val === 1 || val === -1) {
+      return stepDrawerQty(key, val);
+    }
+    const item = DRAWER_ITEMS_CACHE.find(i => i.key === key);
+    if (!item) return;
+    const delta = val - item.quantity;
+    return stepDrawerQty(key, delta);
   }
 
   async function removeDrawerItem(key) {
@@ -496,6 +538,7 @@
   window.loadCartDrawerItems = loadCartDrawerItems;
   window.updateDrawerSummary = updateDrawerSummary;
   window.changeDrawerQty = changeDrawerQty;
+  window.stepDrawerQty = stepDrawerQty;
   window.removeDrawerItem = removeDrawerItem;
   window.goToCheckoutFromDrawer = goToCheckoutFromDrawer;
   window.syncAllCartBadges = syncAllCartBadges;
