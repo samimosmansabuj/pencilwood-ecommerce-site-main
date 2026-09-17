@@ -1005,7 +1005,7 @@ function showOrderSuccess(data) {
     document.body.appendChild(overlay);
 
     setTimeout(() => {
-        window.location.href = isLoggedIn() ? "my-orders.html" : "index.html";
+        window.location.href = isLoggedIn() ? "/my-orders" : "/";
     }, 2500);
 }
 

@@ -81,13 +81,25 @@ function clearVariantGlow() {
     document.querySelectorAll(".variant-group").forEach(g => g.classList.remove("variant-glow"));
 }
 
+function openProduct(slug) {
+    if (!slug) return;
+    window.location.href = `/product/${slug}`;
+}
+
+function getProductSlug() {
+    if (window.__PRODUCT_SLUG__) return window.__PRODUCT_SLUG__;
+    const match = window.location.pathname.match(/\/product\/([^/?#]+)/i);
+    if (match && match[1]) return decodeURIComponent(match[1]);
+    const params = new URLSearchParams(window.location.search);
+    return params.get("slug");
+}
+
 /* =========================
    LOAD PRODUCT DETAILS
 ========================= */
 async function loadProductDetails() {
 
-    const params = new URLSearchParams(window.location.search);
-    const slug = params.get("slug");
+    const slug = getProductSlug();
 
     if (!slug) {
         console.error("No slug found");
@@ -781,7 +793,7 @@ function setupButtons(product, slug) {
                 }]));
                 localStorage.removeItem("checkout_cart_ids");
 
-                window.location.href = "checkout.html";
+                window.location.href = "/checkout";
                 return;
             }
 
@@ -821,7 +833,7 @@ function setupButtons(product, slug) {
                 localStorage.setItem("checkout_cart_ids", JSON.stringify([cartItem.id]));
                 localStorage.removeItem("checkout_guest_items");
 
-                window.location.href = "checkout.html";
+                window.location.href = "/checkout";
 
             } catch (err) {
                 console.error("BUY NOW ERROR:", err);

@@ -133,7 +133,7 @@ async function submitPasswordStep() {
             await mergeGuestDataToAccount(data.access);
 
             toast(LOGIN_FLOW_ACTION === "set_password" ? "Account ready ✅" : "Welcome back ✅");
-            setTimeout(() => { window.location.href = "profile.html"; }, 700);
+            setTimeout(() => { window.location.href = "/profile"; }, 700);
         } else {
             toast(data.message || "Login failed ❌");
         }
@@ -329,7 +329,7 @@ async function submitResetPasswordStep() {
             await mergeGuestDataToAccount(data.access);
 
             toast("Password reset successful ✅");
-            setTimeout(() => { window.location.href = "profile.html"; }, 700);
+            setTimeout(() => { window.location.href = "/profile"; }, 700);
         } else {
             toast(data.message || "Could not reset password ❌");
         }
@@ -349,7 +349,7 @@ function requireLogin() {
     if (!isLoggedIn()) {
         toast("Please login first");
         setTimeout(() => {
-            window.location.href = "login.html";
+            window.location.href = "/login";
         }, 700);
         return false;
     }
@@ -421,7 +421,7 @@ function showLoginPopup() {
     document.body.appendChild(popup);
     popup.querySelector(".popup-cancel-btn").onclick = () => popup.remove();
     popup.querySelector(".popup-login-btn").onclick = () => {
-        window.location.href = "login.html";
+        window.location.href = "/login";
     };
 }
 

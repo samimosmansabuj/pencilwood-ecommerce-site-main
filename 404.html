@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base href="/">
+  <title>Pencilwood — Page Not Found</title>
+
+  <script>
+    (function () {
+      var pathname = window.location.pathname;
+      var search = window.location.search;
+      var hash = window.location.hash;
+
+      // Check for /product/:slug route fallback
+      if (pathname.indexOf('/product/') === 0) {
+        var slug = pathname.replace(/^\/product\//, '').split('/')[0];
+        if (slug) {
+          window.location.replace('/product-details.html?slug=' + encodeURIComponent(slug) + (search ? '&' + search.slice(1) : '') + hash);
+          return;
+        }
+      }
+
+      // Check for static page fallback
+      var segments = pathname.split('/').filter(Boolean);
+      if (segments.length === 1) {
+        var page = segments[0].replace(/\.html$/i, '').toLowerCase();
+        var staticPages = [
+          'product-list', 'all_product', 'about-us', 'contact-us',
+          'cart', 'checkout', 'wishlist', 'login', 'profile',
+          'my-orders', 'address', 'order', 'privacy-policy',
+          'return-policy', 'terms-and-conditions'
+        ];
+
+        if (staticPages.indexOf(page) !== -1) {
+          window.location.replace('/' + page + '.html' + search + hash);
+          return;
+        }
+      }
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="css/home.css?v=211">
+  <link rel="stylesheet" href="css/info-pages.css?v=211">
+
+  <style>
+    .not-found-wrap {
+      min-height: 65vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .not-found-code {
+      font-size: 80px;
+      font-weight: 700;
+      color: #9C413D;
+      line-height: 1;
+      margin-bottom: 16px;
+      letter-spacing: -2px;
+    }
+
+    .not-found-msg {
+      font-size: 20px;
+      font-weight: 600;
+      color: #222;
+      margin-bottom: 8px;
+    }
+
+    .not-found-sub {
+      font-size: 15px;
+      color: #666;
+      margin-bottom: 28px;
+      max-width: 420px;
+    }
+
+    .not-found-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      background: #9C413D;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 15px;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .not-found-btn:hover {
+      background: #7F3430;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="topnavbar-container"></div>
+
+  <div class="not-found-wrap">
+    <div class="not-found-code">404</div>
+    <div class="not-found-msg">Page Not Found</div>
+    <div class="not-found-sub">The page you are looking for does not exist, was moved, or the link may be outdated.</div>
+    <a href="/" class="not-found-btn">
+      <i class="fa fa-home"></i> Back to Home
+    </a>
+  </div>
+
+  <div id="footer-container"></div>
+  <div id="mobile-bottom-nav-container"></div>
+
+  <script src="js/spa-router.js"></script>
+  <script src="js/env.js?v=211"></script>
+  <script src="js/config.js?v=211"></script>
+  <script src="js/main.js?v=211"></script>
+  <script src="js/loadComponents.js?v=211"></script>
+</body>
+
+</html>

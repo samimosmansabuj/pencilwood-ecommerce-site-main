@@ -300,7 +300,7 @@ function goToCheckout() {
         localStorage.removeItem("checkout_cart_ids");
     }
 
-    window.location.href = "checkout.html";
+    window.location.href = "/checkout";
 }
 
 /* =========================
