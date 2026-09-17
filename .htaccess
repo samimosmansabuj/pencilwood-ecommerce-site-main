@@ -3,67 +3,78 @@
 # Clean URLs, 301 Permanent Redirects, /product/:slug dynamic routing
 # ====================================================================
 
+
 <IfModule mod_rewrite.c>
-    RewriteEngine On
-    RewriteBase /
+RewriteEngine On
+RewriteBase /
 
-    # ----------------------------------------------------------------
-    # 1. 301 REDIRECTS (Old .html URLs -> Clean URLs)
-    # Uses %{THE_REQUEST} to avoid infinite redirection loops
-    # ----------------------------------------------------------------
+# ----------------------------------------------------------------------
+# 1. NEVER REWRITE OR REDIRECT COMPONENTS OR PHYSICAL FILES/FOLDERS
+#    Any file/folder that physically exists (CSS, JS, images, /components/*.html)
+#    MUST be served directly without any redirect or rewrite!
+# ----------------------------------------------------------------------
+RewriteCond %{REQUEST_URI} ^/components/ [NC,OR]
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
 
-    # Redirect /index.html to /
-    RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s/+index\.html[\s?] [NC]
-    RewriteRule ^index\.html$ / [R=301,L]
+# ----------------------------------------------------------------------
+# 2. REDIRECT /index.html TO ROOT / (301 Permanent Redirect)
+# ----------------------------------------------------------------------
+RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s/+index\.html [NC]
+RewriteRule ^index\.html$ / [R=301,L]
 
-    # Redirect product-details.html?slug=xyz to /product/xyz
-    RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s/+product-details\.html\?slug=([^&\s]+) [NC]
-    RewriteRule ^product-details\.html$ /product/%1? [R=301,L]
+# ----------------------------------------------------------------------
+# 3. REDIRECT ROOT-LEVEL .html PAGES TO CLEAN URLS (301 Permanent Redirect)
+#    e.g. /product-list.html -> /product-list
+#    Excludes /components/ and internal templates
+# ----------------------------------------------------------------------
+RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s/+([a-zA-Z0-9_-]+)\.html [NC]
+RewriteCond %1 !^(index|product-details)$ [NC]
+RewriteRule ^([a-zA-Z0-9_-]+)\.html$ /$1 [R=301,L]
 
-    # Redirect any other *.html to clean URL (e.g. /about-us.html -> /about-us)
-    RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s/+([^/?\s]+)\.html [NC]
-    RewriteRule ^([^/]+)\.html$ /$1 [R=301,L]
+# ----------------------------------------------------------------------
+# 4. REMOVE TRAILING SLASHES FROM NON-DIRECTORIES (SEO / Clean URL normalization)
+#    e.g. /product-list/ -> /product-list
+# ----------------------------------------------------------------------
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} (.+)/+$
+RewriteRule ^ %1 [R=301,L]
 
-    # ----------------------------------------------------------------
-    # 2. ASSET REWRITES UNDER /product/ SUB-PATH
-    # Fix relative asset requests if called from /product/:slug
-    # ----------------------------------------------------------------
-    RewriteRule ^product/(css|js|images|components)/(.*)$ /$1/$2 [L,NC]
+# ----------------------------------------------------------------------
+# 5. INTERNAL REWRITE: MAP CLEAN STATIC PAGES TO PHYSICAL .html FILES
+#    e.g. /product-list -> product-list.html, /about-us -> about-us.html
+# ----------------------------------------------------------------------
+RewriteCond %{REQUEST_FILENAME}.html -f [OR]
+RewriteCond %{DOCUMENT_ROOT}/$1.html -f
+RewriteRule ^([a-zA-Z0-9_-]+)$ $1.html [L,QSA]
 
-    # ----------------------------------------------------------------
-    # 3. DYNAMIC PRODUCT ROUTING: /product/:slug -> product-details.html
-    # ----------------------------------------------------------------
-    RewriteRule ^product/([^/]+)/?$ product-details.html?slug=$1 [QSA,L]
+# ----------------------------------------------------------------------
+# 6. INTERNAL REWRITE: DYNAMIC PRODUCT SLUGS (/product/:slug and /p/:slug)
+#    e.g. /product/bike-throttle-... -> product-details.html?slug=...
+# ----------------------------------------------------------------------
+RewriteRule ^(?:product|p)/([a-zA-Z0-9_-]+)/?$ product-details.html?slug=$1 [L,QSA]
 
-    # ----------------------------------------------------------------
-    # 4. CLEAN URL REWRITING FOR STATIC PAGES
-    # Serves *.html if matching file exists on disk
-    # ----------------------------------------------------------------
-    # Skip actual existing files or directories
-    RewriteCond %{REQUEST_FILENAME} -f [OR]
-    RewriteCond %{REQUEST_FILENAME} -d
-    RewriteRule ^ - [L]
+# ----------------------------------------------------------------------
+# 7. LEGACY INTERNAL REWRITE: DIRECT ROOT SLUGS (Backward Compatibility)
+#    e.g. /bike-throttle-... -> product-details.html?slug=...
+# ----------------------------------------------------------------------
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/(api|css|js|images|components)/ [NC]
+RewriteRule ^([a-zA-Z0-9_-]+)$ product-details.html?slug=$1 [L,QSA]
 
-    # Check if a corresponding .html file exists
-    RewriteCond %{DOCUMENT_ROOT}/$1.html -f [OR]
-    RewriteCond %{REQUEST_FILENAME}.html -f
-    RewriteRule ^([^/]+)/?$ $1.html [L]
-
-    # ----------------------------------------------------------------
-    # 5. FALLBACK ROUTE TO 404
-    # ----------------------------------------------------------------
-    ErrorDocument 404 /404.html
 </IfModule>
 
-# --------------------------------------------------------------------
-# 6. SERVICE WORKER & CACHE HEADERS
-# Ensures sw.js is never cached and allowed at root scope
-# --------------------------------------------------------------------
-<IfModule mod_headers.c>
-    <Files "sw.js">
-        Header set Service-Worker-Allowed "/"
-        Header set Cache-Control "no-cache, no-store, must-revalidate"
-        Header set Pragma "no-cache"
-        Header set Expires 0
-    </Files>
+# ----------------------------------------------------------------------
+# MIME TYPES & HEADERS
+# ----------------------------------------------------------------------
+<IfModule mod_mime.c>
+    AddType text/html .html
+    AddType text/css .css
+    AddType application/javascript .js
+    AddType image/svg+xml .svg
+    AddType image/webp .webp
+    AddType application/manifest+json .webmanifest
+    AddType application/json .json
 </IfModule>
