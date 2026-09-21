@@ -66,6 +66,19 @@ self.addEventListener('fetch', (event) => {
 
   let pathname = url.pathname;
 
+  // 2b. Landing pages: /L/:product/:landing  ->  /L/:landing/index.html
+  //     (files with an extension, e.g. /L/cradle/css/style.css, are NOT touched -> real files)
+  if (pathname.startsWith('/L/') && req.mode === 'navigate') {
+    const parts = pathname.split('/').filter(Boolean); // ['L', product, landing]
+    const last = parts[parts.length - 1];
+    if (parts.length >= 2 && !last.includes('.')) {
+      const landing = parts.length === 2 ? parts[1] : parts[2];
+      const targetFile = '/L/' + landing + '/index.html' + url.search;
+      event.respondWith(fetch(targetFile).catch(() => caches.match(targetFile)));
+      return;
+    }
+  }
+
   // 3. Fix relative asset fetches when user is in /product/:slug (e.g. /product/css/..., /product/js/...)
   if (pathname.startsWith('/product/')) {
     const assetMatch = pathname.match(

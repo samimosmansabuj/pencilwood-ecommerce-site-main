@@ -1,0 +1,37 @@
+.sticky-buy {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #7A5230;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 999;
+}
+
+.sticky-buy h3 {
+    color: white;
+    font-size: 20px;
+}
+
+.sticky-buy button {
+    background: #D9A441;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+@media(max-width:768px) {
+    .sticky-buy h3 {
+        font-size: 16px;
+    }
+
+    .sticky-buy button {
+        font-size: 18px;
+    }
+}

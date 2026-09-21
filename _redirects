@@ -45,5 +45,8 @@
 /return-policy                      /return-policy.html    200
 /terms-and-conditions               /terms-and-conditions.html 200
 
+# 4b. Landing pages: /L/:product/:landing -> /L/:landing/index.html
+/L/:product/:landing               /L/:landing/index.html 200
+
 # 5. 404 Fallback
 /*                                  /404.html              404
