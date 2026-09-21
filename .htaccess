@@ -19,6 +19,14 @@ RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
 # ----------------------------------------------------------------------
+# 1b. LANDING PAGES: /L/:product/:landing  ->  /L/:landing/index.html
+#     e.g. /L/multifunctional-cradle/cradle -> /L/cradle/index.html
+#     (URL in the browser stays the same; :product is only for a readable URL)
+#     Physical files (/L/cradle/css/.., /L/cradle/js/..) are already served by rule 1.
+# ----------------------------------------------------------------------
+RewriteRule ^L/[^/]+/([a-zA-Z0-9_-]+)/?$ L/$1/index.html [L,QSA]
+
+# ----------------------------------------------------------------------
 # 2. REDIRECT /index.html TO ROOT / (301 Permanent Redirect)
 # ----------------------------------------------------------------------
 RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s/+index\.html [NC]

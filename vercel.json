@@ -3,6 +3,10 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/L/:product/:landing([a-zA-Z0-9_-]+)",
+      "destination": "/L/:landing/index.html"
+    },
+    {
       "source": "/product/:slug",
       "destination": "/product-details.html?slug=:slug"
     },

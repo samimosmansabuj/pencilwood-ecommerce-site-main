@@ -1,0 +1,96 @@
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 9999;
+
+    height: 48px;
+
+    background: #2B1D16;
+
+    display: flex;
+    align-items: center;
+
+    overflow: hidden;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* left badge */
+.topbar-label {
+    background: #D9A441;
+    color: #fff;
+
+    height: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 18px;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    flex-shrink: 0;
+
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.15);
+}
+
+/* marquee area */
+.topbar-marquee {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+/* moving track */
+.topbar-track {
+    display: flex;
+    align-items: center;
+    gap: 60px;
+
+    width: max-content;
+
+    white-space: nowrap;
+
+    color: #fff;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    padding-left: 40px;
+
+    animation: topbarScroll 22s linear infinite;
+}
+
+/* ticker animation */
+@keyframes topbarScroll {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+/* mobile */
+@media(max-width:768px) {
+
+    .topbar {
+        height: 42px;
+    }
+
+    .topbar-label {
+        font-size: 12px;
+        padding: 0 12px;
+    }
+
+    .topbar-track {
+        gap: 40px;
+        font-size: 12px;
+        padding-left: 20px;
+    }
+
+}
+

@@ -12,7 +12,12 @@ window.__TRACKING_READY__ = new Promise((resolve) => {
 // 1. Fetch active tracking settings from backend and inject base scripts
 // ---------------------------------------------------------------------
 async function initTracking() {    try {
-        const pid = window.__CURRENT_PRODUCT_ID__ ? `?product_id=${window.__CURRENT_PRODUCT_ID__}` : "";
+        // product page  -> ?product_id=..
+        // landing page   -> ?landing_code=..  (set by /js/env.js from the landing folder name, per-landing pixel/GTM override)        
+        const qs = new URLSearchParams();
+        if (window.__CURRENT_PRODUCT_ID__) qs.set("product_id", window.__CURRENT_PRODUCT_ID__);
+        if (window.__CURRENT_LANDING_CODE__) qs.set("landing_code", window.__CURRENT_LANDING_CODE__);
+        const pid = qs.toString() ? `?${qs.toString()}` : "";
         const res = await fetch(`${window.API_BASE}/api/tracking-settings/${pid}`);
         const json = await res.json();
         if (!json.status) throw new Error(json.error || "Failed to load tracking settings");
