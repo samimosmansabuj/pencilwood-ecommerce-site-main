@@ -4,14 +4,14 @@ window.__CURRENT_LANDING_CODE__ = ENV.PRODUCT_LANDING_PAGE_ID;
 // =========================
 // Frontend Images
 // =========================
-const HERO_IMAGE = "/L/masala-dani/images/smart-masala-dani-hero.webp";
+const HERO_IMAGE = "/lan/masala-dani/images/smart-masala-dani-hero.webp";
 const GALLERY_IMAGES = [
-    "/L/masala-dani/images/gallery-1.webp",
-    "/L/masala-dani/images/gallery-2.webp",
-    "/L/masala-dani/images/gallery-3.webp",
-    "/L/masala-dani/images/gallery-4.webp",
-    "/L/masala-dani/images/gallery-5.webp",
-    "/L/masala-dani/images/gallery-6.webp"
+    "/lan/masala-dani/images/gallery-1.webp",
+    "/lan/masala-dani/images/gallery-2.webp",
+    "/lan/masala-dani/images/gallery-3.webp",
+    "/lan/masala-dani/images/gallery-4.webp",
+    "/lan/masala-dani/images/gallery-5.webp",
+    "/lan/masala-dani/images/gallery-6.webp"
 ];
 
 // =========================

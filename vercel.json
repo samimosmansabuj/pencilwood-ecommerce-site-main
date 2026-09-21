@@ -3,8 +3,8 @@
   "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/L/:product/:landing([a-zA-Z0-9_-]+)",
-      "destination": "/L/:landing/index.html"
+      "source": "/lan/:product/:landing([a-zA-Z0-9_-]+)",
+      "destination": "/lan/:landing/index.html"
     },
     {
       "source": "/product/:slug",

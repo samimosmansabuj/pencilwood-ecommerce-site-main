@@ -66,14 +66,14 @@ self.addEventListener('fetch', (event) => {
 
   let pathname = url.pathname;
 
-  // 2b. Landing pages: /L/:product/:landing  ->  /L/:landing/index.html
-  //     (files with an extension, e.g. /L/cradle/css/style.css, are NOT touched -> real files)
-  if (pathname.startsWith('/L/') && req.mode === 'navigate') {
-    const parts = pathname.split('/').filter(Boolean); // ['L', product, landing]
+  // 2b. Landing pages: /lan/:product/:landing  ->  /lan/:landing/index.html
+  //     (files with an extension, e.g. /lan/cradle/css/style.css, are NOT touched -> real files)
+  if (pathname.startsWith('/lan/') && req.mode === 'navigate') {
+    const parts = pathname.split('/').filter(Boolean); // ['lan', product, landing]
     const last = parts[parts.length - 1];
     if (parts.length >= 2 && !last.includes('.')) {
       const landing = parts.length === 2 ? parts[1] : parts[2];
-      const targetFile = '/L/' + landing + '/index.html' + url.search;
+      const targetFile = '/lan/' + landing + '/index.html' + url.search;
       event.respondWith(fetch(targetFile).catch(() => caches.match(targetFile)));
       return;
     }
