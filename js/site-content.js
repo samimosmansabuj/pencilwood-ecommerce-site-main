@@ -175,34 +175,172 @@ function renderCustomSections(customSections) {
         const wrapper = document.createElement("div");
         wrapper.className = `lp-section custom-home-section size-${section.size || "normal"}`;
         wrapper.id = `customSection_${section.section_key}`;
-        if (section.min_height_px) {
+
+        if (section.min_height_px && section.design_style !== "banner_product_combo") {
             wrapper.style.minHeight = section.min_height_px + "px";
         }
-
-        const imageHtml = section.image
-            ? `<img src="${resolveSiteAssetUrl(section.image)}" alt="${escapeHtml(section.heading)}" class="custom-section-image">`
-            : "";
-
-        const buttonHtml = (section.button_text && section.button_url)
-            ? `<a href="${section.button_url}" class="custom-section-btn">${escapeHtml(section.button_text)}</a>`
-            : "";
-
-        wrapper.innerHTML = `
-            ${section.heading ? `<div class="lp-head"><div class="lp-title">${escapeHtml(section.heading)}</div></div>` : ""}
-            <div class="lp-body custom-section-body">
-                ${imageHtml}
-                ${section.subheading ? `<div class="custom-section-subheading">${escapeHtml(section.subheading)}</div>` : ""}
-                ${section.body_html ? `<div class="custom-section-text">${escapeHtml(section.body_html)}</div>` : ""}
-                ${buttonHtml}
-            </div>
-        `;
-
-        
         wrapper.style.marginTop = "24px";
         wrapper.style.marginBottom = "24px";
 
-        page.appendChild(wrapper);
+        const rendered = section.content_type === "product"
+            ? renderProductHomeSection(wrapper, section)
+            : renderBannerHomeSection(wrapper, section);
+
+        if (rendered !== false) {
+            page.appendChild(wrapper);
+        }
     });
+}
+
+function renderBannerHomeSection(wrapper, section) {
+    const imageHtml = section.image
+        ? `<img src="${resolveSiteAssetUrl(section.image)}" alt="${escapeHtml(section.heading)}" class="custom-section-image">`
+        : "";
+
+    const buttonHtml = (section.button_text && section.button_url)
+        ? `<a href="${section.button_url}" class="custom-section-btn">${escapeHtml(section.button_text)}</a>`
+        : "";
+
+    wrapper.innerHTML = `
+        ${section.heading ? `<div class="lp-head"><div class="lp-title">${escapeHtml(section.heading)}</div></div>` : ""}
+        <div class="lp-body custom-section-body">
+            ${imageHtml}
+            ${section.subheading ? `<div class="custom-section-subheading">${escapeHtml(section.subheading)}</div>` : ""}
+            ${section.body_html ? `<div class="custom-section-text">${escapeHtml(section.body_html)}</div>` : ""}
+            ${buttonHtml}
+        </div>
+    `;
+}
+
+function renderProductHomeSection(wrapper, section) {
+    const items = section.items || [];
+    const tabs = section.tabs || [];
+
+    if (section.design_style === "tabbed_products") {
+        if (!tabs.length || !tabs.some(t => (t.items || []).length)) return false;
+    } else if (!items.length) {
+        return false;
+    }
+
+    const headHtml = section.heading
+        ? `<div class="lp-head"><div class="lp-title">${escapeHtml(section.heading)}</div>${section.subheading ? `<div class="custom-section-subheading">${escapeHtml(section.subheading)}</div>` : ""}</div>`
+        : "";
+
+    if (section.design_style === "category_tiles") {
+        wrapper.innerHTML = `
+            ${headHtml}
+            <div class="lp-body category-tiles-grid">
+                ${items.map((c) => `
+                    <a class="category-tile" href="product-list.html?category=${c.id}">
+                        <div class="category-tile-img">
+                            <img src="${c.banner ? resolveSiteAssetUrl(c.banner) : 'images/placeholder.png'}" alt="${escapeHtml(c.name)}">
+                        </div>
+                        <div class="category-tile-name">${escapeHtml(c.name)}</div>
+                    </a>
+                `).join("")}
+            </div>
+        `;
+        return true;
+    }
+
+    if (section.design_style === "tabbed_products") {
+        renderTabbedProductsSection(wrapper, section, headHtml, tabs);
+        return true;
+    }
+
+    if (section.design_style === "banner_product_combo") {
+        renderBannerProductComboSection(wrapper, section, items);
+        return true;
+    }
+
+
+    const bodyClass = section.design_style === "product_slider" ? "products-slider" : "products-grid";
+    const badge = section.design_style === "bestseller_strip" ? (section.badge_text || "Best Seller") : null;
+    wrapper.innerHTML = `
+        ${headHtml}
+        <div class="feature-section-body">
+            <div class="${bodyClass}">${items.map((p) => renderHomeSectionProductCard(p, badge)).join("")}</div>
+        </div>
+    `;
+}
+
+function renderTabbedProductsSection(wrapper, section, headHtml, tabs) {
+    const tabsId = `tabs_${section.section_key}`;
+
+    wrapper.innerHTML = `
+        ${headHtml}
+        <div class="lp-body home-tabs" id="${tabsId}">
+            <div class="home-tabs-nav">
+                ${tabs.map((t, i) => `
+                    <button type="button" class="home-tab-btn${i === 0 ? " active" : ""}" data-tab-index="${i}">${escapeHtml(t.name)}</button>
+                `).join("")}
+            </div>
+            ${tabs.map((t, i) => `
+                <div class="home-tab-panel${i === 0 ? " active" : ""}" data-tab-panel="${i}">
+                    <div class="products-grid">${(t.items || []).map((p) => renderHomeSectionProductCard(p)).join("")}</div>
+                </div>
+            `).join("")}
+        </div>
+    `;
+
+    const root = wrapper.querySelector(`#${CSS.escape(tabsId)}`);
+    root.querySelectorAll(".home-tab-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const index = btn.dataset.tabIndex;
+            root.querySelectorAll(".home-tab-btn").forEach((b) => b.classList.toggle("active", b === btn));
+            root.querySelectorAll(".home-tab-panel").forEach((p) => p.classList.toggle("active", p.dataset.tabPanel === index));
+        });
+    });
+}
+
+function renderBannerProductComboSection(wrapper, section, items) {
+    const heightStyle = section.min_height_px ? ` style="height:${section.min_height_px}px;"` : "";
+
+    const imageHtml = section.image
+        ? `<img src="${resolveSiteAssetUrl(section.image)}" alt="${escapeHtml(section.heading || "")}" class="combo-banner-image">`
+        : "";
+    const buttonHtml = (section.button_text && section.button_url)
+        ? `<a href="${section.button_url}" class="custom-section-btn">${escapeHtml(section.button_text)}</a>`
+        : "";
+
+    wrapper.innerHTML = `
+        <div class="lp-body banner-product-combo">
+            <div class="combo-banner"${heightStyle}>
+                ${imageHtml}
+                <div class="combo-banner-text">
+                    ${section.heading ? `<div class="lp-title">${escapeHtml(section.heading)}</div>` : ""}
+                    ${section.subheading ? `<div class="custom-section-subheading">${escapeHtml(section.subheading)}</div>` : ""}
+                    ${section.body_html ? `<div class="custom-section-text">${escapeHtml(section.body_html)}</div>` : ""}
+                    ${buttonHtml}
+                </div>
+            </div>
+            <div class="combo-products products-slider">
+                ${items.map((p) => renderHomeSectionProductCard(p)).join("")}
+            </div>
+        </div>
+    `;
+}
+
+function renderHomeSectionProductCard(p, badgeText) {
+    const slug = p.slug || makeSlug(p.name);
+    const image = p.image ? (p.image.startsWith("http") ? p.image : resolveSiteAssetUrl(p.image)) : "";
+    const productName = p.name.split(' ').slice(0, 5).join(' ') + (p.name.split(' ').length > 5 ? '...' : '');
+    const hasVariants = !!p.has_variants;
+    const badgeHtml = badgeText ? `<span class="prod-badge">${escapeHtml(badgeText)}</span>` : "";
+
+    return `
+        <div class="prod-card">
+            ${badgeHtml}
+            <div class="prod-img" onclick="openProduct('${slug}')">
+                <img src="${image}" alt="${escapeHtml(productName)}">
+            </div>
+            <div class="prod-name" onclick="openProduct('${slug}')">${escapeHtml(productName)}</div>
+            <div class="prod-price">
+                ৳ ${p.discount_price || p.price} <span class="price-orig">${p.discount_price ? `৳ ${p.price}` : ""}</span>
+            </div>
+            <button class="prod-cart" onclick="handleListCartClick(${p.id}, '${slug}', ${hasVariants})">+ Cart</button>
+        </div>
+    `;
 }
 
 function resolveSiteAssetUrl(path) {

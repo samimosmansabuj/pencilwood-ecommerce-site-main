@@ -77,51 +77,54 @@ function mkStars(id, score, sz) {
 /* =========================
    ── DYNAMIC CATEGORY
 ========================= */
-function loadCategories(products) {
+async function loadCategories(products) {
 
     const select =
         document.getElementById("filterCategory");
 
     if (!select) return;
 
+    const preselected = new URLSearchParams(window.location.search).get("category");
+
+    try {
+        const res = await fetch(`${API_BASE}/api/ecom/categories/`);
+        const json = await res.json();
+        const tree = (json && json.status) ? (json.data || []) : [];
+
+        if (tree.length) {
+            ALL_CATEGORIES = tree;
+
+            let html = `<option value="all">All</option>`;
+            tree.forEach(parent => {
+                if (parent.children && parent.children.length) {
+                    html += `<optgroup label="${escapeHtml(parent.name)}">`;
+                    html += `<option value="${parent.id}">${escapeHtml(parent.name)} (All)</option>`;
+                    parent.children.forEach(child => {
+                        html += `<option value="${child.id}">${escapeHtml(child.name)}</option>`;
+                    });
+                    html += `</optgroup>`;
+                } else {
+                    html += `<option value="${parent.id}">${escapeHtml(parent.name)}</option>`;
+                }
+            });
+
+            select.innerHTML = html;
+            if (preselected) select.value = preselected;
+            return;
+        }
+    } catch (err) {
+        console.warn("Failed to load categories, falling back to product-derived list:", err);
+    }
+
     const categories = [];
-
     products.forEach(p => {
-
-        let cat = "";
-
-        if (typeof p.category === "object") {
-            cat =
-                p.category?.name ||
-                "";
-        } else {
-            cat = p.category || "";
-        }
-
-        if (
-            cat &&
-            !categories.includes(cat)
-        ) {
-            categories.push(cat);
-        }
+        const cat = (typeof p.category === "object") ? (p.category?.name || "") : (p.category || "");
+        if (cat && !categories.some(c => c.name === cat)) categories.push({ name: cat });
     });
-
     ALL_CATEGORIES = categories;
 
-    select.innerHTML = `
-        <option value="all">
-            All
-        </option>
-    `;
-
-    categories.forEach(cat => {
-
-        select.innerHTML += `
-            <option value="${cat}">
-                ${cat}
-            </option>
-        `;
-    });
+    select.innerHTML = `<option value="all">All</option>` +
+        categories.map(cat => `<option value="${cat.name}">${escapeHtml(cat.name)}</option>`).join("");
 }
 
 /* =========================
@@ -432,37 +435,32 @@ function applyFilters() {
         cat !== "all"
     ) {
 
+
+        const selectedId = String(cat);
+        const isNumericId = /^\d+$/.test(selectedId);
+
+        let matchIds = null;
+        if (isNumericId) {
+            matchIds = [selectedId];
+            const parent = (ALL_CATEGORIES || []).find(c => String(c.id) === selectedId);
+            if (parent && parent.children && parent.children.length) {
+                parent.children.forEach(child => matchIds.push(String(child.id)));
+            }
+        }
+
         data = data.filter(p => {
 
-            let productCat = "";
-
-            if (
-                p.category &&
-                typeof p.category === "object"
-            ) {
-
-                productCat =
-                    p.category.name ||
-                    p.category.title ||
-                    "";
-
-            } else {
-
-                productCat =
-                    p.category || "";
+            if (!p.category || typeof p.category !== "object") {
+                const productCat = (p.category || "").toString().trim().toLowerCase();
+                return productCat === selectedId.trim().toLowerCase();
             }
-            console.log("filter: ", productCat)
-            return (
-                productCat
-                    .toString()
-                    .trim()
-                    .toLowerCase()
-                ===
-                cat
-                    .toString()
-                    .trim()
-                    .toLowerCase()
-            );
+
+            if (matchIds) {
+                return matchIds.includes(String(p.category.id));
+            }
+
+            const productCat = (p.category.name || p.category.title || "").toString().trim().toLowerCase();
+            return productCat === selectedId.trim().toLowerCase();
         });
     }
 
