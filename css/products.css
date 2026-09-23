@@ -71,6 +71,155 @@
   scroll-snap-align: start;
 }
 
+/* ───────────── CATEGORY / SUB-CATEGORY TILES (home section design) ───────────── */
+.category-tiles-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+}
+
+.category-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid var(--border-l);
+  border-radius: var(--r);
+  overflow: hidden;
+  background: #fff;
+  transition: all var(--t);
+}
+
+.category-tile:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .06);
+}
+
+.category-tile-img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+
+.category-tile-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.category-tile-name {
+  padding: 8px 6px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .category-tiles-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ───────────── PRODUCT BADGE RIBBON (Best Seller strip) ───────────── */
+.prod-card {
+  position: relative;
+}
+
+.prod-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  background: var(--brand, #e63946);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  line-height: 1.4;
+}
+
+/* ───────────── CATEGORY TABS + PRODUCTS ───────────── */
+.home-tabs-nav {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin-bottom: 14px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.home-tab-btn {
+  flex: 0 0 auto;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border-l);
+  background: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all var(--t);
+}
+
+.home-tab-btn.active {
+  background: var(--brand, #e63946);
+  border-color: var(--brand, #e63946);
+  color: #fff;
+}
+
+.home-tab-panel {
+  display: none;
+}
+
+.home-tab-panel.active {
+  display: block;
+}
+
+/* ───────────── BANNER + PRODUCT COMBO ───────────── */
+.banner-product-combo {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.combo-banner {
+  position: relative;
+  border-radius: var(--r);
+  overflow: hidden;
+  width: 100%;
+  background: #f2f2f2;
+  height: 280px; 
+}
+
+.size-compact .combo-banner { height: 180px; }
+.size-normal .combo-banner { height: 280px; }
+.size-spacious .combo-banner { height: 380px; }
+
+.combo-banner-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; 
+}
+
+.combo-banner-text {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  padding: 16px;
+  color: #fff;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.65) 100%);
+}
+
+@media (max-width: 768px) {
+  .size-compact .combo-banner { height: 160px; }
+  .size-normal .combo-banner { height: 220px; }
+  .size-spacious .combo-banner { height: 300px; }
+}
+
 /* ───────────── PRODUCT CARD ───────────── */
 .prod-card {
   background: #fff;
