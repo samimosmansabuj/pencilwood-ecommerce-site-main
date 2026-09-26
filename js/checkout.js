@@ -853,6 +853,14 @@ async function placeOrder() {
         const data = await res.json();
 
         if (data.status) {
+            if (typeof window.trackEvent === "function") {
+                window.trackEvent("order_placed", {
+                    order_id: data.order_id,
+                    total: checkoutData?.subtotal || 0,
+                    item_count: (checkoutData?.items || []).length,
+                });
+            }
+
             GAInitiatePurchaseEvent(
                 (checkoutData?.items || []).map(item => ({
                     id: item.product_id,

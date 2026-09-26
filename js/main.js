@@ -837,6 +837,10 @@ function applySearch(query) {
 function goSearch(query) {
     if (!query) return;
 
+    if (typeof window.trackEvent === "function") {
+        window.trackEvent("search", { query: query });
+    }
+
     window.location.href =
         `/product-list?search=${encodeURIComponent(query)}`;
 }

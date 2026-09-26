@@ -192,7 +192,54 @@ function renderCustomSections(customSections) {
     });
 }
 
+/* ---------- Text Styling helpers ---------- */
+function hexToRgba(hex, opacityPercent) {
+    if (!hex) return null;
+    hex = hex.replace("#", "");
+    if (hex.length === 3) hex = hex.split("").map((c) => c + c).join("");
+    if (hex.length !== 6) return null;
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    const a = Math.max(0, Math.min(100, Number(opacityPercent) || 0)) / 100;
+    return `rgba(${r},${g},${b},${a})`;
+}
+
+function getSectionTextStyles(section) {
+    let common = "";
+    if (section.text_font_family) common += `font-family:${section.text_font_family};`;
+    if (section.text_color) common += `color:${section.text_color};`;
+    if (section.text_font_weight === "bold") common += "font-weight:700;";
+    if (section.text_font_style === "italic") common += "font-style:italic;";
+
+    const headingStyle = common + (section.text_font_size ? `font-size:${section.text_font_size}px;` : "");
+    const subheadingStyle = common + (section.text_font_size ? `font-size:${Math.round(section.text_font_size * 0.55)}px;` : "");
+    const bodyStyle = common;
+
+    let bgStyle = "";
+    const bgColor = hexToRgba(section.text_bg_color, section.text_bg_opacity);
+    if (bgColor) {
+        bgStyle = `background:${bgColor};padding:10px 14px;border-radius:8px;display:inline-block;`;
+    }
+    return { headingStyle, subheadingStyle, bodyStyle, bgStyle };
+}
+
+function buildSectionHeadHtml(section) {
+    if (!section.heading && !section.subheading) return "";
+    const st = getSectionTextStyles(section);
+    return `
+        <div class="lp-head">
+            <div style="${st.bgStyle}">
+                ${section.heading ? `<div class="lp-title" style="${st.headingStyle}">${escapeHtml(section.heading)}</div>` : ""}
+                ${section.subheading ? `<div class="custom-section-subheading" style="${st.subheadingStyle}">${escapeHtml(section.subheading)}</div>` : ""}
+            </div>
+        </div>
+    `;
+}
+
 function renderBannerHomeSection(wrapper, section) {
+    const st = getSectionTextStyles(section);
+
     const imageHtml = section.image
         ? `<img src="${resolveSiteAssetUrl(section.image)}" alt="${escapeHtml(section.heading)}" class="custom-section-image">`
         : "";
@@ -202,11 +249,11 @@ function renderBannerHomeSection(wrapper, section) {
         : "";
 
     wrapper.innerHTML = `
-        ${section.heading ? `<div class="lp-head"><div class="lp-title">${escapeHtml(section.heading)}</div></div>` : ""}
+        ${section.heading ? `<div class="lp-head"><div style="${st.bgStyle}"><div class="lp-title" style="${st.headingStyle}">${escapeHtml(section.heading)}</div></div></div>` : ""}
         <div class="lp-body custom-section-body">
             ${imageHtml}
-            ${section.subheading ? `<div class="custom-section-subheading">${escapeHtml(section.subheading)}</div>` : ""}
-            ${section.body_html ? `<div class="custom-section-text">${escapeHtml(section.body_html)}</div>` : ""}
+            ${section.subheading ? `<div class="custom-section-subheading" style="${st.subheadingStyle}">${escapeHtml(section.subheading)}</div>` : ""}
+            ${section.body_html ? `<div class="custom-section-text" style="${st.bodyStyle}">${escapeHtml(section.body_html)}</div>` : ""}
             ${buttonHtml}
         </div>
     `;
@@ -222,9 +269,7 @@ function renderProductHomeSection(wrapper, section) {
         return false;
     }
 
-    const headHtml = section.heading
-        ? `<div class="lp-head"><div class="lp-title">${escapeHtml(section.heading)}</div>${section.subheading ? `<div class="custom-section-subheading">${escapeHtml(section.subheading)}</div>` : ""}</div>`
-        : "";
+    const headHtml = buildSectionHeadHtml(section);
 
     if (section.design_style === "category_tiles") {
         wrapper.innerHTML = `
@@ -295,6 +340,7 @@ function renderTabbedProductsSection(wrapper, section, headHtml, tabs) {
 
 function renderBannerProductComboSection(wrapper, section, items) {
     const heightStyle = section.min_height_px ? ` style="height:${section.min_height_px}px;"` : "";
+    const st = getSectionTextStyles(section);
 
     const imageHtml = section.image
         ? `<img src="${resolveSiteAssetUrl(section.image)}" alt="${escapeHtml(section.heading || "")}" class="combo-banner-image">`
@@ -308,10 +354,12 @@ function renderBannerProductComboSection(wrapper, section, items) {
             <div class="combo-banner"${heightStyle}>
                 ${imageHtml}
                 <div class="combo-banner-text">
-                    ${section.heading ? `<div class="lp-title">${escapeHtml(section.heading)}</div>` : ""}
-                    ${section.subheading ? `<div class="custom-section-subheading">${escapeHtml(section.subheading)}</div>` : ""}
-                    ${section.body_html ? `<div class="custom-section-text">${escapeHtml(section.body_html)}</div>` : ""}
-                    ${buttonHtml}
+                    <div style="${st.bgStyle}">
+                        ${section.heading ? `<div class="lp-title" style="${st.headingStyle}">${escapeHtml(section.heading)}</div>` : ""}
+                        ${section.subheading ? `<div class="custom-section-subheading" style="${st.subheadingStyle}">${escapeHtml(section.subheading)}</div>` : ""}
+                        ${section.body_html ? `<div class="custom-section-text" style="${st.bodyStyle}">${escapeHtml(section.body_html)}</div>` : ""}
+                        ${buttonHtml}
+                    </div>
                 </div>
             </div>
             <div class="combo-products products-slider">
