@@ -164,6 +164,7 @@ function renderWhyChooseUs(cards) {
 function renderCustomSections(customSections) {
     if (!customSections.length) return;
 
+    loadSectionFonts(customSections);
 
     const isHomePage = !!document.getElementById("whyChooseSection");
     if (!isHomePage) return;
@@ -192,36 +193,88 @@ function renderCustomSections(customSections) {
     });
 }
 
-/* ---------- Text Styling helpers ---------- */
+/* ---------- Text Styling helpers (Heading / Subheading toolbars in the dashboard) ---------- */
+const _loadedSiteFonts = new Set();
+
+function loadSiteFont(family) {
+    if (!family || _loadedSiteFonts.has(family)) return;
+    _loadedSiteFonts.add(family);
+    const enc = encodeURIComponent(family).replace(/%20/g, "+");
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = `https://fonts.googleapis.com/css2?family=${enc}:ital,wght@0,400;0,700;1,400;1,700&display=swap`;
+    link.onerror = () => {
+        link.onerror = null;
+        link.href = `https://fonts.googleapis.com/css2?family=${enc}&display=swap`;
+    };
+    document.head.appendChild(link);
+}
+
+function loadSectionFonts(sections) {
+    (sections || []).forEach((s) => {
+        [s.heading_style, s.subheading_style].forEach((st) => {
+            if (st && st.font_family) loadSiteFont(st.font_family);
+        });
+    });
+}
+
 function hexToRgba(hex, opacityPercent) {
     if (!hex) return null;
-    hex = hex.replace("#", "");
+    hex = String(hex).replace("#", "");
     if (hex.length === 3) hex = hex.split("").map((c) => c + c).join("");
-    if (hex.length !== 6) return null;
+    if (hex.length !== 6 || !/^[0-9a-fA-F]{6}$/.test(hex)) return null;
     const r = parseInt(hex.substring(0, 2), 16);
     const g = parseInt(hex.substring(2, 4), 16);
     const b = parseInt(hex.substring(4, 6), 16);
-    const a = Math.max(0, Math.min(100, Number(opacityPercent) || 0)) / 100;
+    const raw = Number(opacityPercent);
+    const a = Math.max(0, Math.min(100, Number.isNaN(raw) ? 100 : raw)) / 100;
     return `rgba(${r},${g},${b},${a})`;
 }
 
-function getSectionTextStyles(section) {
-    let common = "";
-    if (section.text_font_family) common += `font-family:${section.text_font_family};`;
-    if (section.text_color) common += `color:${section.text_color};`;
-    if (section.text_font_weight === "bold") common += "font-weight:700;";
-    if (section.text_font_style === "italic") common += "font-style:italic;";
+function safeCssColor(c) {
+    return /^#[0-9a-fA-F]{3,8}$/.test(c || "") ? c : "";
+}
 
-    const headingStyle = common + (section.text_font_size ? `font-size:${section.text_font_size}px;` : "");
-    const subheadingStyle = common + (section.text_font_size ? `font-size:${Math.round(section.text_font_size * 0.55)}px;` : "");
-    const bodyStyle = common;
+function buildTextCss(st) {
+    if (!st) return "";
+    let css = "";
+    if (st.font_family) css += `font-family:'${String(st.font_family).replace(/['"\\;]/g, "")}',sans-serif;`;
+    if (st.font_size) css += `font-size:${Number(st.font_size)}px;`;
+    if (st.weight === "bold") css += "font-weight:700;";
+    else if (st.weight === "normal") css += "font-weight:400;";
+    if (st.italic === "italic") css += "font-style:italic;";
+    else if (st.italic === "normal") css += "font-style:normal;";
+    if (safeCssColor(st.color)) css += `color:${st.color};`;
 
-    let bgStyle = "";
-    const bgColor = hexToRgba(section.text_bg_color, section.text_bg_opacity);
-    if (bgColor) {
-        bgStyle = `background:${bgColor};padding:10px 14px;border-radius:8px;display:inline-block;`;
+    const bg = hexToRgba(st.bg_color, st.bg_opacity);
+    if (bg) css += `background:${bg};padding:6px 12px;border-radius:8px;`;
+
+    if (st.align || bg) {
+        css += "width:fit-content;max-width:100%;";
+        if (st.align === "center") css += "margin-left:auto;margin-right:auto;text-align:center;";
+        else if (st.align === "right") css += "margin-left:auto;text-align:right;";
+        else css += "margin-right:auto;text-align:left;";
     }
-    return { headingStyle, subheadingStyle, bodyStyle, bgStyle };
+    return css;
+}
+
+function buildBodyCss(st) {
+    if (!st) return "";
+    let css = "";
+    if (st.font_family) css += `font-family:'${String(st.font_family).replace(/['"\\;]/g, "")}',sans-serif;`;
+    if (st.italic === "italic") css += "font-style:italic;";
+    if (st.weight === "bold") css += "font-weight:700;";
+    if (safeCssColor(st.color)) css += `color:${st.color};`;
+    if (st.align) css += `text-align:${st.align};`;
+    return css;
+}
+
+function getSectionTextStyles(section) {
+    return {
+        headingStyle: buildTextCss(section.heading_style),
+        subheadingStyle: buildTextCss(section.subheading_style),
+        bodyStyle: buildBodyCss(section.subheading_style),
+    };
 }
 
 function buildSectionHeadHtml(section) {
@@ -229,10 +282,8 @@ function buildSectionHeadHtml(section) {
     const st = getSectionTextStyles(section);
     return `
         <div class="lp-head">
-            <div style="${st.bgStyle}">
-                ${section.heading ? `<div class="lp-title" style="${st.headingStyle}">${escapeHtml(section.heading)}</div>` : ""}
-                ${section.subheading ? `<div class="custom-section-subheading" style="${st.subheadingStyle}">${escapeHtml(section.subheading)}</div>` : ""}
-            </div>
+            ${section.heading ? `<div class="lp-title" style="${st.headingStyle}">${escapeHtml(section.heading)}</div>` : ""}
+            ${section.subheading ? `<div class="custom-section-subheading" style="${st.subheadingStyle}">${escapeHtml(section.subheading)}</div>` : ""}
         </div>
     `;
 }
@@ -249,7 +300,7 @@ function renderBannerHomeSection(wrapper, section) {
         : "";
 
     wrapper.innerHTML = `
-        ${section.heading ? `<div class="lp-head"><div style="${st.bgStyle}"><div class="lp-title" style="${st.headingStyle}">${escapeHtml(section.heading)}</div></div></div>` : ""}
+        ${section.heading ? `<div class="lp-head"><div class="lp-title" style="${st.headingStyle}">${escapeHtml(section.heading)}</div></div>` : ""}
         <div class="lp-body custom-section-body">
             ${imageHtml}
             ${section.subheading ? `<div class="custom-section-subheading" style="${st.subheadingStyle}">${escapeHtml(section.subheading)}</div>` : ""}
@@ -354,12 +405,10 @@ function renderBannerProductComboSection(wrapper, section, items) {
             <div class="combo-banner"${heightStyle}>
                 ${imageHtml}
                 <div class="combo-banner-text">
-                    <div style="${st.bgStyle}">
-                        ${section.heading ? `<div class="lp-title" style="${st.headingStyle}">${escapeHtml(section.heading)}</div>` : ""}
-                        ${section.subheading ? `<div class="custom-section-subheading" style="${st.subheadingStyle}">${escapeHtml(section.subheading)}</div>` : ""}
-                        ${section.body_html ? `<div class="custom-section-text" style="${st.bodyStyle}">${escapeHtml(section.body_html)}</div>` : ""}
-                        ${buttonHtml}
-                    </div>
+                    ${section.heading ? `<div class="lp-title" style="${st.headingStyle}">${escapeHtml(section.heading)}</div>` : ""}
+                    ${section.subheading ? `<div class="custom-section-subheading" style="${st.subheadingStyle}">${escapeHtml(section.subheading)}</div>` : ""}
+                    ${section.body_html ? `<div class="custom-section-text" style="${st.bodyStyle}">${escapeHtml(section.body_html)}</div>` : ""}
+                    ${buttonHtml}
                 </div>
             </div>
             <div class="combo-products products-slider">
