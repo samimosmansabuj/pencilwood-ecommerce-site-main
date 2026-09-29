@@ -45,25 +45,57 @@ window.__CURRENT_LANDING_CODE__ = ENV.PRODUCT_LANDING_PAGE_ID;
 
 let appliedCouponDiscount = 0;
 let appliedCouponCode = null;
+let rememberedCouponCode = null;
+let couponRequestSeq = 0;
+let couponCheckedSignature = "";
 
-document.getElementById("applyCouponBtn")?.addEventListener("click", async function () {
-    const codeInput = document.getElementById("couponCodeInput");
+function getCouponItems() {
+    const items = [];
+    document.querySelectorAll("#productSummary .summary-row").forEach(function (row) {
+        if (row.dataset.productType !== "MAIN") return;
+        const id = parseInt(row.dataset.productId, 10);
+        const qty = parseInt(row.querySelector(".qty")?.textContent, 10) || 0;
+        if (id && qty > 0) items.push({ product_id: id, quantity: qty });
+    });
+    return items;
+}
+
+function couponSignature() {
+    const phone = (document.getElementById("phone")?.value || "").trim();
+    return JSON.stringify(getCouponItems()) + "|" + phone;
+}
+
+function clearAppliedCoupon() {
+    appliedCouponDiscount = 0;
+    appliedCouponCode = null;
+}
+
+async function applyCoupon(code, silent) {
     const messageEl = document.getElementById("couponMessage");
-    const phoneInput = document.getElementById("phone"); // adjust to actual phone field id
-
-    const code = codeInput.value.trim();
-    const phone = phoneInput ? phoneInput.value.trim() : "";
-    const productTotalEl = document.getElementById("productTotal");
-    const subtotal = parseFloat(productTotalEl ? productTotalEl.textContent : 0);
+    const phone = (document.getElementById("phone")?.value || "").trim();
+    const items = getCouponItems();
 
     if (!code) {
-        messageEl.innerHTML = '<span style="color:red;">Enter a coupon code</span>';
+        if (!silent) {
+            rememberedCouponCode = null;
+            clearAppliedCoupon();
+            couponCheckedSignature = "";
+            messageEl.innerHTML = '<span style="color:red;">Enter a coupon code</span>';
+            recalculateSummaryWithCoupon();
+        }
         return;
     }
-    if (!phone) {
-        messageEl.innerHTML = '<span style="color:red;">Enter your phone number first</span>';
+    if (!phone || !items.length) {
+        clearAppliedCoupon();
+        couponCheckedSignature = couponSignature();
+        messageEl.innerHTML = '<span style="color:red;">' +
+            (!phone ? "Enter your phone number first" : "Select a product first") + '</span>';
+        recalculateSummaryWithCoupon();
         return;
     }
+
+    const seq = ++couponRequestSeq;
+    const signature = couponSignature();
 
     try {
         const res = await fetch(`${ENV.API_BASE_URL}/site/api/apply-coupon/`, {
@@ -72,27 +104,45 @@ document.getElementById("applyCouponBtn")?.addEventListener("click", async funct
             body: JSON.stringify({
                 code: code,
                 phone: phone,
-                subtotal: subtotal,
+                items: items,
                 landing_page_code: ENV.PRODUCT_LANDING_PAGE_ID,
             }),
         });
         const data = await res.json();
+        if (seq !== couponRequestSeq) return;
 
+        couponCheckedSignature = signature;
         if (data.status) {
-            appliedCouponDiscount = data.data.discount_amount;
+            appliedCouponDiscount = Number(data.data.discount_amount) || 0;
             appliedCouponCode = data.data.code;
+            rememberedCouponCode = data.data.code;
             messageEl.innerHTML = `<span style="color:green;">✓ Coupon applied: -৳${appliedCouponDiscount}</span>`;
-            recalculateSummaryWithCoupon();
         } else {
-            appliedCouponDiscount = 0;
-            appliedCouponCode = null;
+            clearAppliedCoupon();
             messageEl.innerHTML = `<span style="color:red;">${data.message}</span>`;
-            recalculateSummaryWithCoupon();
         }
     } catch (err) {
+        if (seq !== couponRequestSeq) return;
+        clearAppliedCoupon();
+        couponCheckedSignature = "";
         messageEl.innerHTML = '<span style="color:red;">Something went wrong. Try again.</span>';
     }
+    recalculateSummaryWithCoupon();
+}
+
+function refreshCouponIfApplied() {
+    if (!rememberedCouponCode) return;
+    if (couponSignature() === couponCheckedSignature) return;   // nothing relevant changed
+    clearAppliedCoupon();                                       // hide the old discount until re-checked
+    recalculateSummaryWithCoupon();
+    applyCoupon(rememberedCouponCode, true);
+}
+
+document.getElementById("applyCouponBtn")?.addEventListener("click", function () {
+    const code = (document.getElementById("couponCodeInput")?.value || "").trim();
+    applyCoupon(code, false);
 });
+document.getElementById("phone")?.addEventListener("change", refreshCouponIfApplied);
 
 function recalculateSummaryWithCoupon() {
     const productTotalEl = document.getElementById("productTotal");
@@ -390,7 +440,8 @@ function setupModalProducts() {
         deliveryChargeEl.innerText = deliveryCharge;
 
         productTotalEl.innerText = productTotal;
-        summaryTotalEl.innerText = productTotal + deliveryCharge;
+        summaryTotalEl.innerText = productTotal + deliveryCharge - appliedCouponDiscount;
+        refreshCouponIfApplied();
     }
 
     function createRow(title, product_id, qty, unit_amount, total_amount, product_type, reference_id = null) {
