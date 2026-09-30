@@ -1,6 +1,6 @@
 /* ==========Config js===============
    TOKEN HELPERS  */
-function getAccessToken() {
+   function getAccessToken() {
     return localStorage.getItem("access") || "";
 }
 
@@ -54,6 +54,7 @@ async function logoutUser() {
     localStorage.removeItem("refresh");
     localStorage.removeItem("user");
     localStorage.removeItem("token");
+    localStorage.removeItem("pwbd_visitor_id");
 
     window.location.href = "/login";
 }
