@@ -398,6 +398,63 @@ function getProductJsonForEventSend(){
     return contents;
 };
 
+
+function showOrderSuccessModal() {
+    document.getElementById("orderSuccessOverlay")?.remove();
+
+    const overlay = document.createElement("div");
+    overlay.id = "orderSuccessOverlay";
+    overlay.style.position = "fixed";
+    overlay.style.inset = "0";
+    overlay.style.background = "rgba(0,0,0,0.6)";
+    overlay.style.display = "flex";
+    overlay.style.alignItems = "center";
+    overlay.style.justifyContent = "center";
+    overlay.style.zIndex = "9999";
+
+    const card = document.createElement("div");
+    card.style.textAlign = "center";
+    card.style.padding = "35px 25px";
+    card.style.background = "rgba(255,255,255,0.95)";
+    card.style.borderRadius = "22px";
+    card.style.boxShadow = "0 15px 40px rgba(0,0,0,0.15)";
+    card.style.maxWidth = "420px";
+    card.style.width = "90%";
+    card.style.backdropFilter = "blur(8px)";
+    card.innerHTML = `
+        <div style="font-size:50px;">🎉</div>
+
+        <h2>অর্ডার সফল হয়েছে!</h2>
+
+        <p>আমরা আপনার অর্ডার গ্রহণ করেছি।</p>
+
+        <div style="background:#eaffea;padding:10px;border-radius:10px;margin:10px 0;color:#1b7f2a;">
+            ✔ কনফার্ম হয়েছে
+        </div>
+
+        <p>Redirect <b><span id="countdown">5</span></b> sec</p>
+
+        <a href="https://wa.me/${ENV.WHATSAPP_NUMBER}"
+        style="display:inline-block;margin-top:10px;padding:10px 15px;background:#25D366;color:#fff;border-radius:10px;text-decoration:none;">
+        WhatsApp
+        </a>
+    `;
+
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+
+    let count = 5;
+    const el = card.querySelector("#countdown");
+    const interval = setInterval(() => {
+        count--;
+        el.textContent = count;
+        if (count <= 0) {
+            clearInterval(interval);
+            window.location.href = "/";
+        }
+    }, 1000);
+}
+
 document.getElementById("orderForm")
     .addEventListener("submit", async function (e) {
         e.preventDefault();
@@ -481,62 +538,7 @@ document.getElementById("orderForm")
                 closeModal();
                 GAInitiatePurchaseEvent(getProductJsonForEventSend(), getTotalAmount(), null, customerData);
 
-                // =========================
-                // FIXED SUCCESS MODAL
-                const overlay = document.createElement("div");
-                overlay.style.position = "fixed";
-                overlay.style.inset = "0";
-                overlay.style.background = "rgba(0,0,0,0.6)";
-                overlay.style.display = "flex";
-                overlay.style.alignItems = "center";
-                overlay.style.justifyContent = "center";
-                overlay.style.zIndex = "9999";
-
-                const card = document.createElement("div");
-                card.style.textAlign = "center";
-                card.style.padding = "35px 25px";
-                card.style.background = "rgba(255,255,255,0.95)";
-                card.style.borderRadius = "22px";
-                card.style.boxShadow = "0 15px 40px rgba(0,0,0,0.15)";
-                card.style.maxWidth = "420px";
-                card.style.width = "90%";
-                card.style.backdropFilter = "blur(8px)";
-                card.innerHTML = `
-                    <div style="font-size:50px;">🎉</div>
-
-                    <h2>অর্ডার সফল হয়েছে!</h2>
-
-                    <p>আমরা আপনার অর্ডার গ্রহণ করেছি।</p>
-
-                    <div style="background:#eaffea;padding:10px;border-radius:10px;margin:10px 0;color:#1b7f2a;">
-                        ✔ কনফার্ম হয়েছে
-                    </div>
-
-                    <p>Redirect <b><span id="countdown">5</span></b> sec</p>
-
-                    <a href="https://wa.me/${ENV.WHATSAPP_NUMBER}"
-                    style="display:inline-block;margin-top:10px;padding:10px 15px;background:#25D366;color:#fff;border-radius:10px;text-decoration:none;">
-                    WhatsApp
-                    </a>
-                `;
-
-                overlay.appendChild(card);
-                document.body.appendChild(overlay);
-                // =========================
-
-                // countdown
-                let count = 5;
-
-                const el = card.querySelector("#countdown");
-
-                const interval = setInterval(() => {
-                    count--;
-                    el.textContent = count;
-                    if (count <= 0) {
-                        clearInterval(interval);
-                        window.location.href = "/";
-                    }
-                }, 1000);
+                showOrderSuccessModal();
             } else if (data.otp_required) {
                 showOtpVerifyModal({
                     phone: data.phone || formData.customer.phone,
@@ -547,7 +549,7 @@ document.getElementById("orderForm")
                     onSuccess: function () {
                         GAInitiatePurchaseEvent(getProductJsonForEventSend(), getTotalAmount(), null, customerData);
                         closeModal();
-                        window.location.reload();
+                        showOrderSuccessModal();
                     }
                 });
                 submitBtn.disabled = false;
