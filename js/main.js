@@ -779,6 +779,7 @@ function logoutUser() {
     localStorage.removeItem("access");
     localStorage.removeItem("refresh");
     localStorage.removeItem("token");
+    localStorage.removeItem("pwbd_visitor_id");
 
     toast("Logged out ✅");
 
