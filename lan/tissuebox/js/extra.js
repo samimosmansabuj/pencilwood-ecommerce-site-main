@@ -344,26 +344,28 @@ function setupModal() {
 
                     note: noteInput.value.trim(),
                     otp_required: false,
+                    landing_page_code: ENV.PRODUCT_LANDING_PAGE_ID,
                     ...window.getAttributionData(),
                 };
 
-                function handleOrderSuccess() {
+                function handleOrderSuccess(bill) {
                     GAInitiatePurchaseEvent(product_details_for_event_send(), displayTotal, null, customerData);
 
                     // Success UI
                     const modalContent = modal.querySelector('.modal-content');
+                    const billHtml = (window.OrderBill && OrderBill.html(bill)) || "";
                     modalContent.innerHTML = `
-                        <div style="text-align:center; padding:30px 20px; background:#fff; border-radius:20px;">
-                            <h2>ধন্যবাদ!</h2>
-                            <p>আপনার অর্ডার সফলভাবে গ্রহণ করা হয়েছে।</p>
-                            <p>হোমপেজে রিডিরেক্ট হবে <span id="countdown">5</span> সেকেন্ডে...</p>
-                            <a href="https://wa.me/${WHATSAPP_NUMBER}" target="_blank" class="btn btn-primary" style="margin-top:20px; display:inline-block;">Contact with WhatsApp</a>
+                        <div style="text-align:center; padding:30px 20px; background:#fff; border-radius:20px; max-height:90vh; overflow-y:auto;">
+                            ${billHtml || `<h2>ধন্যবাদ!</h2>
+                            <p>আপনার অর্ডার সফলভাবে গ্রহণ করা হয়েছে।</p>`}
+                            <p style="margin-top:14px;">হোমপেজে রিডিরেক্ট হবে <span id="countdown">10</span> সেকেন্ডে...</p>
+                            <a href="https://wa.me/${WHATSAPP_NUMBER}" target="_blank" class="btn btn-primary" style="margin-top:10px; display:inline-block;">Contact with WhatsApp</a>
                         </div>
                     `;
 
                     document.body.style.overflow = 'hidden';
 
-                    let countdown = 5;
+                    let countdown = 10;
                     const countdownEl = document.getElementById("countdown");
                     const interval = setInterval(() => {
                         countdown -= 1;
@@ -387,7 +389,7 @@ function setupModal() {
                     const result = await response.json();
 
                     if (result.success) {
-                        handleOrderSuccess();
+                        handleOrderSuccess(result.bill);
                     } else if (result.otp_required) {
                         e.target.disabled = false;
                         e.target.innerText = "Confirm Order (COD)";
@@ -397,10 +399,14 @@ function setupModal() {
                             apiBase: ENV.API_BASE_URL,
                             orderEndpoint: "/site/api/create-order/",
                             orderPayload: payload,
-                            onSuccess: function () {
-                                handleOrderSuccess();
+                            onSuccess: function (successData) {
+                                handleOrderSuccess(successData && successData.bill);
                             }
                         });
+                    } else if (result.blocked) {
+                        e.target.disabled = false;
+                        e.target.innerText = "Confirm Order (COD)";
+                        showBlockedMessageModal(result.message);
                     } else {
                         throw new Error(result.message || 'Order failed');
                     }

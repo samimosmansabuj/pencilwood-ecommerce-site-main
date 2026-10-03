@@ -399,7 +399,7 @@ function getProductJsonForEventSend(){
 };
 
 
-function showOrderSuccessModal() {
+function showOrderSuccessModal(bill) {
     document.getElementById("orderSuccessOverlay")?.remove();
 
     const overlay = document.createElement("div");
@@ -421,8 +421,12 @@ function showOrderSuccessModal() {
     card.style.maxWidth = "420px";
     card.style.width = "90%";
     card.style.backdropFilter = "blur(8px)";
+    
+    const billHtml = (window.OrderBill && OrderBill.html(bill)) || "";
+    card.style.maxHeight = "90vh";
+    card.style.overflowY = "auto";
     card.innerHTML = `
-        <div style="font-size:50px;">🎉</div>
+        ${billHtml || `<div style="font-size:50px;">🎉</div>
 
         <h2>অর্ডার সফল হয়েছে!</h2>
 
@@ -430,9 +434,9 @@ function showOrderSuccessModal() {
 
         <div style="background:#eaffea;padding:10px;border-radius:10px;margin:10px 0;color:#1b7f2a;">
             ✔ কনফার্ম হয়েছে
-        </div>
+        </div>`}
 
-        <p>Redirect <b><span id="countdown">5</span></b> sec</p>
+        <p style="margin-top:14px;">Redirect <b><span id="countdown">10</span></b> sec</p>
 
         <a href="https://wa.me/${ENV.WHATSAPP_NUMBER}"
         style="display:inline-block;margin-top:10px;padding:10px 15px;background:#25D366;color:#fff;border-radius:10px;text-decoration:none;">
@@ -443,7 +447,7 @@ function showOrderSuccessModal() {
     overlay.appendChild(card);
     document.body.appendChild(overlay);
 
-    let count = 5;
+    let count = 10;
     const el = card.querySelector("#countdown");
     const interval = setInterval(() => {
         count--;
@@ -518,6 +522,7 @@ document.getElementById("orderForm")
             },
             note: document.getElementById("note")?.value.trim() || "",
             otp_required: false,
+            landing_page_code: ENV.PRODUCT_LANDING_PAGE_ID,
             ...window.getAttributionData(),
         };
 
@@ -538,7 +543,7 @@ document.getElementById("orderForm")
                 closeModal();
                 GAInitiatePurchaseEvent(getProductJsonForEventSend(), getTotalAmount(), null, customerData);
 
-                showOrderSuccessModal();
+                showOrderSuccessModal(data.bill);
             } else if (data.otp_required) {
                 showOtpVerifyModal({
                     phone: data.phone || formData.customer.phone,
@@ -546,14 +551,16 @@ document.getElementById("orderForm")
                     apiBase: ENV.API_BASE_URL,
                     orderEndpoint: "/site/api/create-order/",
                     orderPayload: formData,
-                    onSuccess: function () {
+                    onSuccess: function (successData) {
                         GAInitiatePurchaseEvent(getProductJsonForEventSend(), getTotalAmount(), null, customerData);
                         closeModal();
-                        showOrderSuccessModal();
+                        showOrderSuccessModal(successData && successData.bill);
                     }
                 });
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = "🛒 অর্ডার কনফার্ম করুন";
+            } else if (data.blocked) {
+                showBlockedMessageModal(data.message);
             } else {
                 alert(data.message || "অর্ডার করতে সমস্যা হয়েছে");
             }

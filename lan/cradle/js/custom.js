@@ -485,19 +485,23 @@ if (modal) {
 }
 
 
-function OrderCompleteCard() {
+function OrderCompleteCard(bill) {
+    const billHtml = (window.OrderBill && OrderBill.html(bill)) || "";
+
     const thankYouCard = document.createElement("div");
     thankYouCard.style.textAlign = "center";
     thankYouCard.style.padding = "30px 20px";
     thankYouCard.style.background = "#fff";
     thankYouCard.style.borderRadius = "20px";
     thankYouCard.style.boxShadow = "0 10px 30px rgba(0,0,0,0.1)";
+    thankYouCard.style.maxHeight = "90vh";
+    thankYouCard.style.overflowY = "auto";
     thankYouCard.innerHTML = `
-        <h2>ধন্যবাদ!</h2>
-        <p>আপনার অর্ডার সফলভাবে গ্রহণ করা হয়েছে।</p>
-        <p>হোমপেজে রিডিরেক্ট হবে <span id="countdown">10</span> সেকেন্ডে...</p>
+        ${billHtml || `<h2>ধন্যবাদ!</h2>
+        <p>আপনার অর্ডার সফলভাবে গ্রহণ করা হয়েছে।</p>`}
+        <p style="margin-top:14px;">হোমপেজে রিডিরেক্ট হবে <span id="countdown">10</span> সেকেন্ডে...</p>
         <a href="https://wa.me/${ENV.WHATSAPP_NUMBER}" target="_blank" class="btn btn-primary" 
-        style="margin-top: 20px; display: inline-block;">
+        style="margin-top: 10px; display: inline-block;">
         Contact with WhatsApp
         </a>
     `;
@@ -650,19 +654,19 @@ if (orderForm) {
 
         await new Promise(resolve => setTimeout(resolve, 2000));
 
-        function handleOrderSuccess() {
+        function handleOrderSuccess(bill) {
             // ----- PIXEL PURCHASE SETUP -----
             GAInitiatePurchaseEvent(product_details_for_event_send(), summaryTotal, null, customerData);
 
             lockModal = true;
             if (modalContent) {
                 modalContent.innerHTML = "";
-                modalContent.appendChild(OrderCompleteCard());
+                modalContent.appendChild(OrderCompleteCard(bill));
             }
             if (loader) loader.classList.add("hidden");
             document.body.style.overflow = 'hidden';
 
-            let countdown = 5;
+            let countdown = 10;
             const countdownEl = document.getElementById("countdown");
             const interval = setInterval(() => {
                 countdown -= 1;
@@ -687,7 +691,7 @@ if (orderForm) {
             const data = await response.json();
 
             if (data.success) {
-                handleOrderSuccess();
+                handleOrderSuccess(data.bill);
             } else if (data.otp_required && !isMandatoryOtpEnabled()) {
                 resetSubmitState();
                 showOtpVerifyModal({
@@ -696,10 +700,13 @@ if (orderForm) {
                     apiBase: ENV.API_BASE_URL,
                     orderEndpoint: "/site/api/create-order/",
                     orderPayload: formData,
-                    onSuccess: function () {
-                        handleOrderSuccess();
+                    onSuccess: function (successData) {
+                        handleOrderSuccess(successData && successData.bill);
                     }
                 });
+            } else if (data.blocked) {
+                resetSubmitState();
+                showBlockedMessageModal(data.message);
             } else {
                 alert("অর্ডার সাবমিট করতে সমস্যা হয়েছে! দয়া করে আবার চেষ্টা করুন।\n" + (data.message || ""));
                 resetSubmitState();
