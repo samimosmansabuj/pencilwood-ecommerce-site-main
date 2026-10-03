@@ -124,10 +124,14 @@ function showOtpVerifyModal(options) {
 
         const retryBody = { ...orderPayload, otp_code: code };
 
+        const token = (typeof getAccessToken === "function") ? getAccessToken() : (localStorage.getItem("access") || "");
+        const headers = { "Content-Type": "application/json", "Accept": "application/json" };
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
         try {
             const res = await fetch(`${apiBase}${orderEndpoint}`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json", "Accept": "application/json" },
+                headers: headers,
                 body: JSON.stringify(retryBody)
             });
             const data = await res.json();
