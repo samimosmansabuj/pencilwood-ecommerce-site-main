@@ -72,7 +72,7 @@ function showOtpVerifyModal(options) {
     overlay.appendChild(card);
     document.body.appendChild(overlay);
 
-    overlay.addEventListener("click", function (e) {
+    overlay.addEventListener("focusin", function (e) {
         e.stopPropagation();
     });
 
@@ -163,4 +163,45 @@ function showOtpVerifyModal(options) {
             verifyBtn.innerText = "ভেরিফাই করে অর্ডার করুন";
         }
     });
+}
+
+/* =========================================
+   BLOCKED-CUSTOMER MESSAGE POPUP
+========================================= */
+function showBlockedMessageModal(message) {
+    document.getElementById("blockedMsgOverlay")?.remove();
+
+    const text = message || "আপনার অ্যাকাউন্ট ব্লক করা হয়েছে। অনুগ্রহ করে আমাদের সাইটে যোগাযোগ করুন।";
+    const waNumber = (window.ENV && window.ENV.WHATSAPP_NUMBER) ? String(window.ENV.WHATSAPP_NUMBER) : "";
+
+    const overlay = document.createElement("div");
+    overlay.id = "blockedMsgOverlay";
+    overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:999999;padding:16px;";
+
+    const card = document.createElement("div");
+    card.style.cssText = "text-align:center;padding:30px 22px;background:#fff;border-radius:22px;box-shadow:0 15px 40px rgba(0,0,0,0.15);max-width:380px;width:100%;";
+
+    card.innerHTML = `
+        <div style="width:64px;height:64px;margin:0 auto 12px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;font-size:32px;">🚫</div>
+        <h2 style="margin:6px 0 10px;font-size:20px;color:#1c2b39;">অর্ডার করা সম্ভব হচ্ছে না</h2>
+        <p id="blockedMsgText" style="color:#555;font-size:14.5px;line-height:1.6;margin:0 0 20px;"></p>
+        ${waNumber ? `<a href="https://wa.me/${waNumber}" target="_blank" rel="noopener"
+            style="display:block;width:100%;box-sizing:border-box;padding:11px;border-radius:10px;background:#16a34a;color:#fff;font-weight:600;text-decoration:none;margin-bottom:10px;">
+            WhatsApp-এ যোগাযোগ করুন
+        </a>` : ""}
+        <button id="blockedMsgCloseBtn" type="button"
+            style="width:100%;padding:10px;border:1px solid #ddd;border-radius:10px;background:#fff;color:#555;cursor:pointer;">
+            ঠিক আছে
+        </button>
+    `;
+
+    // textContent keeps the server message safe from HTML injection
+    card.querySelector("#blockedMsgText").textContent = text;
+
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+
+    const close = () => overlay.remove();
+    card.querySelector("#blockedMsgCloseBtn").addEventListener("click", close);
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
 }

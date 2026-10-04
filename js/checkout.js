@@ -893,7 +893,7 @@ async function placeOrder() {
             localStorage.removeItem("checkout_guest_items");
             if (!isLoggedIn()) clearGuestCart();
 
-            showOrderSuccess();
+            showOrderSuccess(data);
         } else {
             if (data.otp_required) {
                 showOtpVerifyModal({
@@ -985,13 +985,18 @@ function showOrderSuccess(data) {
         clearGuestCart();
     }
 
+    const redirectUrl = isLoggedIn() ? "/my-orders" : "/";
+    const billHtml = (window.OrderBill && OrderBill.html(data && data.bill)) || "";
+    const seconds = billHtml ? 15 : 3;
+
     const overlay = document.createElement("div");
 
     overlay.id = "orderSuccessModal";
 
     overlay.innerHTML = `
-        <div class="success-modal">
+        <div class="success-modal" style="max-height:92vh;overflow-y:auto;">
 
+            ${billHtml || `
             <div class="success-icon">
                 ✓
             </div>
@@ -1004,10 +1009,10 @@ function showOrderSuccess(data) {
                 Thank you for your order.
                 We have received your order and
                 will contact you soon.
-            </p>
+            </p>`}
 
-            <div class="success-order-text">
-                Redirecting to My Orders...
+            <div class="success-order-text" style="margin-top:14px;">
+                Redirecting in <b id="orderRedirectCountdown">${seconds}</b> seconds...
             </div>
 
         </div>
@@ -1015,9 +1020,16 @@ function showOrderSuccess(data) {
 
     document.body.appendChild(overlay);
 
-    setTimeout(() => {
-        window.location.href = isLoggedIn() ? "/my-orders" : "/";
-    }, 2500);
+    let left = seconds;
+    const countEl = overlay.querySelector("#orderRedirectCountdown");
+    const timer = setInterval(() => {
+        left -= 1;
+        if (countEl) countEl.textContent = Math.max(left, 0);
+        if (left <= 0) {
+            clearInterval(timer);
+            window.location.href = redirectUrl;
+        }
+    }, 1000);
 }
 
 function toggleDeliveryBreakdown() {
