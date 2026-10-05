@@ -80,6 +80,7 @@
             page_title: document.title || "",
             referrer: document.referrer || "",
             product_id: meta.product_id || null,
+            variant_id: meta.variant_id || null,
             meta: meta,
         });
         if (IMPORTANT_EVENTS.includes(eventType)) flush(false);
