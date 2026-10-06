@@ -94,8 +94,13 @@ async function loadCustomerProfile() {
 
         if (phoneField) {
             phoneField.value = phone;
-            phoneField.readOnly = true;
-            phoneField.classList.add("field-locked");
+            if (phone) {
+                phoneField.readOnly = true;
+                phoneField.classList.add("field-locked");
+            } else {
+                phoneField.readOnly = false;
+                phoneField.classList.remove("field-locked");
+            }
         }
 
         const hasRealName = name && name !== phone;
