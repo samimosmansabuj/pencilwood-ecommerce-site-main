@@ -652,8 +652,17 @@ function selectVariantByAttributes(attrsWanted, variants, isUserClick = false) {
 
     if (!match) return;
 
+    const variantChanged = !SELECTED_VARIANT || SELECTED_VARIANT.id !== match.id;
     SELECTED_VARIANT = match;
     VARIANT_ATTR_STATE = { ...(match.attributes || {}) };
+
+    if (isUserClick && variantChanged && typeof window.trackEvent === "function" && CURRENT_PRODUCT) {
+        window.trackEvent("variant_view", {
+            product_id: CURRENT_PRODUCT.id,
+            variant_id: match.id,
+            attributes: match.attributes || {},
+        });
+    }
 
     // Update active state on buttons
     document.querySelectorAll(".variant-option").forEach(btn => {

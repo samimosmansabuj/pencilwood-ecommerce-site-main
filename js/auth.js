@@ -346,6 +346,80 @@ async function submitResetPasswordStep() {
 }
 
 /* =========================
+   GOOGLE LOGIN (login + forgot-password steps)
+========================= */
+let GOOGLE_INIT_DONE = false;
+
+async function handleGoogleCredential(response) {
+    const credential = response && response.credential;
+    if (!credential) {
+        toast("Google login failed ❌");
+        return;
+    }
+
+    showLoginLoader();
+    try {
+        const res = await fetch(`${API_BASE}/api/auth/google-login/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ credential })
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (res.ok && data.status) {
+            saveAuthData(data);
+            await mergeGuestDataToAccount(data.access);
+
+            toast(data.is_new_user ? "Account ready ✅" : "Welcome back ✅");
+            setTimeout(() => { window.location.href = "/profile"; }, 700);
+        } else {
+            toast(data.message || "Google login failed ❌");
+        }
+    } catch (err) {
+        console.error("GOOGLE LOGIN ERROR:", err);
+        toast("Something went wrong ❌");
+    } finally {
+        hideLoginLoader();
+    }
+}
+
+function initGoogleLogin() {
+    const wrap = document.getElementById("googleAuth");
+    const btn = document.getElementById("googleBtn");
+    if (!wrap || !btn || GOOGLE_INIT_DONE) return;
+
+    const clientId = (window.GOOGLE_CLIENT_ID || "").trim();
+    if (!clientId) return;
+    
+    if (!(window.google && google.accounts && google.accounts.id)) {
+        initGoogleLogin._tries = (initGoogleLogin._tries || 0) + 1;
+        if (initGoogleLogin._tries < 50) setTimeout(initGoogleLogin, 200);
+        return;
+    }
+
+    GOOGLE_INIT_DONE = true;
+
+    google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleGoogleCredential,
+        auto_select: false,
+        cancel_on_tap_outside: true
+    });
+
+    wrap.style.display = "block";
+    const width = Math.min(400, Math.max(200, Math.floor(btn.clientWidth || 300)));
+    google.accounts.id.renderButton(btn, {
+        type: "standard",
+        theme: "outline",
+        size: "large",
+        text: "continue_with",
+        shape: "rectangular",
+        logo_alignment: "left",
+        width
+    });
+}
+
+/* =========================
    REQUIRE LOGIN
 ========================= */
 function requireLogin() {
@@ -432,6 +506,8 @@ function showLoginPopup() {
    INIT
 ========================= */
 window.addEventListener("DOMContentLoaded", () => {
+
+    initGoogleLogin();
 
     const phoneInput = document.getElementById("loginPhone");
     const passwordInput = document.getElementById("loginPassword");

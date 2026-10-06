@@ -164,6 +164,36 @@ body {
     to { transform: rotate(360deg); }
 }
 
+/* ====== GOOGLE LOGIN ====== */
+.google-auth {
+    margin-top: 22px;
+}
+
+.google-auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #999;
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
+    margin-bottom: 18px;
+}
+
+.google-auth-divider::before,
+.google-auth-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #eaeaea;
+}
+
+.google-auth-btn {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    min-height: 44px;
+}
+
 /* ====== RESPONSIVE ====== */
 @media (max-width: 480px) {
     .auth-page {
