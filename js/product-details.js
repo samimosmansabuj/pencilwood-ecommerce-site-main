@@ -177,9 +177,10 @@ async function loadProductDetails() {
         ========================= */
         if (Array.isArray(product.variants) && product.variants.length > 0) {
             renderVariantPicker(product.variants);
-            // Auto-select first ACTIVE variant with stock, else first variant
             const firstAvailable =
-                product.variants.find(v => v.stock > 0) || product.variants[0];
+                product.variants.find(v => v.id === product.default_variant_id) ||
+                product.variants.find(v => v.stock > 0) ||
+                product.variants[0];
             selectVariantByAttributes(firstAvailable.attributes, product.variants);
         } else {
             SELECTED_VARIANT = null;
