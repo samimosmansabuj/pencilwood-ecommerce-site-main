@@ -5,6 +5,8 @@
 let CURRENT_PRODUCT = null;
 let SELECTED_VARIANT = null;
 let VARIANT_ATTR_STATE = {};
+let CUSTOM_MODE = false;
+let CURRENT_GALLERY_KEY = "";
 
 // ===== Hover (desktop) / drag (mobile) zoom on product image =====
 (function () {
@@ -170,7 +172,13 @@ async function loadProductDetails() {
         /* =========================
            IMAGES (default = product-level images)
         ========================= */
+        CURRENT_GALLERY_KEY = (product.images || []).join("|");
         renderImages(product.images || []);
+
+        /* =========================
+           CUSTOMIZATION (Standard / Customized)
+        ========================= */
+        renderCustomization(product);
 
         /* =========================
            VARIANTS
@@ -678,13 +686,144 @@ function selectVariantByAttributes(attrsWanted, variants, isUserClick = false) {
     // at the end of selectVariantByAttributes(), after renderPriceAndStock(...)
     initWishlist(CURRENT_PRODUCT.id);
 
-    // Update image if variant carries its own image(s)
-    if (match.image) {
-        setMainImage(match.image);
-    } else if (Array.isArray(match.images) && match.images.length) {
-        setMainImage(match.images[0]);
+    const gallery =
+        (Array.isArray(match.images) && match.images.length) ? match.images
+        : match.image ? [match.image]
+        : (CURRENT_PRODUCT?.images || []);
+    const galleryKey = gallery.join("|");
+    if (galleryKey !== CURRENT_GALLERY_KEY) {
+        CURRENT_GALLERY_KEY = galleryKey;
+        renderImages(gallery);
     }
-    // else: leave product-level image as-is
+}
+
+/* =========================
+   CUSTOMIZATION:
+========================= */
+function renderCustomization(product) {
+    const wrap = document.getElementById("customizeWrap");
+    if (!wrap) return;
+    CUSTOM_MODE = false;
+
+    if (!product.has_customization) {
+        wrap.style.display = "none";
+        wrap.innerHTML = "";
+        return;
+    }
+
+    const fields = Array.isArray(product.customization_fields) ? product.customization_fields : [];
+
+    let formHtml;
+    if (fields.length) {
+        formHtml = fields.map((f, i) => {
+            const id = `cf_${i}`;
+            const req = f.required ? ` <span class="cf-req">*</span>` : "";
+            const ph = escapeHtml(f.placeholder || "");
+            let input;
+            if (f.type === "textarea") {
+                input = `<textarea id="${id}" data-cf="${i}" maxlength="500" placeholder="${ph}"></textarea>`;
+            } else if (f.type === "select") {
+                const opts = (f.options || []).map(o => `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join("");
+                input = `<select id="${id}" data-cf="${i}"><option value="">Select...</option>${opts}</select>`;
+            } else if (f.type === "number") {
+                input = `<input type="number" id="${id}" data-cf="${i}" placeholder="${ph}">`;
+            } else {
+                input = `<input type="text" id="${id}" data-cf="${i}" maxlength="200" placeholder="${ph}">`;
+            }
+            return `<div class="customize-field" data-cf-wrap="${i}">
+                        <label for="${id}">${escapeHtml(f.label)}${req}</label>
+                        ${input}
+                    </div>`;
+        }).join("");
+    } else {
+        const placeholder = product.customization_placeholder || "Write what you want customized...";
+        formHtml = `<div class="customize-field" data-cf-wrap="note">
+                        <textarea id="customizeNote" maxlength="1000" placeholder="${escapeHtml(placeholder)}"></textarea>
+                    </div>`;
+    }
+
+    wrap.style.display = "block";
+    wrap.innerHTML = `
+        <div class="customize-title">Type</div>
+        <div class="customize-seg" role="group" aria-label="Standard or customized">
+            <button type="button" class="customize-opt active" data-mode="standard">Standard</button>
+            <button type="button" class="customize-opt" data-mode="custom">Customized</button>
+        </div>
+        <div class="customize-note-box" id="customizeNoteBox">${formHtml}</div>
+    `;
+
+    const box = document.getElementById("customizeNoteBox");
+
+    wrap.querySelectorAll(".customize-opt").forEach(btn => {
+        btn.addEventListener("click", () => {
+            CUSTOM_MODE = btn.dataset.mode === "custom";
+            wrap.querySelectorAll(".customize-opt").forEach(b => b.classList.toggle("active", b === btn));
+            box.classList.toggle("show", CUSTOM_MODE);
+            box.querySelectorAll(".customize-field.error").forEach(el => el.classList.remove("error"));
+            if (CUSTOM_MODE) box.querySelector("input, textarea, select")?.focus();
+        });
+    });
+
+    box.addEventListener("input", (e) => {
+        if (String(e.target.value || "").trim()) e.target.closest(".customize-field")?.classList.remove("error");
+    });
+    box.addEventListener("change", (e) => {
+        if (String(e.target.value || "").trim()) e.target.closest(".customize-field")?.classList.remove("error");
+    });
+}
+
+function readCustomization(product) {
+    if (!product || !product.has_customization || !CUSTOM_MODE) return { ok: true, note: "" };
+
+    const fields = Array.isArray(product.customization_fields) ? product.customization_fields : [];
+
+    if (!fields.length) {
+        const ta = document.getElementById("customizeNote");
+        const note = (ta?.value || "").trim();
+        if (!note) {
+            ta?.closest(".customize-field")?.classList.add("error");
+            toast?.("Please write what you want customized");
+            document.getElementById("customizeWrap")?.scrollIntoView({ behavior: "smooth", block: "center" });
+            ta?.focus();
+            return { ok: false, note: "" };
+        }
+        return { ok: true, note };
+    }
+
+    const lines = [];
+    let firstMissing = null;
+
+    fields.forEach((f, i) => {
+        const el = document.getElementById(`cf_${i}`);
+        const value = String(el?.value || "").trim();
+        if (!value) {
+            if (f.required) {
+                el?.closest(".customize-field")?.classList.add("error");
+                if (!firstMissing) firstMissing = { f, el };
+            }
+            return;
+        }
+        lines.push(`${f.label}: ${value}`);
+    });
+
+    if (firstMissing) {
+        toast?.(`Please fill: ${firstMissing.f.label}`);
+        firstMissing.el?.scrollIntoView({ behavior: "smooth", block: "center" });
+        firstMissing.el?.focus();
+        return { ok: false, note: "" };
+    }
+
+    if (!lines.length) {
+        toast?.("Please fill in at least one customization field");
+        document.getElementById("customizeWrap")?.scrollIntoView({ behavior: "smooth", block: "center" });
+        return { ok: false, note: "" };
+    }
+
+    return { ok: true, note: lines.join("\n").slice(0, 1000) };
+}
+
+function currentVariantImage(product) {
+    return SELECTED_VARIANT?.image || product.images?.[0] || "";
 }
 
 /* =========================
@@ -780,6 +919,9 @@ function setupButtons(product, slug) {
                 return;
             }
 
+            const custom = readCustomization(product);
+            if (!custom.ok) return;
+
             GAAddToCartEvent({
                 id: product.id,
                 name: product.name,
@@ -800,16 +942,18 @@ function setupButtons(product, slug) {
                 const variant = SELECTED_VARIANT;
                 guestCartAdd(product.id, variant ? variant.id : null, 1, {
                     name: product.name,
-                    image: product.images?.[0] || "",
+                    image: currentVariantImage(product),
                     price: variant ? variant.price : product.price,
                     discount_price: variant ? variant.discount_price : product.discount_price,
                     attributes: variant ? variant.attributes : null,
+                    customization_note: custom.note,
                 });
 
                 localStorage.setItem("checkout_guest_items", JSON.stringify([{
                     product_id: product.id,
                     variant_id: variant ? variant.id : null,
-                    quantity: 1
+                    quantity: 1,
+                    customization_note: custom.note
                 }]));
                 localStorage.removeItem("checkout_cart_ids");
 
@@ -820,6 +964,7 @@ function setupButtons(product, slug) {
             try {
                 const payload = { product_id: product.id, quantity: 1 };
                 if (SELECTED_VARIANT) payload.variant_id = SELECTED_VARIANT.id;
+                if (custom.note) payload.customization_note = custom.note;
 
                 const addRes = await fetch(`${API_BASE}/cart/add/`, {
                     method: "POST",
@@ -849,7 +994,12 @@ function setupButtons(product, slug) {
                     return;
                 }
 
-                const cartItem = cartData.data[cartData.data.length - 1];
+                // Pick the line we just added (same product + variant + note); fall back to the last one.
+                const cartItem = cartData.data.slice().reverse().find(ci =>
+                    ci.product_id === product.id &&
+                    (ci.variant_id || null) === (SELECTED_VARIANT ? SELECTED_VARIANT.id : null) &&
+                    (ci.customization_note || "") === custom.note
+                ) || cartData.data[cartData.data.length - 1];
                 localStorage.setItem("checkout_cart_ids", JSON.stringify([cartItem.id]));
                 localStorage.removeItem("checkout_guest_items");
 
@@ -874,12 +1024,15 @@ function setupButtons(product, slug) {
                 requireVariantSelection();
                 return;
             }
+            const custom = readCustomization(product);
+            if (!custom.ok) return;
             quickAddCart(product.id, SELECTED_VARIANT ? SELECTED_VARIANT.id : null, {
                 name: product.name,
-                image: SELECTED_VARIANT?.image || product.images?.[0] || "",
+                image: currentVariantImage(product),
                 price: SELECTED_VARIANT ? SELECTED_VARIANT.price : product.price,
                 discount_price: SELECTED_VARIANT ? SELECTED_VARIANT.discount_price : product.discount_price,
                 attributes: SELECTED_VARIANT ? SELECTED_VARIANT.attributes : null,
+                customization_note: custom.note,
             });
         };
     });

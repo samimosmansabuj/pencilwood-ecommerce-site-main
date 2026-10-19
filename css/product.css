@@ -820,3 +820,48 @@
   .rv-item p, .rv-comment { font-size: 11px; }
   .rv-toggle-btn { font-size: 11px; padding: 7px 16px; }
 }
+/* ===== Customization: Standard / Customized ===== */
+.customize-wrap { margin: 12px 0 6px; }
+.customize-title { font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #333; }
+.customize-seg {
+  display: inline-flex;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+.customize-opt {
+  padding: 8px 18px;
+  font-size: 13px;
+  cursor: pointer;
+  border: 0;
+  background: #fff;
+  color: #333;
+  transition: background .2s, color .2s;
+}
+.customize-opt + .customize-opt { border-left: 1px solid #ccc; }
+.customize-opt.active { background: #C9963A; color: #fff; }
+.customize-note-box { margin-top: 10px; display: none; }
+.customize-note-box.show { display: block; }
+.customize-field { margin-bottom: 10px; }
+.customize-field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; color: #333; }
+.customize-field .cf-req { color: #dc2626; }
+.customize-field input,
+.customize-field select,
+.customize-field textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #fff;
+  box-sizing: border-box;
+}
+.customize-field textarea { min-height: 84px; resize: vertical; }
+.customize-field input:focus,
+.customize-field select:focus,
+.customize-field textarea:focus { outline: none; border-color: #C9963A; }
+.customize-field.error input,
+.customize-field.error select,
+.customize-field.error textarea { border-color: #dc2626; }

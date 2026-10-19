@@ -317,6 +317,7 @@ function renderCheckoutProducts(items) {
                         ${item.product}${giftBadge}
                         ${variantText ? `<span style="color:#888;font-size:12px"> (${variantText})</span>` : ""}
                     </div>
+                    ${item.customization_note ? `<div class="ck-product-custom" style="font-size:12px;color:#8a6d2b;margin-top:2px;white-space:pre-line;">✏️ Customized: ${ckEscapeHtml(item.customization_note)}</div>` : ""}
                     <div class="ck-product-meta">
                         Qty: ${item.quantity}
                     </div>
@@ -744,6 +745,12 @@ function bindOrderAttemptCapture() {
     phoneField.addEventListener("blur", saveOrderAttemptIfPossible);
 }
 
+function ckEscapeHtml(str) {
+    return String(str == null ? "" : str)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
 async function saveOrderAttemptIfPossible() {
     const phone = document.getElementById("ckPhone")?.value.trim();
     if (!phone || phone.length < 11) return;
@@ -831,6 +838,7 @@ async function placeOrder() {
     const phone = document.getElementById("ckPhone").value.trim();
     const address = document.getElementById("ckAddress").value.trim();
     const district = document.getElementById("ckDistrict").value;
+    const note = (document.getElementById("ckNote")?.value || "").trim();
 
     try {
         let body;
@@ -840,14 +848,14 @@ async function placeOrder() {
         if (isLoggedIn()) {
             const selectedCartIds = JSON.parse(localStorage.getItem("checkout_cart_ids")) || [];
             const guestItemsFallback = JSON.parse(localStorage.getItem("checkout_guest_items")) || [];
-            body = { cart_ids: selectedCartIds, items: guestItemsFallback, name, phone, address, district, coupon_code: couponCode, ...attribution };
+            body = { cart_ids: selectedCartIds, items: guestItemsFallback, name, phone, address, district, note, coupon_code: couponCode, ...attribution };
         } else {
             const guestItems = JSON.parse(localStorage.getItem("checkout_guest_items")) || [];
             if (!guestItems.length) {
                 toast("No items to checkout");
                 return;
             }
-            body = { items: guestItems, name, phone, address, district, coupon_code: couponCode, ...attribution };
+            body = { items: guestItems, name, phone, address, district, note, coupon_code: couponCode, ...attribution };
         }
 
         const res = await fetch(`${API_BASE}/api/checkout/place-order/`, {

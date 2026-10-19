@@ -169,7 +169,8 @@ async function mergeGuestDataToAccount(token) {
                 cart: guestCart.map(i => ({
                     product_id: i.product_id,
                     variant_id: i.variant_id,
-                    quantity: i.quantity
+                    quantity: i.quantity,
+                    customization_note: i.customization_note || ""
                 })),
                 wishlist: guestWishlist.map(i => ({
                     product_id: i.product_id,
