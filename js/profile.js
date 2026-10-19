@@ -78,20 +78,20 @@ function fillProfile(profile) {
     ).value =
         profile.name || "";
 
-    document.getElementById(
-        "profilePhone"
-    ).value =
-        profile.phone || "";
+    const phoneInput = document.getElementById("profilePhone");
+    phoneInput.value = profile.phone || "";
+    phoneInput.readOnly = true;
+    phoneInput.placeholder = "Not added";
 
     document.getElementById(
         "profileWhatsapp"
     ).value =
         profile.whatsapp || "";
 
-    document.getElementById(
-        "profileEmail"
-    ).value =
-        profile.email || "";
+    const emailInput = document.getElementById("profileEmail");
+    emailInput.value = profile.email || "";
+    emailInput.readOnly = true;           // comes from Google / account, cannot be edited here
+    emailInput.placeholder = "No email added";
 }
 
 /* =========================
@@ -102,11 +102,6 @@ async function saveProfile() {
     const name =
         document.getElementById(
             "profileFullName"
-        ).value.trim();
-
-    const phone =
-        document.getElementById(
-            "profilePhone"
         ).value.trim();
 
     const whatsapp =
@@ -123,15 +118,6 @@ async function saveProfile() {
         return;
     }
 
-    if (!phone) {
-
-        toast(
-            "Enter phone number"
-        );
-
-        return;
-    }
-
     try {
 
         const res = await fetch(
@@ -143,7 +129,6 @@ async function saveProfile() {
 
                 body: JSON.stringify({
                     name,
-                    phone,
                     whatsapp
                 })
             }
