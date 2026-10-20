@@ -30,11 +30,35 @@ function guestCartCount() {
     return getGuestCart().reduce((sum, i) => sum + Number(i.quantity || 0), 0);
 }
 
+/* A different customization note is a different cart line. */
+function normCartNote(note) {
+    return String(note || "").trim().slice(0, 1000);
+}
+
+function cartNoteHash(note) {
+    const s = normCartNote(note);
+    if (!s) return "0";
+    let h = 5381;
+    for (let k = 0; k < s.length; k++) h = ((h * 33) ^ s.charCodeAt(k)) >>> 0;
+    return h.toString(36);
+}
+
+function cartEscapeHtml(str) {
+    return String(str == null ? "" : str)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+function sameGuestLine(i, productId, variantId, note) {
+    return i.product_id === productId &&
+        (i.variant_id || null) === (variantId || null) &&
+        normCartNote(i.customization_note) === normCartNote(note);
+}
+
 function guestCartAdd(productId, variantId, quantity, snapshot = {}) {
     const cart = getGuestCart();
-    const existing = cart.find(i =>
-        i.product_id === productId && (i.variant_id || null) === (variantId || null)
-    );
+    const note = normCartNote(snapshot.customization_note);
+    const existing = cart.find(i => sameGuestLine(i, productId, variantId, note));
 
     if (existing) {
         existing.quantity += quantity;
@@ -48,27 +72,24 @@ function guestCartAdd(productId, variantId, quantity, snapshot = {}) {
             price: snapshot.price || 0,
             discount_price: snapshot.discount_price || null,
             attributes: snapshot.attributes || null,
+            customization_note: note,
         });
     }
     saveGuestCart(cart);
 }
 
-function guestCartUpdateQty(productId, variantId, quantity) {
+function guestCartUpdateQty(productId, variantId, quantity, note = "") {
     const cart = getGuestCart();
-    const item = cart.find(i =>
-        i.product_id === productId && (i.variant_id || null) === (variantId || null)
-    );
+    const item = cart.find(i => sameGuestLine(i, productId, variantId, note));
     if (item) {
         item.quantity = quantity;
         saveGuestCart(cart);
     }
 }
 
-function guestCartRemove(productId, variantId) {
+function guestCartRemove(productId, variantId, note = "") {
     let cart = getGuestCart();
-    cart = cart.filter(i =>
-        !(i.product_id === productId && (i.variant_id || null) === (variantId || null))
-    );
+    cart = cart.filter(i => !sameGuestLine(i, productId, variantId, note));
     saveGuestCart(cart);
 }
 
@@ -152,6 +173,7 @@ async function loadCartItems() {
                     price: i.price,
                     total: i.total,
                     attributes: i.variant,
+                    customization_note: i.customization_note || "",
                     out_of_stock: false,
                 }));
             }
@@ -173,6 +195,7 @@ async function loadCartItems() {
                             let livePrice = live.price;
                             let liveDiscount = live.discount_price;
                             let liveStock = live.stock;
+                            let liveImage = live.image || item.image;
 
                             if (item.variant_id && Array.isArray(live.variants)) {
                                 const v = live.variants.find(v => v.id === item.variant_id);
@@ -180,13 +203,14 @@ async function loadCartItems() {
                                     livePrice = v.price;
                                     liveDiscount = v.discount_price;
                                     liveStock = v.stock;
+                                    liveImage = v.image || item.image || live.image;
                                 }
                             }
 
                             return {
                                 ...item,
                                 name: live.name || item.name,
-                                image: live.image || item.image,
+                                image: liveImage,
                                 price: livePrice,
                                 discount_price: liveDiscount,
                                 stock: liveStock,
@@ -205,7 +229,7 @@ async function loadCartItems() {
                 const unit = i.discount_price || i.price || 0;
                 const outOfStock = typeof i.stock === "number" && i.stock < i.quantity;
                 return {
-                    key: `guest-${i.product_id}-${i.variant_id || 0}`,
+                    key: `guest-${i.product_id}-${i.variant_id || 0}-${cartNoteHash(i.customization_note)}`,
                     server_id: null,
                     product_id: i.product_id,
                     variant_id: i.variant_id,
@@ -215,6 +239,7 @@ async function loadCartItems() {
                     price: unit,
                     total: unit * i.quantity,
                     attributes: i.attributes,
+                    customization_note: i.customization_note || "",
                     out_of_stock: outOfStock,
                 };
             });
@@ -259,6 +284,7 @@ async function loadCartItems() {
                         ${productName}
                         ${variantText ? `<span style="color:#888;font-size:12px"> (${variantText})</span>` : ""}
                     </div>
+                    ${item.customization_note ? `<div class="cart-custom-note" style="font-size:12px;color:#8a6d2b;margin-top:2px;white-space:pre-line;">✏️ Customized: ${cartEscapeHtml(item.customization_note)}</div>` : ""}
                     <div class="cart-total-price">৳ ${item.total}</div>
                     <div class="cart-subtotal-mini">${item.quantity} x ৳ ${item.price}</div>
                     ${stockWarning}
@@ -296,7 +322,8 @@ function goToCheckout() {
         const selectedItems = selected.map(i => ({
             product_id: i.product_id,
             variant_id: i.variant_id,
-            quantity: i.quantity
+            quantity: i.quantity,
+            customization_note: i.customization_note || ""
         }));
         localStorage.setItem("checkout_guest_items", JSON.stringify(selectedItems));
         localStorage.removeItem("checkout_cart_ids");
@@ -372,7 +399,7 @@ async function stepCartQty(key, delta) {
         }, 250);
         pendingCartPageUpdates.set(key, timer);
     } else {
-        guestCartUpdateQty(item.product_id, item.variant_id, newQty);
+        guestCartUpdateQty(item.product_id, item.variant_id, newQty, item.customization_note);
         updateCartCountFromBackend?.();
     }
 
@@ -403,7 +430,7 @@ async function removeCartItem(key) {
         const data = await res.json();
         if (data.status) loadCartItems();
     } else {
-        guestCartRemove(item.product_id, item.variant_id);
+        guestCartRemove(item.product_id, item.variant_id, item.customization_note);
         loadCartItems();
         updateCartCountFromBackend?.();
     }

@@ -151,6 +151,14 @@ function renderItems(items) {
                 });
         }
 
+        if (item.customization_note) {
+            variantHtml += `
+                <div class="oi-meta" style="color:#8a6d2b;white-space:pre-line;">
+                    ✏️ Customized: ${ordEscapeHtml(item.customization_note)}
+                </div>
+            `;
+        }
+
         let imageUrl = item.image;
 
         if (
@@ -239,7 +247,24 @@ function renderDelivery(order) {
             ${order.address || "-"}
         </p>
 
+        ${
+            order.note
+            ? `
+                <p>
+                    <strong>Order Note:</strong>
+                    ${ordEscapeHtml(order.note)}
+                </p>
+            `
+            : ""
+        }
+
     `;
+}
+
+function ordEscapeHtml(str) {
+    return String(str == null ? "" : str)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
 /* =========================

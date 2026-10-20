@@ -72,7 +72,7 @@
 
         const rows = bill.items.map(it => `
             <tr>
-                <td>${esc(it.name)}${it.variant ? `<span class="pw-bill-var">${esc(it.variant)}</span>` : ""}</td>
+                <td>${esc(it.name)}${it.variant ? `<span class="pw-bill-var">${esc(it.variant)}</span>` : ""}${it.customization ? `<span class="pw-bill-var" style="white-space:pre-line;">✏️ ${esc(it.customization)}</span>` : ""}</td>
                 <td class="c">${esc(it.quantity)}</td>
                 <td class="r">${it.is_free ? "ফ্রি" : money(it.line_total)}</td>
             </tr>`).join("");

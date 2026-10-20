@@ -655,6 +655,7 @@ async function quickAddCart(productId, variantId = null, snapshot = null) {
     try {
         const payload = { product_id: productId, quantity: 1 };
         if (variantId) payload.variant_id = variantId;
+        if (snapshot?.customization_note) payload.customization_note = snapshot.customization_note;
 
         const response = await fetch(`${API_BASE}/cart/add/`, {
             method: "POST",
