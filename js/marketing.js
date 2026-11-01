@@ -16,7 +16,10 @@ async function initTracking() {    try {
         // landing page   -> ?landing_code=..  (set by /js/env.js from the landing folder name, per-landing pixel/GTM override)        
         const qs = new URLSearchParams();
         if (window.__CURRENT_PRODUCT_ID__) qs.set("product_id", window.__CURRENT_PRODUCT_ID__);
-        if (window.__CURRENT_LANDING_CODE__) qs.set("landing_code", window.__CURRENT_LANDING_CODE__);
+        if (window.__CURRENT_LANDING_CODE__) {
+            qs.set("landing_code", window.__CURRENT_LANDING_CODE__);
+            qs.set("landing_source", "ecom");
+        }
         const pid = qs.toString() ? `?${qs.toString()}` : "";
         const res = await fetch(`${window.API_BASE}/api/tracking-settings/${pid}`);
         const json = await res.json();
