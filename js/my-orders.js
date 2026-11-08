@@ -85,6 +85,7 @@ async function loadOrders() {
                                 ${item.name}
                                 ${variantText ? `<span style="color:#888;font-size:12px"> (${variantText})</span>` : ""}
                             </div>
+                            ${Number(item.customization_price) > 0 ? `<div class="oi-meta" style="color:#8a6d2b;">Includes customization ৳ ${item.customization_price}${item.qty > 1 ? " each" : ""}</div>` : ""}
                             ${item.customization_note ? `<div class="oi-meta" style="color:#8a6d2b;white-space:pre-line;">✏️ Customized: ${String(item.customization_note).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>` : ""}
                             <div class="oi-meta">
                                 Qty: ${item.qty}

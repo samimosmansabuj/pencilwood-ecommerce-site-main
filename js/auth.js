@@ -170,6 +170,7 @@ async function mergeGuestDataToAccount(token) {
                     product_id: i.product_id,
                     variant_id: i.variant_id,
                     quantity: i.quantity,
+                    is_customized: !!i.is_customized,
                     customization_note: i.customization_note || ""
                 })),
                 wishlist: guestWishlist.map(i => ({

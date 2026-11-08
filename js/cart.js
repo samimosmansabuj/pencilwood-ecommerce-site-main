@@ -49,16 +49,27 @@ function cartEscapeHtml(str) {
         .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
-function sameGuestLine(i, productId, variantId, note) {
+function sameGuestLine(i, productId, variantId, customized) {
     return i.product_id === productId &&
         (i.variant_id || null) === (variantId || null) &&
-        normCartNote(i.customization_note) === normCartNote(note);
+        !!i.is_customized === !!customized;
+}
+
+function cartExtraPrice(i) {
+    return i && i.is_customized ? Number(i.customization_price || 0) : 0;
+}
+
+function cartCustomBadge(item) {
+    if (!item.is_customized) return "";
+    const extra = Number(item.customization_price || 0);
+    return `<div class="cart-custom-note" style="font-size:12px;color:#8a6d2b;margin-top:2px;">✏️ Customized${extra ? ` (+৳ ${extra})` : ""} · write details at checkout</div>`;
 }
 
 function guestCartAdd(productId, variantId, quantity, snapshot = {}) {
     const cart = getGuestCart();
     const note = normCartNote(snapshot.customization_note);
-    const existing = cart.find(i => sameGuestLine(i, productId, variantId, note));
+    const customized = !!snapshot.is_customized;
+    const existing = cart.find(i => sameGuestLine(i, productId, variantId, customized));
 
     if (existing) {
         existing.quantity += quantity;
@@ -73,23 +84,25 @@ function guestCartAdd(productId, variantId, quantity, snapshot = {}) {
             discount_price: snapshot.discount_price || null,
             attributes: snapshot.attributes || null,
             customization_note: note,
+            is_customized: customized,
+            customization_price: Number(snapshot.customization_price || 0),
         });
     }
     saveGuestCart(cart);
 }
 
-function guestCartUpdateQty(productId, variantId, quantity, note = "") {
+function guestCartUpdateQty(productId, variantId, quantity, customized = false) {
     const cart = getGuestCart();
-    const item = cart.find(i => sameGuestLine(i, productId, variantId, note));
+    const item = cart.find(i => sameGuestLine(i, productId, variantId, customized));
     if (item) {
         item.quantity = quantity;
         saveGuestCart(cart);
     }
 }
 
-function guestCartRemove(productId, variantId, note = "") {
+function guestCartRemove(productId, variantId, customized = false) {
     let cart = getGuestCart();
-    cart = cart.filter(i => !sameGuestLine(i, productId, variantId, note));
+    cart = cart.filter(i => !sameGuestLine(i, productId, variantId, customized));
     saveGuestCart(cart);
 }
 
@@ -174,6 +187,8 @@ async function loadCartItems() {
                     total: i.total,
                     attributes: i.variant,
                     customization_note: i.customization_note || "",
+                    is_customized: !!i.is_customized,
+                    customization_price: Number(i.customization_price || 0),
                     out_of_stock: false,
                 }));
             }
@@ -196,10 +211,12 @@ async function loadCartItems() {
                             let liveDiscount = live.discount_price;
                             let liveStock = live.stock;
                             let liveImage = live.image || item.image;
+                            let liveCustomPrice = Number(live.customization_price || 0);
 
                             if (item.variant_id && Array.isArray(live.variants)) {
                                 const v = live.variants.find(v => v.id === item.variant_id);
                                 if (v) {
+                                    if (v.customization_price != null) liveCustomPrice = Number(v.customization_price);
                                     livePrice = v.price;
                                     liveDiscount = v.discount_price;
                                     liveStock = v.stock;
@@ -211,6 +228,7 @@ async function loadCartItems() {
                                 ...item,
                                 name: live.name || item.name,
                                 image: liveImage,
+                                customization_price: liveCustomPrice,
                                 price: livePrice,
                                 discount_price: liveDiscount,
                                 stock: liveStock,
@@ -226,10 +244,10 @@ async function loadCartItems() {
             }
 
             items = guestCart.map(i => {
-                const unit = i.discount_price || i.price || 0;
+                const unit = Number(i.discount_price || i.price || 0) + cartExtraPrice(i);
                 const outOfStock = typeof i.stock === "number" && i.stock < i.quantity;
                 return {
-                    key: `guest-${i.product_id}-${i.variant_id || 0}-${cartNoteHash(i.customization_note)}`,
+                    key: `guest-${i.product_id}-${i.variant_id || 0}-${i.is_customized ? 1 : 0}`,
                     server_id: null,
                     product_id: i.product_id,
                     variant_id: i.variant_id,
@@ -240,6 +258,8 @@ async function loadCartItems() {
                     total: unit * i.quantity,
                     attributes: i.attributes,
                     customization_note: i.customization_note || "",
+                    is_customized: !!i.is_customized,
+                    customization_price: Number(i.customization_price || 0),
                     out_of_stock: outOfStock,
                 };
             });
@@ -284,7 +304,7 @@ async function loadCartItems() {
                         ${productName}
                         ${variantText ? `<span style="color:#888;font-size:12px"> (${variantText})</span>` : ""}
                     </div>
-                    ${item.customization_note ? `<div class="cart-custom-note" style="font-size:12px;color:#8a6d2b;margin-top:2px;white-space:pre-line;">✏️ Customized: ${cartEscapeHtml(item.customization_note)}</div>` : ""}
+                    ${cartCustomBadge(item)}
                     <div class="cart-total-price">৳ ${item.total}</div>
                     <div class="cart-subtotal-mini">${item.quantity} x ৳ ${item.price}</div>
                     ${stockWarning}
@@ -323,6 +343,7 @@ function goToCheckout() {
             product_id: i.product_id,
             variant_id: i.variant_id,
             quantity: i.quantity,
+            is_customized: !!i.is_customized,
             customization_note: i.customization_note || ""
         }));
         localStorage.setItem("checkout_guest_items", JSON.stringify(selectedItems));
@@ -399,7 +420,7 @@ async function stepCartQty(key, delta) {
         }, 250);
         pendingCartPageUpdates.set(key, timer);
     } else {
-        guestCartUpdateQty(item.product_id, item.variant_id, newQty, item.customization_note);
+        guestCartUpdateQty(item.product_id, item.variant_id, newQty, item.is_customized);
         updateCartCountFromBackend?.();
     }
 
@@ -430,7 +451,7 @@ async function removeCartItem(key) {
         const data = await res.json();
         if (data.status) loadCartItems();
     } else {
-        guestCartRemove(item.product_id, item.variant_id, item.customization_note);
+        guestCartRemove(item.product_id, item.variant_id, item.is_customized);
         loadCartItems();
         updateCartCountFromBackend?.();
     }

@@ -15,6 +15,155 @@ let appliedCoupon = null;
 
 let couponDiscount = 0;
 
+let ckCustomState = {};
+
+(function injectCkCustomStyles() {
+    if (document.getElementById("ckCustomStyles")) return;
+    const st = document.createElement("style");
+    st.id = "ckCustomStyles";
+    st.textContent = `
+        .ck-custom-box{margin-top:8px;padding:10px 12px;border:1px dashed #C9963A;border-radius:10px;background:#fffaf0;}
+        .ck-custom-head{font-size:13px;font-weight:700;color:#8a6d2b;margin-bottom:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+        .ck-custom-chip{font-size:11px;font-weight:700;background:#C9963A;color:#fff;padding:1px 8px;border-radius:999px;}
+        .ck-cf-field{margin-bottom:8px;}
+        .ck-cf-field:last-child{margin-bottom:0;}
+        .ck-cf-field label{display:block;font-size:12px;font-weight:600;margin-bottom:3px;color:#333;}
+        .ck-cf-field .ck-req{color:#dc2626;}
+        .ck-cf-field input,.ck-cf-field select,.ck-cf-field textarea{width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #ccc;border-radius:8px;font-size:14px;font-family:inherit;background:#fff;}
+        .ck-cf-field textarea{min-height:70px;resize:vertical;}
+        .ck-cf-field input:focus,.ck-cf-field select:focus,.ck-cf-field textarea:focus{outline:none;border-color:#C9963A;}
+        .ck-cf-field.error input,.ck-cf-field.error select,.ck-cf-field.error textarea{border-color:#dc2626;background:#fff5f5;}
+    `;
+    document.head.appendChild(st);
+})();
+
+function ckLineKey(item) {
+    return item.cart_id != null ? `c${item.cart_id}` : `g${item.line_index}`;
+}
+
+function ckNoteMapKey(item) {
+    return String(item.cart_id != null ? item.cart_id : item.line_index);
+}
+
+function ckCustomItems() {
+    return (checkoutData?.items || []).filter(i => i.is_customized && !i.is_gift);
+}
+
+function ckCustomBlock(item) {
+    if (!item.is_customized || item.is_gift) return "";
+
+    const key = ckLineKey(item);
+    const st = ckCustomState[key] || { f: {}, note: "" };
+    const fields = Array.isArray(item.customization_fields) ? item.customization_fields : [];
+    const extra = Number(item.customization_price || 0);
+    const mandatory = item.customization_mode === "mandatory";
+
+    let body;
+    if (fields.length) {
+        body = fields.map((f, i) => {
+            const val = st.f[i] != null ? st.f[i] : "";
+            const req = f.required ? ` <span class="ck-req">*</span>` : "";
+            const ph = ckEscapeHtml(f.placeholder || "");
+            const attrs = `data-ck-line="${key}" data-ck-field="${i}"`;
+            let input;
+            if (f.type === "textarea") {
+                input = `<textarea ${attrs} maxlength="500" placeholder="${ph}">${ckEscapeHtml(val)}</textarea>`;
+            } else if (f.type === "select") {
+                const opts = (f.options || []).map(o =>
+                    `<option value="${ckEscapeHtml(o)}" ${o === val ? "selected" : ""}>${ckEscapeHtml(o)}</option>`).join("");
+                input = `<select ${attrs}><option value="">Select...</option>${opts}</select>`;
+            } else if (f.type === "number") {
+                input = `<input type="number" ${attrs} value="${ckEscapeHtml(val)}" placeholder="${ph}">`;
+            } else {
+                input = `<input type="text" ${attrs} maxlength="200" value="${ckEscapeHtml(val)}" placeholder="${ph}">`;
+            }
+            return `<div class="ck-cf-field" data-ck-wrap="${key}-${i}">
+                        <label>${ckEscapeHtml(f.label)}${req}</label>${input}
+                    </div>`;
+        }).join("");
+    } else {
+        const val = st.note || item.customization_note || "";
+        const ph = ckEscapeHtml(item.customization_placeholder || "Write what you want customized...");
+        body = `<div class="ck-cf-field" data-ck-wrap="${key}-note">
+                    <textarea data-ck-line="${key}" maxlength="1000" placeholder="${ph}">${ckEscapeHtml(val)}</textarea>
+                </div>`;
+    }
+
+    return `<div class="ck-custom-box" data-ck-box="${key}">
+                <div class="ck-custom-head">
+                    ✏️ ${mandatory ? "Customization details" : "Customized"} — ${ckEscapeHtml(item.product)}
+                    ${extra > 0 ? `<span class="ck-custom-chip">+৳ ${extra} each</span>` : ""}
+                </div>
+                ${body}
+            </div>`;
+}
+
+function ckOnCustomInput(e) {
+    const el = e.target;
+    if (!el || !el.dataset || el.dataset.ckLine === undefined) return;
+    const key = el.dataset.ckLine;
+    const st = (ckCustomState[key] = ckCustomState[key] || { f: {}, note: "" });
+    if (el.dataset.ckField !== undefined) st.f[el.dataset.ckField] = el.value;
+    else st.note = el.value;
+    if (String(el.value || "").trim()) el.closest(".ck-cf-field")?.classList.remove("error");
+}
+document.addEventListener("input", ckOnCustomInput);
+document.addEventListener("change", ckOnCustomInput);
+
+function ckComposeNote(item) {
+    const st = ckCustomState[ckLineKey(item)] || { f: {}, note: "" };
+    const fields = Array.isArray(item.customization_fields) ? item.customization_fields : [];
+    if (!fields.length) {
+        return String(st.note != null && st.note !== "" ? st.note : (item.customization_note || "")).trim().slice(0, 1000);
+    }
+    const lines = [];
+    fields.forEach((f, i) => {
+        const v = String(st.f[i] || "").trim();
+        if (v) lines.push(`${f.label}: ${v}`);
+    });
+    return lines.join("\n").slice(0, 1000);
+}
+
+function ckCollectCustomNotes() {
+    const out = {};
+    ckCustomItems().forEach(item => { out[ckNoteMapKey(item)] = ckComposeNote(item); });
+    return out;
+}
+
+function ckValidateCustomization() {
+    for (const item of ckCustomItems()) {
+        const key = ckLineKey(item);
+        const st = ckCustomState[key] || { f: {}, note: "" };
+        const fields = Array.isArray(item.customization_fields) ? item.customization_fields : [];
+        let firstBad = null;
+
+        if (fields.length) {
+            fields.forEach((f, i) => {
+                if (f.required && !String(st.f[i] || "").trim()) {
+                    const w = document.querySelector(`[data-ck-wrap="${key}-${i}"]`);
+                    w?.classList.add("error");
+                    if (!firstBad) firstBad = w;
+                }
+            });
+            if (!firstBad && !ckComposeNote(item)) {
+                firstBad = document.querySelector(`[data-ck-wrap="${key}-0"]`);
+                firstBad?.classList.add("error");
+            }
+        } else if (!ckComposeNote(item)) {
+            firstBad = document.querySelector(`[data-ck-wrap="${key}-note"]`);
+            firstBad?.classList.add("error");
+        }
+
+        if (firstBad || (!fields.length && !ckComposeNote(item))) {
+            toast(`Please write the customization for ${item.product}`);
+            (firstBad || document.querySelector(`[data-ck-box="${key}"]`))?.scrollIntoView({ behavior: "smooth", block: "center" });
+            firstBad?.querySelector("input, textarea, select")?.focus();
+            return false;
+        }
+    }
+    return true;
+}
+
 /* =========================================
    INIT
 ========================================= */
@@ -317,10 +466,13 @@ function renderCheckoutProducts(items) {
                         ${item.product}${giftBadge}
                         ${variantText ? `<span style="color:#888;font-size:12px"> (${variantText})</span>` : ""}
                     </div>
-                    ${item.customization_note ? `<div class="ck-product-custom" style="font-size:12px;color:#8a6d2b;margin-top:2px;white-space:pre-line;">✏️ Customized: ${ckEscapeHtml(item.customization_note)}</div>` : ""}
                     <div class="ck-product-meta">
                         Qty: ${item.quantity}
                     </div>
+                    ${item.is_customized && Number(item.customization_price) > 0 && Number(item.quantity) > 0
+                        ? `<div class="ck-product-meta" style="color:#8a6d2b;">Base ৳ ${Math.round(item.total / item.quantity - item.customization_price)} + Customization ৳ ${item.customization_price}${item.quantity > 1 ? " each" : ""}</div>`
+                        : ""}
+                    ${ckCustomBlock(item)}
                 </div>
                 <div class="ck-product-right">
                     <div class="ck-product-price">
@@ -566,6 +718,17 @@ async function loadSavedAddresses() {
         );
 
     if (!select) return;
+
+    // Saved addresses are only for logged-in accounts. Guests just type the address.
+    const savedField = document.getElementById("ckSavedAddressField");
+    const addressLabel = document.getElementById("ckAddressFieldLabel");
+    if (!isLoggedIn()) {
+        window.__SAVED_ADDRESSES__ = [];
+        if (savedField) savedField.style.display = "none";
+        if (addressLabel) addressLabel.textContent = "Address";
+        return;
+    }
+    if (savedField) savedField.style.display = "";
 
     let addresses = [];
 
@@ -827,6 +990,10 @@ async function placeOrder() {
         return;
     }
 
+    if (!ckValidateCustomization()) {
+        return;
+    }
+
     const placeBtn = document.getElementById("placeOrderBtn");
     if (placeBtn) {
         if (placeBtn.disabled) return;
@@ -848,14 +1015,14 @@ async function placeOrder() {
         if (isLoggedIn()) {
             const selectedCartIds = JSON.parse(localStorage.getItem("checkout_cart_ids")) || [];
             const guestItemsFallback = JSON.parse(localStorage.getItem("checkout_guest_items")) || [];
-            body = { cart_ids: selectedCartIds, items: guestItemsFallback, name, phone, address, district, note, coupon_code: couponCode, ...attribution };
+            body = { cart_ids: selectedCartIds, items: guestItemsFallback, name, phone, address, district, note, coupon_code: couponCode, customization_notes: ckCollectCustomNotes(), ...attribution };
         } else {
             const guestItems = JSON.parse(localStorage.getItem("checkout_guest_items")) || [];
             if (!guestItems.length) {
                 toast("No items to checkout");
                 return;
             }
-            body = { items: guestItems, name, phone, address, district, note, coupon_code: couponCode, ...attribution };
+            body = { items: guestItems, name, phone, address, district, note, coupon_code: couponCode, customization_notes: ckCollectCustomNotes(), ...attribution };
         }
 
         const res = await fetch(`${API_BASE}/api/checkout/place-order/`, {

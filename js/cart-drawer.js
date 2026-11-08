@@ -46,7 +46,13 @@
     function sameLine(i, item) {
       return i.product_id === item.product_id &&
         (i.variant_id || null) === (item.variant_id || null) &&
-        normNote(i.customization_note) === normNote(item.customization_note);
+        !!i.is_customized === !!item.is_customized;
+    }
+
+    function customBadge(item) {
+      if (!item.is_customized) return "";
+      const extra = Number(item.customization_price || 0);
+      return `<span class="drawer-item-variant" style="color:#8a6d2b;display:block;">✏️ Customized${extra ? ` (+৳ ${extra})` : ""} · details at checkout</span>`;
     }
   
     function getLocalGuestCart() {
@@ -171,6 +177,8 @@
               total: Number(i.total || (i.price * i.quantity)),
               attributes: i.variant || null,
               customization_note: i.customization_note || "",
+              is_customized: !!i.is_customized,
+              customization_price: Number(i.customization_price || 0),
               out_of_stock: false,
             }));
           }
@@ -193,10 +201,12 @@
                     let liveDiscount = live.discount_price;
                     let liveStock = live.stock;
                     let liveImage = live.image || item.image;
+                    let liveCustomPrice = Number(live.customization_price || 0);
   
                     if (item.variant_id && Array.isArray(live.variants)) {
                       const v = live.variants.find(v => v.id === item.variant_id);
                       if (v) {
+                        if (v.customization_price != null) liveCustomPrice = Number(v.customization_price);
                         livePrice = v.price;
                         liveDiscount = v.discount_price;
                         liveStock = v.stock;
@@ -208,6 +218,7 @@
                       ...item,
                       name: live.name || item.name,
                       image: liveImage,
+                      customization_price: liveCustomPrice,
                       price: livePrice,
                       discount_price: liveDiscount,
                       stock: liveStock,
@@ -223,11 +234,12 @@
           }
   
           items = guestCart.map(i => {
-            const unit = Number(i.discount_price || i.price || 0);
+            const extra = i.is_customized ? Number(i.customization_price || 0) : 0;
+            const unit = Number(i.discount_price || i.price || 0) + extra;
             const qty = Number(i.quantity || 1);
             const outOfStock = typeof i.stock === "number" && i.stock < qty;
             return {
-              key: `guest-${i.product_id}-${i.variant_id || 0}-${noteHash(i.customization_note)}`,
+              key: `guest-${i.product_id}-${i.variant_id || 0}-${i.is_customized ? 1 : 0}`,
               server_id: null,
               product_id: i.product_id,
               variant_id: i.variant_id,
@@ -238,6 +250,8 @@
               total: unit * qty,
               attributes: i.attributes,
               customization_note: i.customization_note || "",
+              is_customized: !!i.is_customized,
+              customization_price: Number(i.customization_price || 0),
               out_of_stock: outOfStock,
             };
           });
@@ -288,7 +302,7 @@
             <div class="drawer-item-info">
               <span class="drawer-item-title" title="${title}">${title}</span>
               ${variantStr ? `<span class="drawer-item-variant">${escapeHtml(variantStr)}</span>` : ""}
-              ${item.customization_note ? `<span class="drawer-item-variant" style="color:#8a6d2b;white-space:pre-line;display:block;">✏️ ${escapeHtml(item.customization_note)}</span>` : ""}
+              ${customBadge(item)}
               <div class="drawer-item-price-row">
                 <span class="drawer-item-total">৳ ${item.total.toLocaleString()}</span>
                 <span class="drawer-item-unit">${item.quantity} × ৳ ${item.price.toLocaleString()}</span>
@@ -515,6 +529,7 @@
           product_id: i.product_id,
           variant_id: i.variant_id,
           quantity: i.quantity,
+          is_customized: !!i.is_customized,
           customization_note: i.customization_note || ""
         }));
         localStorage.setItem("checkout_guest_items", JSON.stringify(selectedItems));
