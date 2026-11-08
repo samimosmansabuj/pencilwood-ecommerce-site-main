@@ -151,6 +151,14 @@ function renderItems(items) {
                 });
         }
 
+        if (Number(item.customization_price) > 0) {
+            variantHtml += `
+                <div class="oi-meta" style="color:#8a6d2b;">
+                    Base ৳ ${item.base_price} + Customization ৳ ${item.customization_price}${item.qty > 1 ? " each" : ""}
+                </div>
+            `;
+        }
+
         if (item.customization_note) {
             variantHtml += `
                 <div class="oi-meta" style="color:#8a6d2b;white-space:pre-line;">

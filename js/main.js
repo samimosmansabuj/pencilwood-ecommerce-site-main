@@ -646,6 +646,8 @@ async function quickAddCart(productId, variantId = null, snapshot = null) {
             image: product?.image || "",
             price: product?.price || 0,
             discount_price: product?.discount_price || null,
+            is_customized: product?.customization_mode === "mandatory",
+            customization_price: product?.customization_price || 0,
         });
         toast("Added to cart 🛒");
         updateCartCountFromBackend();
@@ -656,6 +658,7 @@ async function quickAddCart(productId, variantId = null, snapshot = null) {
         const payload = { product_id: productId, quantity: 1 };
         if (variantId) payload.variant_id = variantId;
         if (snapshot?.customization_note) payload.customization_note = snapshot.customization_note;
+        if (snapshot?.is_customized) payload.is_customized = true;
 
         const response = await fetch(`${API_BASE}/cart/add/`, {
             method: "POST",

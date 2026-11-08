@@ -6,6 +6,7 @@ let CURRENT_PRODUCT = null;
 let SELECTED_VARIANT = null;
 let VARIANT_ATTR_STATE = {};
 let CUSTOM_MODE = false;
+let LAST_PRICE_ARGS = null;
 let CURRENT_GALLERY_KEY = "";
 
 // ===== Hover (desktop) / drag (mobile) zoom on product image =====
@@ -686,140 +687,114 @@ function selectVariantByAttributes(attrsWanted, variants, isUserClick = false) {
     // at the end of selectVariantByAttributes(), after renderPriceAndStock(...)
     initWishlist(CURRENT_PRODUCT.id);
 
-    const gallery =
-        (Array.isArray(match.images) && match.images.length) ? match.images
-        : match.image ? [match.image]
-        : (CURRENT_PRODUCT?.images || []);
+    const variantImgs = variantOwnImages(match);
+    const gallery = mergeGalleries(CURRENT_PRODUCT?.images, variantImgs);
     const galleryKey = gallery.join("|");
     if (galleryKey !== CURRENT_GALLERY_KEY) {
         CURRENT_GALLERY_KEY = galleryKey;
         renderImages(gallery);
     }
+    if (isUserClick && variantImgs.length) {
+        setMainImage(variantImgs[0]);
+    }
+}
+
+function variantOwnImages(v) {
+    if (!v) return [];
+    if (Array.isArray(v.images) && v.images.length) return v.images;
+    return v.image ? [v.image] : [];
+}
+
+function mergeGalleries(productImages, variantImages) {
+    const seen = new Set();
+    const out = [];
+    [...(productImages || []), ...(variantImages || [])].forEach(u => {
+        if (u && !seen.has(u)) {
+            seen.add(u);
+            out.push(u);
+        }
+    });
+    return out;
 }
 
 /* =========================
    CUSTOMIZATION:
 ========================= */
+
+function customExtraAmount() {
+    const p = CURRENT_PRODUCT;
+    if (!p || !p.has_customization) return 0;
+    if (SELECTED_VARIANT && SELECTED_VARIANT.customization_price != null) {
+        return Number(SELECTED_VARIANT.customization_price);
+    }
+    return Number(p.customization_price || 0);
+}
+
+function getCustomExtra() {
+    return CUSTOM_MODE ? customExtraAmount() : 0;
+}
+
+function updateCustomLabel() {
+    const btn = document.querySelector('#customizeWrap .customize-opt[data-mode="custom"]');
+    if (!btn) return;
+    const extra = customExtraAmount();
+    btn.textContent = extra > 0 ? `Customized (+৳ ${extra})` : "Customized";
+}
+
+function repaintPrice() {
+    if (LAST_PRICE_ARGS) renderPriceAndStock(...LAST_PRICE_ARGS);
+}
+
 function renderCustomization(product) {
     const wrap = document.getElementById("customizeWrap");
     if (!wrap) return;
     CUSTOM_MODE = false;
 
-    if (!product.has_customization) {
+    const mode = product.customization_mode || (product.has_customization ? "optional" : "off");
+
+    if (!product.has_customization || mode === "off") {
         wrap.style.display = "none";
         wrap.innerHTML = "";
         return;
     }
 
-    const fields = Array.isArray(product.customization_fields) ? product.customization_fields : [];
-
-    let formHtml;
-    if (fields.length) {
-        formHtml = fields.map((f, i) => {
-            const id = `cf_${i}`;
-            const req = f.required ? ` <span class="cf-req">*</span>` : "";
-            const ph = escapeHtml(f.placeholder || "");
-            let input;
-            if (f.type === "textarea") {
-                input = `<textarea id="${id}" data-cf="${i}" maxlength="500" placeholder="${ph}"></textarea>`;
-            } else if (f.type === "select") {
-                const opts = (f.options || []).map(o => `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join("");
-                input = `<select id="${id}" data-cf="${i}"><option value="">Select...</option>${opts}</select>`;
-            } else if (f.type === "number") {
-                input = `<input type="number" id="${id}" data-cf="${i}" placeholder="${ph}">`;
-            } else {
-                input = `<input type="text" id="${id}" data-cf="${i}" maxlength="200" placeholder="${ph}">`;
-            }
-            return `<div class="customize-field" data-cf-wrap="${i}">
-                        <label for="${id}">${escapeHtml(f.label)}${req}</label>
-                        ${input}
-                    </div>`;
-        }).join("");
-    } else {
-        const placeholder = product.customization_placeholder || "Write what you want customized...";
-        formHtml = `<div class="customize-field" data-cf-wrap="note">
-                        <textarea id="customizeNote" maxlength="1000" placeholder="${escapeHtml(placeholder)}"></textarea>
-                    </div>`;
+    if (mode === "mandatory") {
+        CUSTOM_MODE = true;
+        wrap.style.display = "none";
+        wrap.innerHTML = "";
+        return;
     }
+
+    const extra = customExtraAmount();
+    const extraText = extra > 0 ? ` (+৳ ${extra})` : "";
 
     wrap.style.display = "block";
     wrap.innerHTML = `
         <div class="customize-title">Type</div>
         <div class="customize-seg" role="group" aria-label="Standard or customized">
             <button type="button" class="customize-opt active" data-mode="standard">Standard</button>
-            <button type="button" class="customize-opt" data-mode="custom">Customized</button>
+            <button type="button" class="customize-opt" data-mode="custom">Customized${extraText}</button>
         </div>
-        <div class="customize-note-box" id="customizeNoteBox">${formHtml}</div>
+        <div id="customizeHint" style="display:none;font-size:12px;color:#8a6d2b;margin-top:6px;">
+            ✏️ You will write your customization details on the order form.
+        </div>
     `;
 
-    const box = document.getElementById("customizeNoteBox");
+    const hint = document.getElementById("customizeHint");
 
     wrap.querySelectorAll(".customize-opt").forEach(btn => {
         btn.addEventListener("click", () => {
             CUSTOM_MODE = btn.dataset.mode === "custom";
             wrap.querySelectorAll(".customize-opt").forEach(b => b.classList.toggle("active", b === btn));
-            box.classList.toggle("show", CUSTOM_MODE);
-            box.querySelectorAll(".customize-field.error").forEach(el => el.classList.remove("error"));
-            if (CUSTOM_MODE) box.querySelector("input, textarea, select")?.focus();
+            if (hint) hint.style.display = CUSTOM_MODE ? "block" : "none";
+            repaintPrice();
         });
-    });
-
-    box.addEventListener("input", (e) => {
-        if (String(e.target.value || "").trim()) e.target.closest(".customize-field")?.classList.remove("error");
-    });
-    box.addEventListener("change", (e) => {
-        if (String(e.target.value || "").trim()) e.target.closest(".customize-field")?.classList.remove("error");
     });
 }
 
 function readCustomization(product) {
-    if (!product || !product.has_customization || !CUSTOM_MODE) return { ok: true, note: "" };
-
-    const fields = Array.isArray(product.customization_fields) ? product.customization_fields : [];
-
-    if (!fields.length) {
-        const ta = document.getElementById("customizeNote");
-        const note = (ta?.value || "").trim();
-        if (!note) {
-            ta?.closest(".customize-field")?.classList.add("error");
-            toast?.("Please write what you want customized");
-            document.getElementById("customizeWrap")?.scrollIntoView({ behavior: "smooth", block: "center" });
-            ta?.focus();
-            return { ok: false, note: "" };
-        }
-        return { ok: true, note };
-    }
-
-    const lines = [];
-    let firstMissing = null;
-
-    fields.forEach((f, i) => {
-        const el = document.getElementById(`cf_${i}`);
-        const value = String(el?.value || "").trim();
-        if (!value) {
-            if (f.required) {
-                el?.closest(".customize-field")?.classList.add("error");
-                if (!firstMissing) firstMissing = { f, el };
-            }
-            return;
-        }
-        lines.push(`${f.label}: ${value}`);
-    });
-
-    if (firstMissing) {
-        toast?.(`Please fill: ${firstMissing.f.label}`);
-        firstMissing.el?.scrollIntoView({ behavior: "smooth", block: "center" });
-        firstMissing.el?.focus();
-        return { ok: false, note: "" };
-    }
-
-    if (!lines.length) {
-        toast?.("Please fill in at least one customization field");
-        document.getElementById("customizeWrap")?.scrollIntoView({ behavior: "smooth", block: "center" });
-        return { ok: false, note: "" };
-    }
-
-    return { ok: true, note: lines.join("\n").slice(0, 1000) };
+    const customized = !!(product && product.has_customization && CUSTOM_MODE);
+    return { ok: true, customized, note: "" };
 }
 
 function currentVariantImage(product) {
@@ -831,8 +806,17 @@ function currentVariantImage(product) {
 ========================= */
 function renderPriceAndStock(price, discountPrice, stock) {
 
+    LAST_PRICE_ARGS = [price, discountPrice, stock];
+
     price = Number(price || 0);
     discountPrice = Number(discountPrice || 0);
+
+    updateCustomLabel();
+    const customExtra = getCustomExtra();
+    if (customExtra) {
+        price += customExtra;
+        if (discountPrice) discountPrice += customExtra;
+    }
     const finalPrice = discountPrice || price;
     stock = parseInt(stock ?? 0, 10);
 
@@ -946,14 +930,15 @@ function setupButtons(product, slug) {
                     price: variant ? variant.price : product.price,
                     discount_price: variant ? variant.discount_price : product.discount_price,
                     attributes: variant ? variant.attributes : null,
-                    customization_note: custom.note,
+                    is_customized: custom.customized,
+                    customization_price: customExtraAmount(),
                 });
 
                 localStorage.setItem("checkout_guest_items", JSON.stringify([{
                     product_id: product.id,
                     variant_id: variant ? variant.id : null,
                     quantity: 1,
-                    customization_note: custom.note
+                    is_customized: custom.customized
                 }]));
                 localStorage.removeItem("checkout_cart_ids");
 
@@ -964,7 +949,7 @@ function setupButtons(product, slug) {
             try {
                 const payload = { product_id: product.id, quantity: 1 };
                 if (SELECTED_VARIANT) payload.variant_id = SELECTED_VARIANT.id;
-                if (custom.note) payload.customization_note = custom.note;
+                if (custom.customized) payload.is_customized = true;
 
                 const addRes = await fetch(`${API_BASE}/cart/add/`, {
                     method: "POST",
@@ -994,12 +979,12 @@ function setupButtons(product, slug) {
                     return;
                 }
 
-                // Pick the line we just added (same product + variant + note); fall back to the last one.
-                const cartItem = cartData.data.slice().reverse().find(ci =>
-                    ci.product_id === product.id &&
-                    (ci.variant_id || null) === (SELECTED_VARIANT ? SELECTED_VARIANT.id : null) &&
-                    (ci.customization_note || "") === custom.note
-                ) || cartData.data[cartData.data.length - 1];
+                const cartItem = cartData.data.find(ci => addData.cart_id && ci.id === addData.cart_id) ||
+                    cartData.data.slice().reverse().find(ci =>
+                        ci.product_id === product.id &&
+                        (ci.variant_id || null) === (SELECTED_VARIANT ? SELECTED_VARIANT.id : null) &&
+                        !!ci.is_customized === custom.customized
+                    ) || cartData.data[cartData.data.length - 1];
                 localStorage.setItem("checkout_cart_ids", JSON.stringify([cartItem.id]));
                 localStorage.removeItem("checkout_guest_items");
 
@@ -1032,7 +1017,8 @@ function setupButtons(product, slug) {
                 price: SELECTED_VARIANT ? SELECTED_VARIANT.price : product.price,
                 discount_price: SELECTED_VARIANT ? SELECTED_VARIANT.discount_price : product.discount_price,
                 attributes: SELECTED_VARIANT ? SELECTED_VARIANT.attributes : null,
-                customization_note: custom.note,
+                is_customized: custom.customized,
+                customization_price: customExtraAmount(),
             });
         };
     });
