@@ -76,6 +76,7 @@ async function loadProduct() {
 }
 
 // ================= DISTRICT LOAD =================
+/* ===== OLD (bdapi.vercel.app API) - commented out =====
 function loadDistricts() {
     const districtSelect = document.getElementById("deliverydistrict");
     fetch('https://bdapi.vercel.app/api/v.1/district')
@@ -92,6 +93,87 @@ function loadDistricts() {
             }
         })
         .catch(error => console.log('Error fetching district:', error));
+}
+===== END OLD ===== */
+
+/* ===== NEW: static local districts ===== */
+var _LAN_DISTRICTS = [
+  { name: "Barguna", bn_name: "বরগুনা" },
+  { name: "Barishal", bn_name: "বরিশাল" },
+  { name: "Bhola", bn_name: "ভোলা" },
+  { name: "Jhalokati", bn_name: "ঝালকাঠী" },
+  { name: "Patuakhali", bn_name: "পটুয়াখালী" },
+  { name: "Pirojpur", bn_name: "পিরোজপুর" },
+  { name: "Bandarban", bn_name: "বান্দরবান" },
+  { name: "Brahmanbaria", bn_name: "ব্রাহ্মণবাড়িয়া" },
+  { name: "Chandpur", bn_name: "চাঁদপুর" },
+  { name: "Chattogram", bn_name: "চট্টগ্রাম" },
+  { name: "Cox's Bazar", bn_name: "কক্স বাজার" },
+  { name: "Cumilla", bn_name: "কুমিল্লা" },
+  { name: "Feni", bn_name: "ফেনী" },
+  { name: "Khagrachari", bn_name: "খাগড়াছড়ি" },
+  { name: "Lakshmipur", bn_name: "লক্ষ্মীপুর" },
+  { name: "Noakhali", bn_name: "নোয়াখালী" },
+  { name: "Rangamati", bn_name: "রাঙ্গামাটি" },
+  { name: "Dhaka", bn_name: "ঢাকা" },
+  { name: "Faridpur", bn_name: "ফরিদপুর" },
+  { name: "Gazipur", bn_name: "গাজীপুর" },
+  { name: "Gopalganj", bn_name: "গোপালগঞ্জ" },
+  { name: "Kishoreganj", bn_name: "কিশোরগঞ্জ" },
+  { name: "Madaripur", bn_name: "মাদারীপুর" },
+  { name: "Manikganj", bn_name: "মানিকগঞ্জ" },
+  { name: "Munshiganj", bn_name: "মুন্সিগঞ্জ" },
+  { name: "Narayanganj", bn_name: "নারায়ণগঞ্জ" },
+  { name: "Narsingdi", bn_name: "নরসিংদী" },
+  { name: "Rajbari", bn_name: "রাজবাড়ী" },
+  { name: "Shariatpur", bn_name: "শরিয়তপুর" },
+  { name: "Tangail", bn_name: "টাঙ্গাইল" },
+  { name: "Bagerhat", bn_name: "বাগেরহাট" },
+  { name: "Chuadanga", bn_name: "চুয়াডাঙ্গা" },
+  { name: "Jashore", bn_name: "যশোর" },
+  { name: "Jhenaidah", bn_name: "ঝিনাইদহ" },
+  { name: "Khulna", bn_name: "খুলনা" },
+  { name: "Kushtia", bn_name: "কুষ্টিয়া" },
+  { name: "Magura", bn_name: "মাগুরা" },
+  { name: "Meherpur", bn_name: "মেহেরপুর" },
+  { name: "Narail", bn_name: "নড়াইল" },
+  { name: "Satkhira", bn_name: "সাতক্ষীরা" },
+  { name: "Jamalpur", bn_name: "জামালপুর" },
+  { name: "Mymensingh", bn_name: "ময়মনসিংহ" },
+  { name: "Netrokona", bn_name: "নেত্রকোনা" },
+  { name: "Sherpur", bn_name: "শেরপুর" },
+  { name: "Bogura", bn_name: "বগুড়া" },
+  { name: "Joypurhat", bn_name: "জয়পুরহাট" },
+  { name: "Naogaon", bn_name: "নওগাঁ" },
+  { name: "Natore", bn_name: "নাটোর" },
+  { name: "Chapai Nawabganj", bn_name: "চাঁপাইনবাবগঞ্জ" },
+  { name: "Pabna", bn_name: "পাবনা" },
+  { name: "Rajshahi", bn_name: "রাজশাহী" },
+  { name: "Sirajganj", bn_name: "সিরাজগঞ্জ" },
+  { name: "Dinajpur", bn_name: "দিনাজপুর" },
+  { name: "Gaibandha", bn_name: "গাইবান্ধা" },
+  { name: "Kurigram", bn_name: "কুড়িগ্রাম" },
+  { name: "Lalmonirhat", bn_name: "লালমনিরহাট" },
+  { name: "Nilphamari", bn_name: "নিলফামারী" },
+  { name: "Panchagarh", bn_name: "পঞ্চগড়" },
+  { name: "Rangpur", bn_name: "রংপুর" },
+  { name: "Thakurgaon", bn_name: "ঠাকুরগাঁও" },
+  { name: "Habiganj", bn_name: "হবিগঞ্জ" },
+  { name: "Moulvibazar", bn_name: "মৌলভীবাজার" },
+  { name: "Sunamganj", bn_name: "সুনামগঞ্জ" },
+  { name: "Sylhet", bn_name: "সিলেট" }
+];
+
+function loadDistricts() {
+    const districtSelect = document.getElementById("deliverydistrict");
+    if (!districtSelect) return;
+    _LAN_DISTRICTS.forEach((district, idx) => {
+        const option = document.createElement('option');
+        option.value = district.name.toLowerCase();
+        option.setAttribute('district_id', idx + 1);
+        option.textContent = district.bn_name;
+        districtSelect.appendChild(option);
+    });
 }
 
 // ================= DELIVERY CHARGE =================
