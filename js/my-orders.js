@@ -83,6 +83,7 @@ async function loadOrders() {
                         <div class="oi-info">
                             <div class="oi-name">
                                 ${item.name}
+                                ${item.is_gift ? `<span style="background:#e6f4ea;color:#1e8e3e;border-radius:6px;padding:1px 6px;font-size:11px;margin-left:4px">🎁 FREE</span>` : ""}
                                 ${variantText ? `<span style="color:#888;font-size:12px"> (${variantText})</span>` : ""}
                             </div>
                             ${Number(item.customization_price) > 0 ? `<div class="oi-meta" style="color:#8a6d2b;">Includes customization ৳ ${item.customization_price}${item.qty > 1 ? " each" : ""}</div>` : ""}

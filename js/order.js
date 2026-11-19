@@ -194,6 +194,7 @@ function renderItems(items) {
 
                     <div class="oi-name">
                         ${item.name || "-"}
+                        ${item.is_gift ? `<span style="background:#e6f4ea;color:#1e8e3e;border-radius:6px;padding:1px 6px;font-size:11px;margin-left:4px">🎁 FREE</span>` : ""}
                     </div>
 
                     <div class="oi-meta">
@@ -205,7 +206,7 @@ function renderItems(items) {
                 </div>
 
                 <div class="oi-price">
-                    ৳ ${item.total}
+                    ${item.is_gift ? "FREE" : "৳ " + item.total}
                 </div>
 
             </div>
