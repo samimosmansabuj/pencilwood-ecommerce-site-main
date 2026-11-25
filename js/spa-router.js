@@ -81,6 +81,18 @@
       }
     }
 
+    // Handle campaign.html?slug=xyz -> /campaign/xyz
+    if (pathname.endsWith('campaign.html')) {
+      const params = new URLSearchParams(search);
+      const cslug = params.get('slug');
+      if (cslug) {
+        params.delete('slug');
+        const rest = params.toString() ? '?' + params.toString() : '';
+        window.history.replaceState(null, '', '/campaign/' + encodeURIComponent(cslug) + rest + hash);
+        return;
+      }
+    }
+
     // Handle index.html -> /
     if (pathname.endsWith('/index.html') || pathname === '/index.html') {
       const cleanPath = '/' + (search || '') + (hash || '');
@@ -124,6 +136,18 @@
             : '';
           const target = '/product/' + encodeURIComponent(slug) + remainingQuery + destUrl.hash;
           window.location.href = target;
+          return;
+        }
+      }
+
+      // Check for campaign.html?slug=xyz
+      if (pathname.endsWith('campaign.html')) {
+        const cslug = destUrl.searchParams.get('slug');
+        if (cslug) {
+          e.preventDefault();
+          destUrl.searchParams.delete('slug');
+          const rest = destUrl.searchParams.toString() ? '?' + destUrl.searchParams.toString() : '';
+          window.location.href = '/campaign/' + encodeURIComponent(cslug) + rest + destUrl.hash;
           return;
         }
       }

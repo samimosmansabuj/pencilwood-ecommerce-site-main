@@ -43,10 +43,26 @@
       return h.toString(36);
     }
   
+    // a line is (product, variant, customization, campaign)
     function sameLine(i, item) {
       return i.product_id === item.product_id &&
         (i.variant_id || null) === (item.variant_id || null) &&
-        !!i.is_customized === !!item.is_customized;
+        !!i.is_customized === !!item.is_customized &&
+        (i.campaign || null) === (item.campaign || null);
+    }
+
+    function campaignTag(item) {
+      if (!item.campaign || !window.PWCampaign) return "";
+      return window.PWCampaign.lineTag({
+        campaign: item.campaign,
+        title: item.campaign_title,
+        badge: item.campaign_valid === false ? "" : item.campaign_badge,
+        valid: item.campaign_valid === false ? false : (item.campaign_valid ? true : undefined),
+        reason: item.campaign_reason,
+        remaining: item.campaign_remaining,
+        message: item.campaign_message,
+        normalUnit: item.normal_unit != null ? item.normal_unit : null
+      });
     }
 
     function customBadge(item) {
@@ -180,6 +196,16 @@
               is_customized: !!i.is_customized,
               customization_price: Number(i.customization_price || 0),
               out_of_stock: false,
+              ...(i.campaign ? {
+                campaign: i.campaign,
+                campaign_title: i.campaign_title || "",
+                campaign_valid: i.campaign_valid === false ? false : true,
+                campaign_reason: i.campaign_reason || null,
+                campaign_remaining: i.campaign_stock_left != null ? i.campaign_stock_left : (i.campaign_remaining != null ? i.campaign_remaining : null),
+                campaign_message: i.campaign_message || "",
+                campaign_badge: i.badge_text || "",
+                normal_unit: i.normal_unit_price != null ? Number(i.normal_unit_price) : null,
+              } : {}),
             }));
           }
         } else {
@@ -189,7 +215,8 @@
             try {
               const ids = guestCart.map(i => i.product_id).filter(Boolean).join(",");
               if (ids) {
-                const res = await fetch(`${getApiBase()}/cart/guest-refresh/?ids=${ids}`);
+                const cq = window.PWCampaign ? window.PWCampaign.campaignLinesQuery(guestCart) : "";
+                const res = await fetch(`${getApiBase()}/cart/guest-refresh/?ids=${ids}${cq}`, cq ? { cache: "no-store" } : undefined);
                 const data = await res.json();
   
                 if (data && data.status && Array.isArray(data.data)) {
@@ -214,7 +241,7 @@
                       }
                     }
   
-                    return {
+                    const merged = {
                       ...item,
                       name: live.name || item.name,
                       image: liveImage,
@@ -223,6 +250,7 @@
                       discount_price: liveDiscount,
                       stock: liveStock,
                     };
+                    return (item.campaign && window.PWCampaign) ? window.PWCampaign.mergeGuestLine(merged, data) : merged;
                   });
   
                   saveLocalGuestCart(guestCart);
@@ -235,11 +263,12 @@
   
           items = guestCart.map(i => {
             const extra = i.is_customized ? Number(i.customization_price || 0) : 0;
-            const unit = Number(i.discount_price || i.price || 0) + extra;
+            const baseUnit = (i.campaign && window.PWCampaign) ? window.PWCampaign.guestBaseUnit(i) : Number(i.discount_price || i.price || 0);
+            const unit = baseUnit + extra;
             const qty = Number(i.quantity || 1);
             const outOfStock = typeof i.stock === "number" && i.stock < qty;
             return {
-              key: `guest-${i.product_id}-${i.variant_id || 0}-${i.is_customized ? 1 : 0}`,
+              key: `guest-${i.product_id}-${i.variant_id || 0}-${i.is_customized ? 1 : 0}${i.campaign ? "-c-" + i.campaign : ""}`,
               server_id: null,
               product_id: i.product_id,
               variant_id: i.variant_id,
@@ -253,6 +282,15 @@
               is_customized: !!i.is_customized,
               customization_price: Number(i.customization_price || 0),
               out_of_stock: outOfStock,
+              ...(i.campaign ? {
+                campaign: i.campaign,
+                campaign_title: i.campaign_title || "",
+                campaign_valid: i.campaign_valid,
+                campaign_reason: i.campaign_reason || null,
+                campaign_remaining: i.campaign_remaining != null ? i.campaign_remaining : null,
+                campaign_badge: i.campaign_valid ? (i.campaign_badge || "") : "",
+                normal_unit: Number(i.discount_price || i.price || 0),
+              } : {}),
             };
           });
         }
@@ -303,6 +341,7 @@
               <span class="drawer-item-title" title="${title}">${title}</span>
               ${variantStr ? `<span class="drawer-item-variant">${escapeHtml(variantStr)}</span>` : ""}
               ${customBadge(item)}
+              ${campaignTag(item)}
               <div class="drawer-item-price-row">
                 <span class="drawer-item-total">৳ ${item.total.toLocaleString()}</span>
                 <span class="drawer-item-unit">${item.quantity} × ৳ ${item.price.toLocaleString()}</span>
@@ -530,7 +569,8 @@
           variant_id: i.variant_id,
           quantity: i.quantity,
           is_customized: !!i.is_customized,
-          customization_note: i.customization_note || ""
+          customization_note: i.customization_note || "",
+          ...(i.campaign ? { campaign: i.campaign } : {})
         }));
         localStorage.setItem("checkout_guest_items", JSON.stringify(selectedItems));
         localStorage.removeItem("checkout_cart_ids");

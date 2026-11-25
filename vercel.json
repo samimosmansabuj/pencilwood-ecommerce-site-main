@@ -11,6 +11,10 @@
       "destination": "/product-details.html?slug=:slug"
     },
     {
+      "source": "/campaign/:slug",
+      "destination": "/campaign.html?slug=:slug"
+    },
+    {
       "source": "/product/css/:path*",
       "destination": "/css/:path*"
     },
@@ -28,6 +32,18 @@
     }
   ],
   "redirects": [
+    {
+      "source": "/campaign.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "slug",
+          "value": "(?<slug>.*)"
+        }
+      ],
+      "destination": "/campaign/:slug",
+      "permanent": true
+    },
     {
       "source": "/product-details.html",
       "has": [

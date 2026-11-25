@@ -49,10 +49,28 @@ function cartEscapeHtml(str) {
         .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
-function sameGuestLine(i, productId, variantId, customized) {
+/* A line is (product, variant, customization, campaign): the same product added from a campaign page
+   and from a normal page are TWO separate lines. */
+function sameGuestLine(i, productId, variantId, customized, campaign) {
     return i.product_id === productId &&
         (i.variant_id || null) === (variantId || null) &&
-        !!i.is_customized === !!customized;
+        !!i.is_customized === !!customized &&
+        (i.campaign || null) === (campaign || null);
+}
+
+/* small campaign tag / warning shown under a cart line */
+function cartCampaignTag(item) {
+    if (!item.campaign || !window.PWCampaign) return "";
+    return PWCampaign.lineTag({
+        campaign: item.campaign,
+        title: item.campaign_title,
+        badge: item.campaign_valid === false ? "" : item.campaign_badge,
+        valid: item.campaign_valid === false ? false : (item.campaign_valid ? true : undefined),
+        reason: item.campaign_reason,
+        remaining: item.campaign_remaining,
+        message: item.campaign_message,
+        normalUnit: item.normal_unit != null ? item.normal_unit : null
+    });
 }
 
 function cartExtraPrice(i) {
@@ -69,7 +87,8 @@ function guestCartAdd(productId, variantId, quantity, snapshot = {}) {
     const cart = getGuestCart();
     const note = normCartNote(snapshot.customization_note);
     const customized = !!snapshot.is_customized;
-    const existing = cart.find(i => sameGuestLine(i, productId, variantId, customized));
+    const campaign = snapshot.campaign || null;
+    const existing = cart.find(i => sameGuestLine(i, productId, variantId, customized, campaign));
 
     if (existing) {
         existing.quantity += quantity;
@@ -86,23 +105,24 @@ function guestCartAdd(productId, variantId, quantity, snapshot = {}) {
             customization_note: note,
             is_customized: customized,
             customization_price: Number(snapshot.customization_price || 0),
+            ...(campaign ? { campaign: campaign, campaign_title: snapshot.campaign_title || "" } : {}),
         });
     }
     saveGuestCart(cart);
 }
 
-function guestCartUpdateQty(productId, variantId, quantity, customized = false) {
+function guestCartUpdateQty(productId, variantId, quantity, customized = false, campaign = null) {
     const cart = getGuestCart();
-    const item = cart.find(i => sameGuestLine(i, productId, variantId, customized));
+    const item = cart.find(i => sameGuestLine(i, productId, variantId, customized, campaign));
     if (item) {
         item.quantity = quantity;
         saveGuestCart(cart);
     }
 }
 
-function guestCartRemove(productId, variantId, customized = false) {
+function guestCartRemove(productId, variantId, customized = false, campaign = null) {
     let cart = getGuestCart();
-    cart = cart.filter(i => !sameGuestLine(i, productId, variantId, customized));
+    cart = cart.filter(i => !sameGuestLine(i, productId, variantId, customized, campaign));
     saveGuestCart(cart);
 }
 
@@ -117,8 +137,8 @@ let CART_ITEMS_CACHE = [];
 
 function getSelectedItems() {
     const checkboxes = document.querySelectorAll(".cart-check:checked");
-    const selectedKeys = Array.from(checkboxes).map(cb => cb.dataset.key);
-    return CART_ITEMS_CACHE.filter(item => selectedKeys.includes(item.key));
+    const selectedKeys = Array.from(checkboxes).map(cb => String(cb.getAttribute("data-key")));
+    return CART_ITEMS_CACHE.filter(item => selectedKeys.includes(String(item.key)));
 }
 
 function updateSummaryFromSelection() {
@@ -139,7 +159,7 @@ function updateSummaryFromSelection() {
 
         summaryList.innerHTML += `
             <div class="summary-row">
-                <span>${productName} × ${item.quantity}</span>
+                <span>${productName} × ${item.quantity}${item.campaign ? ' <small class="cmp-sum-tag" title="Campaign price">🏷</small>' : ""}</span>
                 <span>৳ ${item.total}</span>
             </div>
         `;
@@ -190,6 +210,17 @@ async function loadCartItems() {
                     is_customized: !!i.is_customized,
                     customization_price: Number(i.customization_price || 0),
                     out_of_stock: false,
+                    // campaign fields come from the server (same names as the checkout summary lines)
+                    ...(i.campaign ? {
+                        campaign: i.campaign,
+                        campaign_title: i.campaign_title || "",
+                        campaign_valid: i.campaign_valid === false ? false : true,
+                        campaign_reason: i.campaign_reason || null,
+                        campaign_remaining: i.campaign_stock_left != null ? i.campaign_stock_left : (i.campaign_remaining != null ? i.campaign_remaining : null),
+                        campaign_message: i.campaign_message || "",
+                        campaign_badge: i.badge_text || "",
+                        normal_unit: i.normal_unit_price != null ? Number(i.normal_unit_price) : null,
+                    } : {}),
                 }));
             }
         } else {
@@ -199,7 +230,8 @@ async function loadCartItems() {
                 // 🔥 REFRESH PRICE/STOCK FROM BACKEND (batch, single call)
                 try {
                     const ids = guestCart.map(i => i.product_id).join(",");
-                    const res = await fetch(`${API_BASE}/cart/guest-refresh/?ids=${ids}`);
+                    const cq = window.PWCampaign ? PWCampaign.campaignLinesQuery(guestCart) : "";
+                    const res = await fetch(`${API_BASE}/cart/guest-refresh/?ids=${ids}${cq}`, cq ? { cache: "no-store" } : undefined);
                     const data = await res.json();
 
                     if (data.status && Array.isArray(data.data)) {
@@ -224,7 +256,7 @@ async function loadCartItems() {
                                 }
                             }
 
-                            return {
+                            const merged = {
                                 ...item,
                                 name: live.name || item.name,
                                 image: liveImage,
@@ -233,6 +265,7 @@ async function loadCartItems() {
                                 discount_price: liveDiscount,
                                 stock: liveStock,
                             };
+                            return (item.campaign && window.PWCampaign) ? PWCampaign.mergeGuestLine(merged, data) : merged;
                         });
 
                         saveGuestCart(guestCart); // persist refreshed snapshot
@@ -244,10 +277,11 @@ async function loadCartItems() {
             }
 
             items = guestCart.map(i => {
-                const unit = Number(i.discount_price || i.price || 0) + cartExtraPrice(i);
+                const baseUnit = (i.campaign && window.PWCampaign) ? PWCampaign.guestBaseUnit(i) : Number(i.discount_price || i.price || 0);
+                const unit = baseUnit + cartExtraPrice(i);
                 const outOfStock = typeof i.stock === "number" && i.stock < i.quantity;
                 return {
-                    key: `guest-${i.product_id}-${i.variant_id || 0}-${i.is_customized ? 1 : 0}`,
+                    key: `guest-${i.product_id}-${i.variant_id || 0}-${i.is_customized ? 1 : 0}${i.campaign ? "-c-" + i.campaign : ""}`,
                     server_id: null,
                     product_id: i.product_id,
                     variant_id: i.variant_id,
@@ -261,6 +295,15 @@ async function loadCartItems() {
                     is_customized: !!i.is_customized,
                     customization_price: Number(i.customization_price || 0),
                     out_of_stock: outOfStock,
+                    ...(i.campaign ? {
+                        campaign: i.campaign,
+                        campaign_title: i.campaign_title || "",
+                        campaign_valid: i.campaign_valid,
+                        campaign_reason: i.campaign_reason || null,
+                        campaign_remaining: i.campaign_remaining != null ? i.campaign_remaining : null,
+                        campaign_badge: i.campaign_valid ? (i.campaign_badge || "") : "",
+                        normal_unit: Number(i.discount_price || i.price || 0),
+                    } : {}),
                 };
             });
         }
@@ -305,6 +348,7 @@ async function loadCartItems() {
                         ${variantText ? `<span style="color:#888;font-size:12px"> (${variantText})</span>` : ""}
                     </div>
                     ${cartCustomBadge(item)}
+                    ${cartCampaignTag(item)}
                     <div class="cart-total-price">৳ ${item.total}</div>
                     <div class="cart-subtotal-mini">${item.quantity} x ৳ ${item.price}</div>
                     ${stockWarning}
@@ -321,8 +365,15 @@ async function loadCartItems() {
         `;
     });
 
+    // update right away (and once more shortly after) so the subtotal is never left at ৳0
+    updateSummaryFromSelection();
     setTimeout(updateSummaryFromSelection, 100);
 }
+
+// any tick / untick of a cart checkbox refreshes the summary
+document.addEventListener("change", function (e) {
+    if (e.target && e.target.classList && e.target.classList.contains("cart-check")) updateSummaryFromSelection();
+});
 
 /* =========================
    CHECKOUT
@@ -344,7 +395,8 @@ function goToCheckout() {
             variant_id: i.variant_id,
             quantity: i.quantity,
             is_customized: !!i.is_customized,
-            customization_note: i.customization_note || ""
+            customization_note: i.customization_note || "",
+            ...(i.campaign ? { campaign: i.campaign } : {})
         }));
         localStorage.setItem("checkout_guest_items", JSON.stringify(selectedItems));
         localStorage.removeItem("checkout_cart_ids");
@@ -420,7 +472,7 @@ async function stepCartQty(key, delta) {
         }, 250);
         pendingCartPageUpdates.set(key, timer);
     } else {
-        guestCartUpdateQty(item.product_id, item.variant_id, newQty, item.is_customized);
+        guestCartUpdateQty(item.product_id, item.variant_id, newQty, item.is_customized, item.campaign || null);
         updateCartCountFromBackend?.();
     }
 
@@ -451,7 +503,7 @@ async function removeCartItem(key) {
         const data = await res.json();
         if (data.status) loadCartItems();
     } else {
-        guestCartRemove(item.product_id, item.variant_id, item.is_customized);
+        guestCartRemove(item.product_id, item.variant_id, item.is_customized, item.campaign || null);
         loadCartItems();
         updateCartCountFromBackend?.();
     }

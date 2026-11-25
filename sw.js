@@ -4,13 +4,16 @@
  * and routes /product/:slug to product-details.html seamlessly.
  */
 
-const CACHE_NAME = 'pencilwood-clean-router-v1';
+// v2: bumping the name makes the activate step delete every older cache (nothing campaign/API related is ever cached)
+const CACHE_NAME = 'pencilwood-clean-router-v2';
 
 const STATIC_ROUTES = {
   '/': '/index.html',
   '/index': '/index.html',
   '/product-list': '/product-list.html',
   '/all_product': '/all_product.html',
+  '/campaigns': '/campaigns.html',
+  '/campaign': '/campaign.html',
   '/about-us': '/about-us.html',
   '/contact-us': '/contact-us.html',
   '/cart': '/cart.html',
@@ -55,8 +58,17 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. Pass through API requests, WebSockets, or live reload scripts
+  // 1b. Campaign pages: /campaign/:slug -> campaign.html (the page JS reads the slug from the path)
+  if (/^\/campaign\/[^/]+\/?$/.test(url.pathname) && !url.pathname.includes('.')) {
+    const cTarget = '/campaign.html' + url.search;
+    event.respondWith(fetch(cTarget).catch(() => caches.match(cTarget)));
+    return;
+  }
+
+  // 2. Pass through API requests (campaign, popup, product, cart, checkout...), WebSockets, or live reload scripts.
+  //    Never answered from a cache: campaign state, stock and prices change by the second.
   if (
+    /^\/(api|site\/api)\//.test(url.pathname) || /^\/(cart|wishlist)\/.+/.test(url.pathname) ||
     url.pathname.startsWith('/api/') ||
     url.pathname.includes('browser-sync') ||
     url.pathname.includes('ws')

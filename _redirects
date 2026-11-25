@@ -4,6 +4,8 @@
 
 # 1. Old URL 301 Redirects
 /product-details.html  slug=:slug   /product/:slug  301!
+/campaign.html  slug=:slug          /campaign/:slug 301!
+/campaigns.html                     /campaigns      301!
 /index.html                         /               301!
 /product-list.html                  /product-list   301!
 /about-us.html                      /about-us       301!
@@ -29,7 +31,12 @@
 # 3. Dynamic Product Details Routing
 /product/:slug                      /product-details.html  200
 
+# 3b. Campaign page: /campaign/:slug -> campaign.html (page JS reads the slug from the path)
+/campaign/:slug                     /campaign.html         200
+
 # 4. Clean Page Rewrites
+/campaigns                          /campaigns.html        200
+/campaign                           /campaign.html         200
 /product-list                       /product-list.html     200
 /about-us                           /about-us.html         200
 /contact-us                         /contact-us.html       200

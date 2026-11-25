@@ -8,6 +8,9 @@ let VARIANT_ATTR_STATE = {};
 let CUSTOM_MODE = false;
 let LAST_PRICE_ARGS = null;
 let CURRENT_GALLERY_KEY = "";
+let CAMPAIGN_CTX = null;      // campaign_pricing object when ?campaign=<slug> is valid
+let CAMPAIGN_NOTICE = null;   // "ended" | "not_in_campaign" | "not_started"
+let CAMPAIGN_META = null;     // { title, end_at, ... } from the campaign list
 
 // ===== Hover (desktop) / drag (mobile) zoom on product image =====
 (function () {
@@ -103,6 +106,7 @@ function getProductSlug() {
 async function loadProductDetails() {
 
     const slug = getProductSlug();
+    const campaignParam = getCampaignParam();
 
     if (!slug) {
         console.error("No slug found");
@@ -112,7 +116,9 @@ async function loadProductDetails() {
 
     try {
 
-        const res = await fetch(`${API_BASE}/api/ecom/products/${slug}/`);
+        const res = campaignParam
+            ? await fetch(`${API_BASE}/api/ecom/products/${slug}/?campaign=${encodeURIComponent(campaignParam)}`, { cache: "no-store" })
+            : await fetch(`${API_BASE}/api/ecom/products/${slug}/`);
         
         if (!res.ok) {
             window.location.href = "/";
@@ -130,12 +136,21 @@ async function loadProductDetails() {
         }
 
         CURRENT_PRODUCT = product;
+        CAMPAIGN_CTX = null;
+        CAMPAIGN_NOTICE = null;
+        if (campaignParam) {
+            if (product.server_now && window.PWCampaign) PWCampaign.setServerNow(product.server_now);
+            if (product.campaign_pricing) CAMPAIGN_CTX = product.campaign_pricing;
+            else if (product.campaign_notice) CAMPAIGN_NOTICE = product.campaign_notice;
+        }
         window.__CURRENT_PRODUCT_ID__ = product.id;
         if (window.__runTracking) window.__runTracking();
         SELECTED_VARIANT = null;
         VARIANT_ATTR_STATE = {};
 
-        GAViewItemEvent(product);
+        GAViewItemEvent(CAMPAIGN_CTX
+            ? { ...product, discount_price: CAMPAIGN_CTX.campaign_price, campaign: CAMPAIGN_CTX.campaign_slug, campaign_price: CAMPAIGN_CTX.campaign_price }
+            : product);
 
         const name = product.name || "";
         const sku = product.sku || "";
@@ -170,6 +185,7 @@ async function loadProductDetails() {
         renderBadges(product);
         renderGifts(product);
         renderProductOffers(product);
+        renderCampaignBox();
 
         /* =========================
            IMAGES (default = product-level images)
@@ -268,7 +284,10 @@ function renderBadges(product) {
     if (product.is_bestseller) {
         html += `<span class="badge-chip badge-bestseller">🔥 Bestseller</span>`;
     }
-    if (Number(product.discount_price) > 0 && Number(product.discount_price) < Number(product.price)) {
+    if (CAMPAIGN_CTX) {
+        
+        html += `<span class="badge-chip badge-campaign" id="cmpBadgeChip" style="display:none"></span>`;
+    } else if (Number(product.discount_price) > 0 && Number(product.discount_price) < Number(product.price)) {
         const off = Math.round(((product.price - product.discount_price) / product.price) * 100);
         html += `<span class="badge-chip badge-discount">${off}% OFF</span>`;
     }
@@ -280,7 +299,8 @@ function renderGifts(product) {
     if (!wrap) return;
 
     const gifts = Array.isArray(product.gift_product) ? product.gift_product : [];
-    if (!gifts.length) {
+    // campaign context with gifts switched off: never show the gift block
+    if (!gifts.length || (CAMPAIGN_CTX && CAMPAIGN_CTX.gifts_included === false)) {
         wrap.style.display = "none";
         wrap.innerHTML = "";
         return;
@@ -776,8 +796,8 @@ function renderCustomization(product) {
             <button type="button" class="customize-opt active" data-mode="standard">Standard</button>
             <button type="button" class="customize-opt" data-mode="custom">Customized${extraText}</button>
         </div>
-        <div id="customizeHint" style="display:none;font-size:12px;color:#8a6d2b;margin-top:6px;">
-            ✏️ You will write your customization details on the order form.
+        <div id="customizeHint" style="display:none;font-size:13px;color:#8a6d2b;margin-top:6px;">
+            ✏️ কাস্টমাইজেশনের বিবরণ আপনি অর্ডার ফর্মে লিখবেন।
         </div>
     `;
 
@@ -809,6 +829,9 @@ function renderPriceAndStock(price, discountPrice, stock) {
 
     LAST_PRICE_ARGS = [price, discountPrice, stock];
 
+    // per-variant campaign values (null when this page is not in a valid campaign context)
+    const cp = campaignVariantPricing();
+
     price = Number(price || 0);
     discountPrice = Number(discountPrice || 0);
 
@@ -818,32 +841,57 @@ function renderPriceAndStock(price, discountPrice, stock) {
         price += customExtra;
         if (discountPrice) discountPrice += customExtra;
     }
-    const finalPrice = discountPrice || price;
+    let finalPrice = discountPrice || price;
+    let oldPriceText = (discountPrice && discountPrice < price) ? `৳ ${price}` : "";
+    let discountText = "";
+    if (discountPrice && discountPrice < price) {
+        const off = Math.round(((price - discountPrice) / price) * 100);
+        discountText = `${off}% OFF`;
+    }
     stock = parseInt(stock ?? 0, 10);
+
+    let campaignSoldOut = false;
+    let campaignLimited = false;
+    let showStrike = false;
+    if (cp) {
+        const camp = Number(cp.campaign_price || 0);
+        const strike = Number(cp.strike_price || 0);
+        showStrike = strike > camp;                       // no visible discount -> no strike, no badge
+        finalPrice = camp + customExtra;
+        oldPriceText = showStrike ? `৳ ${strike + customExtra}` : "";
+        discountText = showStrike ? (cp.badge_text || "") : "";
+        if (cp.stock_limit != null) {
+            const left = Math.max(0, Number(cp.stock_left != null ? cp.stock_left : cp.stock_limit));
+            if (left <= 0) campaignSoldOut = true;
+            else if (left <= stock) { stock = left; campaignLimited = true; }
+        }
+    }
 
     document.getElementById("productPrice").textContent = `৳ ${finalPrice}`;
     document.getElementById("stickyPrice").textContent = `৳ ${finalPrice}`;
 
-    const oldPriceText = (discountPrice && discountPrice < price) ? `৳ ${price}` : "";
     document.getElementById("productOldPrice").textContent = oldPriceText;
     document.getElementById("stickyOldPrice").textContent = oldPriceText;
 
     const discountEl = document.getElementById("productDiscount");
-    if (discountPrice && discountPrice < price) {
-        const off = Math.round(((price - discountPrice) / price) * 100);
-        discountEl.textContent = `${off}% OFF`;
-    } else {
-        discountEl.textContent = "";
-    }
+    discountEl.textContent = discountText;
 
     const stockLeftEl = document.getElementById("stockLeft");
     const stockStatusEl = document.getElementById("stockStatus");
 
     stockLeftEl.parentElement.style.display = "none";
 
-    if (stock <= 0) {
+    if (campaignSoldOut) {
+        stockStatusEl.textContent = "✖ Campaign stock finished";
+        stockStatusEl.style.color = "#dc2626";
+    } else if (stock <= 0) {
         stockStatusEl.textContent = "✖ Out of Stock";
         stockStatusEl.style.color = "#dc2626";
+    } else if (campaignLimited) {
+        stockStatusEl.textContent = `⚠ Only ${stock} left at campaign price`;
+        stockStatusEl.style.color = "#dc2626";
+        stockLeftEl.textContent = stock;
+        stockLeftEl.parentElement.style.display = "block";
     } else if (stock <= 10) {
         stockStatusEl.textContent = `⚠ Only ${stock} left`;
         stockStatusEl.style.color = "#dc2626";
@@ -866,7 +914,13 @@ function renderPriceAndStock(price, discountPrice, stock) {
 
     buttons.forEach(btn => {
         if (!btn) return;
-        if (isOutOfStock) {
+        if (campaignSoldOut) {
+            if (btn.innerText !== "Campaign stock finished" && btn.innerText !== "Out of Stock") btn.dataset.originalText = btn.innerText;
+            btn.disabled = true;
+            btn.style.opacity = "0.5";
+            btn.style.cursor = "not-allowed";
+            btn.innerText = "Campaign stock finished";
+        } else if (isOutOfStock) {
             btn.disabled = true;
             btn.style.opacity = "0.5";
             btn.style.cursor = "not-allowed";
@@ -876,12 +930,146 @@ function renderPriceAndStock(price, discountPrice, stock) {
             btn.style.opacity = "1";
             btn.style.cursor = "pointer";
             // restore original label if it was overwritten
-            if (btn.innerText === "Out of Stock") {
+            if (btn.innerText === "Out of Stock" || btn.innerText === "Campaign stock finished") {
                 btn.innerText = btn.dataset.originalText || "Buy Now";
             }
         }
     });
+
+    paintCampaignBox(cp, showStrike, campaignSoldOut);
 }
+
+/* =========================
+   CAMPAIGN CONTEXT (?campaign=<slug>)
+   Only a valid campaign_pricing from the API switches the page into campaign mode.
+   campaign_notice (ended / not_in_campaign / not_started) = normal price + a small notice.
+========================= */
+function getCampaignParam() {
+    const v = (new URLSearchParams(window.location.search).get("campaign") || "").trim();
+    return /^[A-Za-z0-9_-]+$/.test(v) ? v : "";
+}
+
+function activeCampaignSlug() {
+    return CAMPAIGN_CTX ? CAMPAIGN_CTX.campaign_slug : null;
+}
+
+/* per-variant values; falls back to the product-level values (no variants / variant not listed) */
+function campaignVariantPricing() {
+    if (!CAMPAIGN_CTX) return null;
+    const base = CAMPAIGN_CTX;
+    if (SELECTED_VARIANT && Array.isArray(base.variants)) {
+        const v = base.variants.find(x => Number(x.variant_id) === Number(SELECTED_VARIANT.id));
+        if (v) return { ...v, campaign_slug: base.campaign_slug, stock_limit: base.stock_limit, stock_left: base.stock_left };
+    }
+    return base;
+}
+
+function campaignTitle() {
+    if (CAMPAIGN_META && CAMPAIGN_META.title) return CAMPAIGN_META.title;
+    return window.PWCampaign ? PWCampaign.prettySlug(activeCampaignSlug()) : (activeCampaignSlug() || "");
+}
+
+/* what a cart line carries when added from a campaign page (null on a normal page) */
+function campaignLineSnapshot() {
+    const slug = activeCampaignSlug();
+    if (!slug) return null;
+    const cp = campaignVariantPricing();
+    const camp = Number(cp.campaign_price || 0);
+    const strike = Number(cp.strike_price || 0);
+    return {
+        campaign: slug,
+        campaign_title: campaignTitle(),
+        campaign_price: camp,
+        price: strike > camp ? strike : Number(cp.regular_price || camp),
+        discount_price: camp
+    };
+}
+
+const CAMPAIGN_NOTICE_TEXT = {
+    ended: "This campaign has ended — the regular price is shown.",
+    not_in_campaign: "This product is not part of that campaign — the regular price is shown.",
+    not_started: "This campaign has not started yet — the regular price is shown."
+};
+
+function renderCampaignBox() {
+    const box = document.getElementById("cmpPdBox");
+    const note = document.getElementById("cmpPdNotice");
+    if (note) { note.style.display = "none"; note.textContent = ""; }
+    if (box) { box.style.display = "none"; box.innerHTML = ""; }
+
+    if (CAMPAIGN_NOTICE && note) {
+        note.textContent = CAMPAIGN_NOTICE_TEXT[CAMPAIGN_NOTICE] || "This campaign is not available — the regular price is shown.";
+        note.style.display = "block";
+    }
+    if (!CAMPAIGN_CTX || !box) return;
+
+    const slug = CAMPAIGN_CTX.campaign_slug;
+    box.innerHTML = `
+        <div class="cmp-pd-label">
+            <span class="cmp-pd-chip">🏷 <span id="cmpPdTitle">${escapeHtml(campaignTitle())}</span></span>
+            <span class="cmp-pd-ends" id="cmpPdEnds"></span>
+        </div>
+        <div class="cmp-pd-save" id="cmpPdSave"></div>
+        <div class="cmp-pd-out" id="cmpPdOut" style="display:none;"></div>`;
+    box.style.display = "block";
+
+    // the product response has no campaign title / end time -> take them from the campaign list
+    if (window.PWCampaign) {
+        PWCampaign.ensureCss();
+        PWCampaign.startTicker();
+        PWCampaign.getList().then(list => {
+            const c = (list || []).find(x => x.slug === slug);
+            if (!c) return;
+            CAMPAIGN_META = c;
+            const t = document.getElementById("cmpPdTitle");
+            if (t) t.textContent = c.title;
+            const ends = document.getElementById("cmpPdEnds");
+            const ms = Date.parse(c.end_at);
+            if (ends && isFinite(ms)) {
+                ends.setAttribute("data-cmp-count", String(ms));
+                ends.setAttribute("data-cmp-fmt", "label-end");
+                ends.setAttribute("data-cmp-kind", "end");
+                ends.setAttribute("data-cmp-slug", slug);
+                PWCampaign.tick();
+            }
+        }).catch(() => { });
+    }
+}
+
+/* called from renderPriceAndStock on every price repaint (variant change, customization toggle) */
+function paintCampaignBox(cp, showStrike, soldOut) {
+    const chip = document.getElementById("cmpBadgeChip");
+    if (chip) {
+        chip.textContent = showStrike && cp && cp.badge_text ? `🏷 ${cp.badge_text}` : "";
+        chip.style.display = chip.textContent ? "" : "none";
+    }
+    const save = document.getElementById("cmpPdSave");
+    if (save) {
+        save.textContent = (cp && showStrike && Number(cp.savings_amount) > 0)
+            ? `You save ৳ ${cp.savings_amount} (${cp.savings_percent}%)` : "";
+    }
+    const out = document.getElementById("cmpPdOut");
+    if (out) {
+        if (soldOut && CURRENT_PRODUCT && CURRENT_PRODUCT.slug) {
+            out.innerHTML = `Campaign stock is finished. <a href="/product-details.html?slug=${encodeURIComponent(CURRENT_PRODUCT.slug)}">Buy at the regular price →</a>`;
+            out.style.display = "block";
+        } else {
+            out.style.display = "none";
+        }
+    }
+}
+
+// campaign ended while the page is open: reload once so the server answers with campaign_notice
+document.addEventListener("pwcampaign:expired", e => {
+    if (!e.detail || e.detail.kind !== "end" || !CAMPAIGN_CTX || e.detail.slug !== CAMPAIGN_CTX.campaign_slug) return;
+    const key = "cmp_reload_" + e.detail.slug;
+    try {
+        if (Date.now() - Number(sessionStorage.getItem(key) || 0) < 60000) return;   // never loop
+        sessionStorage.setItem(key, String(Date.now()));
+    } catch (err) { }
+    toast?.("Campaign has ended — updating the price");
+    setTimeout(() => window.location.reload(), 1500);
+});
 
 /* =========================
    BUTTONS (updated)
@@ -907,10 +1095,12 @@ function setupButtons(product, slug) {
             const custom = readCustomization(product);
             if (!custom.ok) return;
 
+            const camp = campaignLineSnapshot();
             GAAddToCartEvent({
                 id: product.id,
                 name: product.name,
-                discount_price: SELECTED_VARIANT ? SELECTED_VARIANT.discount_price : product.discount_price
+                discount_price: camp ? camp.campaign_price : (SELECTED_VARIANT ? SELECTED_VARIANT.discount_price : product.discount_price),
+                ...(camp ? { campaign: camp.campaign, campaign_price: camp.campaign_price } : {})
             });
 
             if (typeof window.trackEvent === "function") {
@@ -918,6 +1108,7 @@ function setupButtons(product, slug) {
                     product_id: product.id,
                     variant_id: SELECTED_VARIANT ? SELECTED_VARIANT.id : null,
                     quantity: 1,
+                    ...(camp ? { campaign: camp.campaign } : {}),
                 });
             }
 
@@ -933,13 +1124,15 @@ function setupButtons(product, slug) {
                     attributes: variant ? variant.attributes : null,
                     is_customized: custom.customized,
                     customization_price: customExtraAmount(),
+                    ...(camp || {}),
                 });
 
                 localStorage.setItem("checkout_guest_items", JSON.stringify([{
                     product_id: product.id,
                     variant_id: variant ? variant.id : null,
                     quantity: 1,
-                    is_customized: custom.customized
+                    is_customized: custom.customized,
+                    ...(camp ? { campaign: camp.campaign } : {})
                 }]));
                 localStorage.removeItem("checkout_cart_ids");
 
@@ -951,6 +1144,7 @@ function setupButtons(product, slug) {
                 const payload = { product_id: product.id, quantity: 1 };
                 if (SELECTED_VARIANT) payload.variant_id = SELECTED_VARIANT.id;
                 if (custom.customized) payload.is_customized = true;
+                if (camp) payload.campaign = camp.campaign;
 
                 const addRes = await fetch(`${API_BASE}/cart/add/`, {
                     method: "POST",
@@ -984,7 +1178,8 @@ function setupButtons(product, slug) {
                     cartData.data.slice().reverse().find(ci =>
                         ci.product_id === product.id &&
                         (ci.variant_id || null) === (SELECTED_VARIANT ? SELECTED_VARIANT.id : null) &&
-                        !!ci.is_customized === custom.customized
+                        !!ci.is_customized === custom.customized &&
+                        (!("campaign" in ci) || (ci.campaign || null) === (camp ? camp.campaign : null))
                     ) || cartData.data[cartData.data.length - 1];
                 localStorage.setItem("checkout_cart_ids", JSON.stringify([cartItem.id]));
                 localStorage.removeItem("checkout_guest_items");
@@ -1012,6 +1207,7 @@ function setupButtons(product, slug) {
             }
             const custom = readCustomization(product);
             if (!custom.ok) return;
+            const camp = campaignLineSnapshot();
             quickAddCart(product.id, SELECTED_VARIANT ? SELECTED_VARIANT.id : null, {
                 name: product.name,
                 image: currentVariantImage(product),
@@ -1020,6 +1216,7 @@ function setupButtons(product, slug) {
                 attributes: SELECTED_VARIANT ? SELECTED_VARIANT.attributes : null,
                 is_customized: custom.customized,
                 customization_price: customExtraAmount(),
+                ...(camp || {}),
             });
         };
     });
@@ -1292,7 +1489,9 @@ async function renderProductOffers(product) {
     try {
         const res = await fetch(`${API_BASE}/api/offers/product/${product.id}/`);
         const json = await res.json();
-        const offers = (json.data && json.data.offers) || [];
+        // campaign context with offers switched off: no buy-X-get-Y card (combo suggestions stay)
+        const offersOff = !!(CAMPAIGN_CTX && CAMPAIGN_CTX.offers_included === false);
+        const offers = offersOff ? [] : ((json.data && json.data.offers) || []);
         const combos = (json.data && json.data.combos) || [];
         const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
         let html = "";
