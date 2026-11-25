@@ -284,6 +284,7 @@
               out_of_stock: outOfStock,
               ...(i.campaign ? {
                 campaign: i.campaign,
+                surface: i.surface || "campaign_page",
                 campaign_title: i.campaign_title || "",
                 campaign_valid: i.campaign_valid,
                 campaign_reason: i.campaign_reason || null,
@@ -570,7 +571,7 @@
           quantity: i.quantity,
           is_customized: !!i.is_customized,
           customization_note: i.customization_note || "",
-          ...(i.campaign ? { campaign: i.campaign } : {})
+          ...(i.campaign ? { campaign: i.campaign, surface: i.surface || "campaign_page" } : {})
         }));
         localStorage.setItem("checkout_guest_items", JSON.stringify(selectedItems));
         localStorage.removeItem("checkout_cart_ids");

@@ -1,46 +1,47 @@
 function isMandatoryOtpEnabled() {
-        return !!document.getElementById("sendOtpBtn");
+    return !!document.getElementById("sendOtpBtn");
 }
 
 window.__CURRENT_LANDING_CODE__ = ENV.PRODUCT_LANDING_PAGE_ID;
 
 (async function () {
-    const errorUI = document.getElementById("productError");
-    const pageContent = document.getElementById("pageContent");
-    if (pageContent) pageContent.style.display = "none";
-    if (errorUI) errorUI.classList.add("hidden");
+const errorUI = document.getElementById("productError");
+const pageContent = document.getElementById("pageContent");
+if (pageContent) pageContent.style.display = "none";
+if (errorUI) errorUI.classList.add("hidden");
 
-    try {
-        const response = await fetch(`${ENV.API_BASE_URL}/site/api/landing-page/${ENV.PRODUCT_LANDING_PAGE_ID}/`);
-        const response_data = await response.json()
+try {
+    const response = await fetch(`${ENV.API_BASE_URL}/site/api/landing-page/${ENV.PRODUCT_LANDING_PAGE_ID}/`);
+    const response_data = await response.json()
 
-        if (response_data.status && response_data.data?.product?.length) {
-            const data = response_data.data.product[0]
+    if (response_data.status && response_data.data?.product?.length) {
+        const data = response_data.data.product[0]
 
-            document.getElementById("header-image").src = data.images[0].image;
-            document.querySelectorAll(".product-old-price").forEach(el => {
-                el.textContent = toBanglaNumber(Math.floor(data.price));
-            });
-            document.querySelectorAll(".product-new-price").forEach(el => {
-                el.textContent = toBanglaNumber(Math.floor(data.discount_price));
-            })
+        document.getElementById("header-image").src = data.images[0].image;
+        document.querySelectorAll(".product-old-price").forEach(el => {
+            el.textContent = toBanglaNumber(Math.floor(data.price));
+        });
+        document.querySelectorAll(".product-new-price").forEach(el => {
+            el.textContent = toBanglaNumber(Math.floor(data.discount_price));
+        })
+        showCampaignBadge(data);
 
-            GAViewItemEvent(data);
+        GAViewItemEvent(data);
 
-            if (errorUI) errorUI.classList.add("hidden");
-            if (pageContent) pageContent.style.display = "block";
-        }else {
-            throw new Error("Invalid product response");
-            if (pageContent) pageContent.style.display = "none";
-            if (errorUI) errorUI.classList.remove("hidden");
-        }
-    } catch (e) {
+        if (errorUI) errorUI.classList.add("hidden");
+        if (pageContent) pageContent.style.display = "block";
+    }else {
+        throw new Error("Invalid product response");
         if (pageContent) pageContent.style.display = "none";
         if (errorUI) errorUI.classList.remove("hidden");
-        setTimeout(() => {
-            location.reload();
-        }, 5000);
     }
+} catch (e) {
+    if (pageContent) pageContent.style.display = "none";
+    if (errorUI) errorUI.classList.remove("hidden");
+    setTimeout(() => {
+        location.reload();
+    }, 5000);
+}
 })();
 
 let appliedCouponDiscount = 0;
@@ -50,132 +51,132 @@ let couponRequestSeq = 0;
 let couponCheckedSignature = "";
 
 function getCouponItems() {
-    const items = [];
-    document.querySelectorAll("#productSummary .summary-row").forEach(function (row) {
-        if (row.dataset.productType !== "MAIN") return;
-        const id = parseInt(row.dataset.productId, 10);
-        const qty = parseInt(row.querySelector(".qty")?.textContent, 10) || 0;
-        if (id && qty > 0) items.push({ product_id: id, quantity: qty });
-    });
-    return items;
+const items = [];
+document.querySelectorAll("#productSummary .summary-row").forEach(function (row) {
+    if (row.dataset.productType !== "MAIN") return;
+    const id = parseInt(row.dataset.productId, 10);
+    const qty = parseInt(row.querySelector(".qty")?.textContent, 10) || 0;
+    if (id && qty > 0) items.push({ product_id: id, quantity: qty });
+});
+return items;
 }
 
 function couponSignature() {
-    const phone = (document.getElementById("phone")?.value || "").trim();
-    return JSON.stringify(getCouponItems()) + "|" + phone;
+const phone = (document.getElementById("phone")?.value || "").trim();
+return JSON.stringify(getCouponItems()) + "|" + phone;
 }
 
 function clearAppliedCoupon() {
-    appliedCouponDiscount = 0;
-    appliedCouponCode = null;
+appliedCouponDiscount = 0;
+appliedCouponCode = null;
 }
 
 async function applyCoupon(code, silent) {
-    const messageEl = document.getElementById("couponMessage");
-    const phone = (document.getElementById("phone")?.value || "").trim();
-    const items = getCouponItems();
+const messageEl = document.getElementById("couponMessage");
+const phone = (document.getElementById("phone")?.value || "").trim();
+const items = getCouponItems();
 
-    if (!code) {
-        if (!silent) {
-            rememberedCouponCode = null;
-            clearAppliedCoupon();
-            couponCheckedSignature = "";
-            messageEl.innerHTML = '<span style="color:red;">Enter a coupon code</span>';
-            recalculateSummaryWithCoupon();
-        }
-        return;
-    }
-    if (!phone || !items.length) {
-        clearAppliedCoupon();
-        couponCheckedSignature = couponSignature();
-        messageEl.innerHTML = '<span style="color:red;">' +
-            (!phone ? "Enter your phone number first" : "Select a product first") + '</span>';
-        recalculateSummaryWithCoupon();
-        return;
-    }
-
-    const seq = ++couponRequestSeq;
-    const signature = couponSignature();
-
-    try {
-        const res = await fetch(`${ENV.API_BASE_URL}/site/api/apply-coupon/`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                code: code,
-                phone: phone,
-                items: items,
-                landing_page_code: ENV.PRODUCT_LANDING_PAGE_ID,
-            }),
-        });
-        const data = await res.json();
-        if (seq !== couponRequestSeq) return;
-
-        couponCheckedSignature = signature;
-        if (data.status) {
-            appliedCouponDiscount = Number(data.data.discount_amount) || 0;
-            appliedCouponCode = data.data.code;
-            rememberedCouponCode = data.data.code;
-            messageEl.innerHTML = `<span style="color:green;">✓ Coupon applied: -৳${appliedCouponDiscount}</span>`;
-        } else {
-            clearAppliedCoupon();
-            messageEl.innerHTML = `<span style="color:red;">${data.message}</span>`;
-        }
-    } catch (err) {
-        if (seq !== couponRequestSeq) return;
+if (!code) {
+    if (!silent) {
+        rememberedCouponCode = null;
         clearAppliedCoupon();
         couponCheckedSignature = "";
-        messageEl.innerHTML = '<span style="color:red;">Something went wrong. Try again.</span>';
+        messageEl.innerHTML = '<span style="color:red;">Enter a coupon code</span>';
+        recalculateSummaryWithCoupon();
     }
+    return;
+}
+if (!phone || !items.length) {
+    clearAppliedCoupon();
+    couponCheckedSignature = couponSignature();
+    messageEl.innerHTML = '<span style="color:red;">' +
+        (!phone ? "Enter your phone number first" : "Select a product first") + '</span>';
     recalculateSummaryWithCoupon();
+    return;
+}
+
+const seq = ++couponRequestSeq;
+const signature = couponSignature();
+
+try {
+    const res = await fetch(`${ENV.API_BASE_URL}/site/api/apply-coupon/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            code: code,
+            phone: phone,
+            items: items,
+            landing_page_code: ENV.PRODUCT_LANDING_PAGE_ID,
+        }),
+    });
+    const data = await res.json();
+    if (seq !== couponRequestSeq) return;
+
+    couponCheckedSignature = signature;
+    if (data.status) {
+        appliedCouponDiscount = Number(data.data.discount_amount) || 0;
+        appliedCouponCode = data.data.code;
+        rememberedCouponCode = data.data.code;
+        messageEl.innerHTML = `<span style="color:green;">✓ Coupon applied: -৳${appliedCouponDiscount}</span>`;
+    } else {
+        clearAppliedCoupon();
+        messageEl.innerHTML = `<span style="color:red;">${data.message}</span>`;
+    }
+} catch (err) {
+    if (seq !== couponRequestSeq) return;
+    clearAppliedCoupon();
+    couponCheckedSignature = "";
+    messageEl.innerHTML = '<span style="color:red;">Something went wrong. Try again.</span>';
+}
+recalculateSummaryWithCoupon();
 }
 
 function refreshCouponIfApplied() {
-    if (!rememberedCouponCode) return;
-    if (couponSignature() === couponCheckedSignature) return;   // nothing relevant changed
-    clearAppliedCoupon();                                       // hide the old discount until re-checked
-    recalculateSummaryWithCoupon();
-    applyCoupon(rememberedCouponCode, true);
+if (!rememberedCouponCode) return;
+if (couponSignature() === couponCheckedSignature) return;   // nothing relevant changed
+clearAppliedCoupon();                                       // hide the old discount until re-checked
+recalculateSummaryWithCoupon();
+applyCoupon(rememberedCouponCode, true);
 }
 
 document.getElementById("applyCouponBtn")?.addEventListener("click", function () {
-    const code = (document.getElementById("couponCodeInput")?.value || "").trim();
-    applyCoupon(code, false);
+const code = (document.getElementById("couponCodeInput")?.value || "").trim();
+applyCoupon(code, false);
 });
 document.getElementById("phone")?.addEventListener("change", refreshCouponIfApplied);
 
 function recalculateSummaryWithCoupon() {
-    const productTotalEl = document.getElementById("productTotal");
-    const deliveryChargeEl = document.getElementById("summaryDelivery");
-    const summaryTotalEl = document.getElementById("summaryTotal");
+const productTotalEl = document.getElementById("productTotal");
+const deliveryChargeEl = document.getElementById("summaryDelivery");
+const summaryTotalEl = document.getElementById("summaryTotal");
 
-    const productTotal = parseFloat(productTotalEl.textContent || 0);
-    const deliveryCharge = parseFloat(deliveryChargeEl.textContent || 0);
+const productTotal = parseFloat(productTotalEl.textContent || 0);
+const deliveryCharge = parseFloat(deliveryChargeEl.textContent || 0);
 
-    summaryTotalEl.innerText = (productTotal + deliveryCharge - appliedCouponDiscount).toFixed(0);
+summaryTotalEl.innerText = (productTotal + deliveryCharge - appliedCouponDiscount).toFixed(0);
 }
 
 function toBanglaNumber(number) {
-    const eng = "0123456789";
-    const bang = "০১২৩৪৫৬৭৮৯";
-    return number.toString().split("").map(d => bang[eng.indexOf(d)] || d).join("");
+const eng = "0123456789";
+const bang = "০১২৩৪৫৬৭৮৯";
+return number.toString().split("").map(d => bang[eng.indexOf(d)] || d).join("");
 }
 function toEnglishNumber(number) {
-    const bang = "০১২৩৪৫৬৭৮৯";
-    const eng = "0123456789";
-    return number.toString().split("").map(d => eng[bang.indexOf(d)] || d).join("");
+const bang = "০১২৩৪৫৬৭৮৯";
+const eng = "0123456789";
+return number.toString().split("").map(d => eng[bang.indexOf(d)] || d).join("");
 }
 
 
 const headerImage = document.getElementById('header-image');
 const galleryImages = document.querySelectorAll('.gallery-image');
 galleryImages.forEach(img => {
-    img.addEventListener('click', () => {
-        header_image = headerImage.src;
-        gallery_image = img.src;
-        headerImage.src = img.src;
-        img.src = header_image;
-    });
+img.addEventListener('click', () => {
+    header_image = headerImage.src;
+    gallery_image = img.src;
+    headerImage.src = img.src;
+    img.src = header_image;
+});
 });
 
 
@@ -184,98 +185,98 @@ galleryImages.forEach(img => {
 /* ===== OLD (bdapi.vercel.app API) - commented out =====
 const districtSelect = document.getElementById("deliverydistrict");
 if (districtSelect) {
-    fetch('https://bdapi.vercel.app/api/v.1/district').then(response => response.json()).then(data => {
-        if (data.status === 200 && data.success) {
-            data.data.forEach(district => {
-                const option = document.createElement('option')
-                option.value = district.name.toLowerCase()
-                option.setAttribute('district_id', district.id);
-                option.textContent = district.bn_name
-                districtSelect.appendChild(option)
-            });
-        }
-    })
-        .catch(error => console.log('Error fetching district:', error))
+fetch('https://bdapi.vercel.app/api/v.1/district').then(response => response.json()).then(data => {
+    if (data.status === 200 && data.success) {
+        data.data.forEach(district => {
+            const option = document.createElement('option')
+            option.value = district.name.toLowerCase()
+            option.setAttribute('district_id', district.id);
+            option.textContent = district.bn_name
+            districtSelect.appendChild(option)
+        });
+    }
+})
+    .catch(error => console.log('Error fetching district:', error))
 }
 ===== END OLD ===== */
 
 /* ===== NEW: static local districts ===== */
 var _LAN_DISTRICTS = [
-  { name: "Barguna", bn_name: "বরগুনা" },
-  { name: "Barishal", bn_name: "বরিশাল" },
-  { name: "Bhola", bn_name: "ভোলা" },
-  { name: "Jhalokati", bn_name: "ঝালকাঠী" },
-  { name: "Patuakhali", bn_name: "পটুয়াখালী" },
-  { name: "Pirojpur", bn_name: "পিরোজপুর" },
-  { name: "Bandarban", bn_name: "বান্দরবান" },
-  { name: "Brahmanbaria", bn_name: "ব্রাহ্মণবাড়িয়া" },
-  { name: "Chandpur", bn_name: "চাঁদপুর" },
-  { name: "Chattogram", bn_name: "চট্টগ্রাম" },
-  { name: "Cox's Bazar", bn_name: "কক্স বাজার" },
-  { name: "Cumilla", bn_name: "কুমিল্লা" },
-  { name: "Feni", bn_name: "ফেনী" },
-  { name: "Khagrachari", bn_name: "খাগড়াছড়ি" },
-  { name: "Lakshmipur", bn_name: "লক্ষ্মীপুর" },
-  { name: "Noakhali", bn_name: "নোয়াখালী" },
-  { name: "Rangamati", bn_name: "রাঙ্গামাটি" },
-  { name: "Dhaka", bn_name: "ঢাকা" },
-  { name: "Faridpur", bn_name: "ফরিদপুর" },
-  { name: "Gazipur", bn_name: "গাজীপুর" },
-  { name: "Gopalganj", bn_name: "গোপালগঞ্জ" },
-  { name: "Kishoreganj", bn_name: "কিশোরগঞ্জ" },
-  { name: "Madaripur", bn_name: "মাদারীপুর" },
-  { name: "Manikganj", bn_name: "মানিকগঞ্জ" },
-  { name: "Munshiganj", bn_name: "মুন্সিগঞ্জ" },
-  { name: "Narayanganj", bn_name: "নারায়ণগঞ্জ" },
-  { name: "Narsingdi", bn_name: "নরসিংদী" },
-  { name: "Rajbari", bn_name: "রাজবাড়ী" },
-  { name: "Shariatpur", bn_name: "শরিয়তপুর" },
-  { name: "Tangail", bn_name: "টাঙ্গাইল" },
-  { name: "Bagerhat", bn_name: "বাগেরহাট" },
-  { name: "Chuadanga", bn_name: "চুয়াডাঙ্গা" },
-  { name: "Jashore", bn_name: "যশোর" },
-  { name: "Jhenaidah", bn_name: "ঝিনাইদহ" },
-  { name: "Khulna", bn_name: "খুলনা" },
-  { name: "Kushtia", bn_name: "কুষ্টিয়া" },
-  { name: "Magura", bn_name: "মাগুরা" },
-  { name: "Meherpur", bn_name: "মেহেরপুর" },
-  { name: "Narail", bn_name: "নড়াইল" },
-  { name: "Satkhira", bn_name: "সাতক্ষীরা" },
-  { name: "Jamalpur", bn_name: "জামালপুর" },
-  { name: "Mymensingh", bn_name: "ময়মনসিংহ" },
-  { name: "Netrokona", bn_name: "নেত্রকোনা" },
-  { name: "Sherpur", bn_name: "শেরপুর" },
-  { name: "Bogura", bn_name: "বগুড়া" },
-  { name: "Joypurhat", bn_name: "জয়পুরহাট" },
-  { name: "Naogaon", bn_name: "নওগাঁ" },
-  { name: "Natore", bn_name: "নাটোর" },
-  { name: "Chapai Nawabganj", bn_name: "চাঁপাইনবাবগঞ্জ" },
-  { name: "Pabna", bn_name: "পাবনা" },
-  { name: "Rajshahi", bn_name: "রাজশাহী" },
-  { name: "Sirajganj", bn_name: "সিরাজগঞ্জ" },
-  { name: "Dinajpur", bn_name: "দিনাজপুর" },
-  { name: "Gaibandha", bn_name: "গাইবান্ধা" },
-  { name: "Kurigram", bn_name: "কুড়িগ্রাম" },
-  { name: "Lalmonirhat", bn_name: "লালমনিরহাট" },
-  { name: "Nilphamari", bn_name: "নিলফামারী" },
-  { name: "Panchagarh", bn_name: "পঞ্চগড়" },
-  { name: "Rangpur", bn_name: "রংপুর" },
-  { name: "Thakurgaon", bn_name: "ঠাকুরগাঁও" },
-  { name: "Habiganj", bn_name: "হবিগঞ্জ" },
-  { name: "Moulvibazar", bn_name: "মৌলভীবাজার" },
-  { name: "Sunamganj", bn_name: "সুনামগঞ্জ" },
-  { name: "Sylhet", bn_name: "সিলেট" }
+{ name: "Barguna", bn_name: "বরগুনা" },
+{ name: "Barishal", bn_name: "বরিশাল" },
+{ name: "Bhola", bn_name: "ভোলা" },
+{ name: "Jhalokati", bn_name: "ঝালকাঠী" },
+{ name: "Patuakhali", bn_name: "পটুয়াখালী" },
+{ name: "Pirojpur", bn_name: "পিরোজপুর" },
+{ name: "Bandarban", bn_name: "বান্দরবান" },
+{ name: "Brahmanbaria", bn_name: "ব্রাহ্মণবাড়িয়া" },
+{ name: "Chandpur", bn_name: "চাঁদপুর" },
+{ name: "Chattogram", bn_name: "চট্টগ্রাম" },
+{ name: "Cox's Bazar", bn_name: "কক্স বাজার" },
+{ name: "Cumilla", bn_name: "কুমিল্লা" },
+{ name: "Feni", bn_name: "ফেনী" },
+{ name: "Khagrachari", bn_name: "খাগড়াছড়ি" },
+{ name: "Lakshmipur", bn_name: "লক্ষ্মীপুর" },
+{ name: "Noakhali", bn_name: "নোয়াখালী" },
+{ name: "Rangamati", bn_name: "রাঙ্গামাটি" },
+{ name: "Dhaka", bn_name: "ঢাকা" },
+{ name: "Faridpur", bn_name: "ফরিদপুর" },
+{ name: "Gazipur", bn_name: "গাজীপুর" },
+{ name: "Gopalganj", bn_name: "গোপালগঞ্জ" },
+{ name: "Kishoreganj", bn_name: "কিশোরগঞ্জ" },
+{ name: "Madaripur", bn_name: "মাদারীপুর" },
+{ name: "Manikganj", bn_name: "মানিকগঞ্জ" },
+{ name: "Munshiganj", bn_name: "মুন্সিগঞ্জ" },
+{ name: "Narayanganj", bn_name: "নারায়ণগঞ্জ" },
+{ name: "Narsingdi", bn_name: "নরসিংদী" },
+{ name: "Rajbari", bn_name: "রাজবাড়ী" },
+{ name: "Shariatpur", bn_name: "শরিয়তপুর" },
+{ name: "Tangail", bn_name: "টাঙ্গাইল" },
+{ name: "Bagerhat", bn_name: "বাগেরহাট" },
+{ name: "Chuadanga", bn_name: "চুয়াডাঙ্গা" },
+{ name: "Jashore", bn_name: "যশোর" },
+{ name: "Jhenaidah", bn_name: "ঝিনাইদহ" },
+{ name: "Khulna", bn_name: "খুলনা" },
+{ name: "Kushtia", bn_name: "কুষ্টিয়া" },
+{ name: "Magura", bn_name: "মাগুরা" },
+{ name: "Meherpur", bn_name: "মেহেরপুর" },
+{ name: "Narail", bn_name: "নড়াইল" },
+{ name: "Satkhira", bn_name: "সাতক্ষীরা" },
+{ name: "Jamalpur", bn_name: "জামালপুর" },
+{ name: "Mymensingh", bn_name: "ময়মনসিংহ" },
+{ name: "Netrokona", bn_name: "নেত্রকোনা" },
+{ name: "Sherpur", bn_name: "শেরপুর" },
+{ name: "Bogura", bn_name: "বগুড়া" },
+{ name: "Joypurhat", bn_name: "জয়পুরহাট" },
+{ name: "Naogaon", bn_name: "নওগাঁ" },
+{ name: "Natore", bn_name: "নাটোর" },
+{ name: "Chapai Nawabganj", bn_name: "চাঁপাইনবাবগঞ্জ" },
+{ name: "Pabna", bn_name: "পাবনা" },
+{ name: "Rajshahi", bn_name: "রাজশাহী" },
+{ name: "Sirajganj", bn_name: "সিরাজগঞ্জ" },
+{ name: "Dinajpur", bn_name: "দিনাজপুর" },
+{ name: "Gaibandha", bn_name: "গাইবান্ধা" },
+{ name: "Kurigram", bn_name: "কুড়িগ্রাম" },
+{ name: "Lalmonirhat", bn_name: "লালমনিরহাট" },
+{ name: "Nilphamari", bn_name: "নিলফামারী" },
+{ name: "Panchagarh", bn_name: "পঞ্চগড়" },
+{ name: "Rangpur", bn_name: "রংপুর" },
+{ name: "Thakurgaon", bn_name: "ঠাকুরগাঁও" },
+{ name: "Habiganj", bn_name: "হবিগঞ্জ" },
+{ name: "Moulvibazar", bn_name: "মৌলভীবাজার" },
+{ name: "Sunamganj", bn_name: "সুনামগঞ্জ" },
+{ name: "Sylhet", bn_name: "সিলেট" }
 ];
 
 const districtSelect = document.getElementById("deliverydistrict");
 if (districtSelect) {
-    _LAN_DISTRICTS.forEach((district, idx) => {
-        const option = document.createElement('option');
-        option.value = district.name.toLowerCase();
-        option.setAttribute('district_id', idx + 1);
-        option.textContent = district.bn_name;
-        districtSelect.appendChild(option);
-    });
+_LAN_DISTRICTS.forEach((district, idx) => {
+    const option = document.createElement('option');
+    option.value = district.name.toLowerCase();
+    option.setAttribute('district_id', idx + 1);
+    option.textContent = district.bn_name;
+    districtSelect.appendChild(option);
+});
 }
 // districtSelect.addEventListener("change", function(){
 //     const district = this.value;
@@ -292,513 +293,544 @@ const modal = document.getElementById('orderModal');
 const closeBtn = document.querySelector('.close-btn');
 
 const apiFetch = async (url, { method = 'GET', body, headers = {} } = {}) =>
-    await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json', ...headers },
-        body: body ? JSON.stringify(body) : undefined
-    })
-        .then(r => r.ok ? r.json() : Promise.reject(r))
-        .catch(err => { console.log('API error:', err); return null; });
+await fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json', ...headers },
+    body: body ? JSON.stringify(body) : undefined
+})
+    .then(r => r.ok ? r.json() : Promise.reject(r))
+    .catch(err => { console.log('API error:', err); return null; });
 
 
 let products = [];
 
 openBtns.forEach(btn => {
-    btn.addEventListener('click', async () => {
-        // Fetch products
-        const data = await apiFetch(`${ENV.API_BASE_URL}/site/api/landing-page/${ENV.PRODUCT_LANDING_PAGE_ID}/`);
-        if (!data || !data.data || !data.data.product) {
-            console.warn("Could not load products for order modal");
-            return;
-        }
-        products = data.data.product
+btn.addEventListener('click', async () => {
+    // Fetch products
+    const data = await apiFetch(`${ENV.API_BASE_URL}/site/api/landing-page/${ENV.PRODUCT_LANDING_PAGE_ID}/`);
+    if (!data || !data.data || !data.data.product) {
+        console.warn("Could not load products for order modal");
+        return;
+    }
+    products = data.data.product
 
-        GAAddToCartEvent(products[0]);
+    GAAddToCartEvent(products[0]);
 
-        // Create Grid
-        const grid = document.getElementById("productCardGrid");
-        if (!grid) return;
-        grid.innerHTML = "";
+    // Create Grid
+    const grid = document.getElementById("productCardGrid");
+    if (!grid) return;
+    grid.innerHTML = "";
 
-        // Render products dynamically
-        products.forEach((product, index) => {
-            const card = document.createElement("div");
-            card.className = `product-card selectable ${index === 0 ? "active" : ""}`;
-            card.dataset.type = product.name;
+    // Render products dynamically
+    products.forEach((product, index) => {
+        const card = document.createElement("div");
+        card.className = `product-card selectable ${index === 0 ? "active" : ""}`;
+        card.dataset.type = product.name;
 
-            card.innerHTML = `
-                <div class="card-info">
-                    <p hidden class="product-id">${product.id}</p>
-                    <h4>${product.name}</h4>
-                    <p>৳ <del>${toBanglaNumber(product.price)}</del> <span class="unit-price" style="font-weight: bold;">${toBanglaNumber(product.discount_price)}</span></p>
-                </div>
-                <div class="qty-control">
-                    <button type="button" class="qty-btn minus" data-product-id="${product.id}">−</button>
-                    <span class="qty-value" id="${product.id}Qty" name="${product.id}Qty" min="0">${index === 0 ? "1" : "0"}</span>
-                    <button type="button" class="qty-btn plus" data-product-id="${product.id}">+</button>
-                </div>
-            `;
-            grid.appendChild(card);
-        });
-
-        // Initialize quantities and summary
-        setupModalProducts(products);
-
-
-        // ----- PIXEL ADD TO CART SETUP -----
-        const productPrice = document.getElementById("productPrice");
-        if (productPrice) {
-            const content_ids = [String(productPrice.dataset.productId)];
-            const content_name = "Cradle - Baby Product";
-            const contentValue = parseFloat(toEnglishNumber(productPrice.textContent || 0));
-        }
-
-        // Show modal
-        if (modal) {
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
+        card.innerHTML = `
+            <div class="card-info">
+                <p hidden class="product-id">${product.id}</p>
+                <h4>${product.name}</h4>
+                <p>৳ <del>${toBanglaNumber(product.price)}</del> <span class="unit-price" style="font-weight: bold;">${toBanglaNumber(product.discount_price)}</span></p>
+            </div>
+            <div class="qty-control">
+                <button type="button" class="qty-btn minus" data-product-id="${product.id}">−</button>
+                <span class="qty-value" id="${product.id}Qty" name="${product.id}Qty" min="0">${index === 0 ? "1" : "0"}</span>
+                <button type="button" class="qty-btn plus" data-product-id="${product.id}">+</button>
+            </div>
+        `;
+        grid.appendChild(card);
     });
+
+    // Initialize quantities and summary
+    setupModalProducts(products);
+
+
+    // ----- PIXEL ADD TO CART SETUP -----
+    const productPrice = document.getElementById("productPrice");
+    if (productPrice) {
+        const content_ids = [String(productPrice.dataset.productId)];
+        const content_name = "Cradle - Baby Product";
+        const contentValue = parseFloat(toEnglishNumber(productPrice.textContent || 0));
+    }
+
+    // Show modal
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+});
 });
 
 
 
 
 function getProductDeliveryCharge(product, district) {
-    const dc = product.delivery_charge;
-    if (!dc) {
-        return district === "dhaka" ? 80 : 120;
-    }
-    if (dc.area_and_charge?.all !== undefined) {
-        return dc.area_and_charge.all;
-    }
-    if (dc.all !== undefined) {
-        return dc.all;
-    }
-
-    // Area-set priority order
-    const areaSets = ["area-set-1", "area-set-2", "area-set-3"];
-    const area_and_charge = dc.area_and_charge || {};
-    for (const key of areaSets) {
-        if (!area_and_charge[key]) continue;
-
-        const { area, charge } = area_and_charge[key];
-        if (
-            area.includes("all") ||
-            area.includes(district)
-        ) {
-            return charge;
-        }
-    }
+const dc = product.delivery_charge;
+if (!dc) {
     return district === "dhaka" ? 80 : 120;
 }
+if (dc.area_and_charge?.all !== undefined) {
+    return dc.area_and_charge.all;
+}
+if (dc.all !== undefined) {
+    return dc.all;
+}
+
+// Area-set priority order
+const areaSets = ["area-set-1", "area-set-2", "area-set-3"];
+const area_and_charge = dc.area_and_charge || {};
+for (const key of areaSets) {
+    if (!area_and_charge[key]) continue;
+
+    const { area, charge } = area_and_charge[key];
+    if (
+        area.includes("all") ||
+        area.includes(district)
+    ) {
+        return charge;
+    }
+}
+return district === "dhaka" ? 80 : 120;
+}
 function calculateDeliveryChargeFromSummary(district, quantities) {
-    let highestCharge = 0;
-    products.forEach(product => {
-        const qty = quantities[product.id] || 0;
-        if (qty > 0) {
-            const charge = getProductDeliveryCharge(product, district);
-            highestCharge = Math.max(highestCharge, charge);
-        }
-    });
-    return highestCharge;
+let highestCharge = 0;
+products.forEach(product => {
+    const qty = quantities[product.id] || 0;
+    if (qty > 0) {
+        const charge = getProductDeliveryCharge(product, district);
+        highestCharge = Math.max(highestCharge, charge);
+    }
+});
+return highestCharge;
 }
 
 function setupModalProducts() {
-    // ---------- Summary Elements ----------
-    const productSummary = document.getElementById("productSummary");
-    const productTotalEl = document.getElementById("productTotal");
-    const summaryTotalEl = document.getElementById("summaryTotal");
-    const deliveryChargeEl = document.getElementById("summaryDelivery");
-    const districtSelectEl = document.getElementById("deliverydistrict");
+// ---------- Summary Elements ----------
+const productSummary = document.getElementById("productSummary");
+const productTotalEl = document.getElementById("productTotal");
+const summaryTotalEl = document.getElementById("summaryTotal");
+const deliveryChargeEl = document.getElementById("summaryDelivery");
+const districtSelectEl = document.getElementById("deliverydistrict");
 
-    if (!productSummary || !productTotalEl || !summaryTotalEl || !deliveryChargeEl || !districtSelectEl) {
-        console.warn("Order summary elements missing; skipping modal setup.");
-        return;
-    }
+if (!productSummary || !productTotalEl || !summaryTotalEl || !deliveryChargeEl || !districtSelectEl) {
+    console.warn("Order summary elements missing; skipping modal setup.");
+    return;
+}
 
-    // Initialize quantities
-    let quantities = {};
-    products.forEach((product, index) => {
-        quantities[product.id] = index === 0 ? 1 : 0;
-    });
+// Initialize quantities
+let quantities = {};
+products.forEach((product, index) => {
+    quantities[product.id] = index === 0 ? 1 : 0;
+});
 
 
-    // DELIVERY CHARGE CALCULATE 
-    let deliveryCharge = calculateDeliveryChargeFromSummary(
-        districtSelectEl.value, quantities
-    );
+// DELIVERY CHARGE CALCULATE 
+let deliveryCharge = calculateDeliveryChargeFromSummary(
+    districtSelectEl.value, quantities
+);
+deliveryChargeEl.innerText = deliveryCharge;
+districtSelectEl.addEventListener("change", function () {
+    deliveryCharge = calculateDeliveryChargeFromSummary(this.value, quantities);
     deliveryChargeEl.innerText = deliveryCharge;
-    districtSelectEl.addEventListener("change", function () {
-        deliveryCharge = calculateDeliveryChargeFromSummary(this.value, quantities);
-        deliveryChargeEl.innerText = deliveryCharge;
+    updateSummary();
+});
+
+
+// Setup qty buttons
+products.forEach(product => {
+    const card = document.querySelector(`.product-card[data-type='${product.name}']`);
+    if (!card) return;
+    const minusBtn = card.querySelector(".minus");
+    const plusBtn = card.querySelector(".plus");
+    const qtyEl = card.querySelector(".qty-value");
+    if (!minusBtn || !plusBtn || !qtyEl) return;
+
+    minusBtn.addEventListener("click", () => {
+        if (quantities[product.id] > 0) quantities[product.id]--;
+        qtyEl.innerText = quantities[product.id];
+        if (quantities[product.id] === 0) card.classList.remove("active");
         updateSummary();
     });
 
-
-    // Setup qty buttons
-    products.forEach(product => {
-        const card = document.querySelector(`.product-card[data-type='${product.name}']`);
-        if (!card) return;
-        const minusBtn = card.querySelector(".minus");
-        const plusBtn = card.querySelector(".plus");
-        const qtyEl = card.querySelector(".qty-value");
-        if (!minusBtn || !plusBtn || !qtyEl) return;
-
-        minusBtn.addEventListener("click", () => {
-            if (quantities[product.id] > 0) quantities[product.id]--;
-            qtyEl.innerText = quantities[product.id];
-            if (quantities[product.id] === 0) card.classList.remove("active");
-            updateSummary();
-        });
-
-        plusBtn.addEventListener("click", () => {
-            quantities[product.id]++;
-            qtyEl.innerText = quantities[product.id];
-            card.classList.add("active");
-            updateSummary();
-        });
+    plusBtn.addEventListener("click", () => {
+        quantities[product.id]++;
+        qtyEl.innerText = quantities[product.id];
+        card.classList.add("active");
+        updateSummary();
     });
+});
 
-    function updateSummary() {
-        productSummary.innerHTML = "";
-        let productTotal = 0;
+function updateSummary() {
+    productSummary.innerHTML = "";
+    let productTotal = 0;
 
-        products.forEach(product => {
-            const qty = quantities[product.id];
-            if (qty > 0) {
-                // --- Main product ---
-                if (product.id === undefined || product.id === null) {
-                    console.warn("Skipping main product row with invalid id:", product);
+    products.forEach(product => {
+        const qty = quantities[product.id];
+        if (qty > 0) {
+            // --- Main product ---
+            if (product.id === undefined || product.id === null) {
+                console.warn("Skipping main product row with invalid id:", product);
+                return;
+            }
+            const total_amount = qty * product.discount_price;
+            productTotal += total_amount;
+            productSummary.appendChild(createRow(product.name, product.id, qty, product.discount_price, total_amount, "MAIN"));
+
+            // --- Gift products ---
+            const gift_products = product.gift_product || [];
+            gift_products.forEach(gift => {
+                const giftProd = gift.gift_product;
+
+                if (!giftProd || giftProd.id === undefined || giftProd.id === null) {
+                    console.warn("Skipping malformed gift product row:", gift);
                     return;
                 }
-                const total_amount = qty * product.discount_price;
-                productTotal += total_amount;
-                productSummary.appendChild(createRow(product.name, product.id, qty, product.discount_price, total_amount, "MAIN"));
 
-                // --- Gift products ---
-                const gift_products = product.gift_product || [];
-                gift_products.forEach(gift => {
-                    const giftProd = gift.gift_product;
+                let giftUnitPrice = giftProd.discount_price;
 
-                    if (!giftProd || giftProd.id === undefined || giftProd.id === null) {
-                        console.warn("Skipping malformed gift product row:", gift);
-                        return;
-                    }
+                // Apply gift_type discount
+                if (gift.gift_type === "FREE") {
+                    giftUnitPrice = 0;
+                } else if (gift.gift_type === "FLAT") {
+                    giftUnitPrice -= gift.value; // subtract flat discount
+                    if (giftUnitPrice < 0) giftUnitPrice = 0;
+                } else if (gift.gift_type === "PERCENTAGE") {
+                    giftUnitPrice = giftUnitPrice * (1 - gift.value / 100);
+                }
 
-                    let giftUnitPrice = giftProd.discount_price;
+                const giftTotal = giftUnitPrice * qty; // multiply by parent product qty
+                productTotal += giftTotal;
 
-                    // Apply gift_type discount
-                    if (gift.gift_type === "FREE") {
-                        giftUnitPrice = 0;
-                    } else if (gift.gift_type === "FLAT") {
-                        giftUnitPrice -= gift.value; // subtract flat discount
-                        if (giftUnitPrice < 0) giftUnitPrice = 0;
-                    } else if (gift.gift_type === "PERCENTAGE") {
-                        giftUnitPrice = giftUnitPrice * (1 - gift.value / 100);
-                    }
+                // Add row to summary
+                let giftTitle = giftProd.name;
+                if (gift.gift_type === "FREE") giftTitle += " (FREE)";
+                else if (gift.gift_type === "FLAT") giftTitle += ` (−৳${gift.value})`;
+                else if (gift.gift_type === "PERCENTAGE") giftTitle += ` (${gift.value}% OFF)`;
 
-                    const giftTotal = giftUnitPrice * qty; // multiply by parent product qty
-                    productTotal += giftTotal;
+                productSummary.appendChild(
+                    createRow(giftTitle, giftProd.id, qty, giftUnitPrice, giftTotal, "FREE", product.id)
+                );
+            });
+        }
+    });
 
-                    // Add row to summary
-                    let giftTitle = giftProd.name;
-                    if (gift.gift_type === "FREE") giftTitle += " (FREE)";
-                    else if (gift.gift_type === "FLAT") giftTitle += ` (−৳${gift.value})`;
-                    else if (gift.gift_type === "PERCENTAGE") giftTitle += ` (${gift.value}% OFF)`;
+    deliveryCharge = calculateDeliveryChargeFromSummary(
+        districtSelectEl.value,
+        quantities
+    );
+    deliveryChargeEl.innerText = deliveryCharge;
 
-                    productSummary.appendChild(
-                        createRow(giftTitle, giftProd.id, qty, giftUnitPrice, giftTotal, "FREE", product.id)
-                    );
-                });
-            }
-        });
+    productTotalEl.innerText = productTotal;
+    summaryTotalEl.innerText = productTotal + deliveryCharge - appliedCouponDiscount;
+    refreshCouponIfApplied();
+}
 
-        deliveryCharge = calculateDeliveryChargeFromSummary(
-            districtSelectEl.value,
-            quantities
-        );
-        deliveryChargeEl.innerText = deliveryCharge;
+function createRow(title, product_id, qty, unit_amount, total_amount, product_type, reference_id = null) {
+    const row = document.createElement("div");
+    row.className = "summary-row";
+    row.dataset.productId = product_id;
+    row.dataset.referenceId = reference_id === null || reference_id === undefined ? "" : reference_id;
+    row.dataset.productType = product_type;
+    row.dataset.productUnitPrice = unit_amount;
+    row.innerHTML = `
+        <span class="product_name">${title}</span>
+        <div class="right-meta">
+            <span class="qty-wrap">x <span class="qty">${qty}</span></span>
+            <span class="price">৳ <span class="total_amount">${total_amount}</span></span>
+        </div>
+    `;
+    return row;
+}
 
-        productTotalEl.innerText = productTotal;
-        summaryTotalEl.innerText = productTotal + deliveryCharge - appliedCouponDiscount;
-        refreshCouponIfApplied();
-    }
-
-    function createRow(title, product_id, qty, unit_amount, total_amount, product_type, reference_id = null) {
-        const row = document.createElement("div");
-        row.className = "summary-row";
-        row.dataset.productId = product_id;
-        row.dataset.referenceId = reference_id === null || reference_id === undefined ? "" : reference_id;
-        row.dataset.productType = product_type;
-        row.dataset.productUnitPrice = unit_amount;
-        row.innerHTML = `
-            <span class="product_name">${title}</span>
-            <div class="right-meta">
-                <span class="qty-wrap">x <span class="qty">${qty}</span></span>
-                <span class="price">৳ <span class="total_amount">${total_amount}</span></span>
-            </div>
-        `;
-        return row;
-    }
-
-    updateSummary();
+updateSummary();
 }
 
 
 if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-        if (modal) {
-            modal.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-    });
+closeBtn.addEventListener('click', () => {
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+});
 }
 let lockModal = false;
 if (modal) {
-    modal.addEventListener('click', (e) => {
-        if (lockModal) return;
-        if (e.target === modal) {
-            modal.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-    });
+modal.addEventListener('click', (e) => {
+    if (lockModal) return;
+    if (e.target === modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+});
 }
 
 
 function OrderCompleteCard(bill) {
-    const billHtml = (window.OrderBill && OrderBill.html(bill)) || "";
+const billHtml = (window.OrderBill && OrderBill.html(bill)) || "";
 
-    const thankYouCard = document.createElement("div");
-    thankYouCard.style.textAlign = "center";
-    thankYouCard.style.padding = "30px 20px";
-    thankYouCard.style.background = "#fff";
-    thankYouCard.style.borderRadius = "20px";
-    thankYouCard.style.boxShadow = "0 10px 30px rgba(0,0,0,0.1)";
-    thankYouCard.style.maxHeight = "90vh";
-    thankYouCard.style.overflowY = "auto";
-    thankYouCard.innerHTML = `
-        ${billHtml || `<h2>ধন্যবাদ!</h2>
-        <p>আপনার অর্ডার সফলভাবে গ্রহণ করা হয়েছে।</p>`}
-        <p style="margin-top:14px;">হোমপেজে রিডিরেক্ট হবে <span id="countdown">10</span> সেকেন্ডে...</p>
-        <a href="https://wa.me/${ENV.WHATSAPP_NUMBER}" target="_blank" class="btn btn-primary" 
-        style="margin-top: 10px; display: inline-block;">
-        Contact with WhatsApp
-        </a>
-    `;
+const thankYouCard = document.createElement("div");
+thankYouCard.style.textAlign = "center";
+thankYouCard.style.padding = "30px 20px";
+thankYouCard.style.background = "#fff";
+thankYouCard.style.borderRadius = "20px";
+thankYouCard.style.boxShadow = "0 10px 30px rgba(0,0,0,0.1)";
+thankYouCard.style.maxHeight = "90vh";
+thankYouCard.style.overflowY = "auto";
+thankYouCard.innerHTML = `
+    ${billHtml || `<h2>ধন্যবাদ!</h2>
+    <p>আপনার অর্ডার সফলভাবে গ্রহণ করা হয়েছে।</p>`}
+    <p style="margin-top:14px;">হোমপেজে রিডিরেক্ট হবে <span id="countdown">10</span> সেকেন্ডে...</p>
+    <a href="https://wa.me/${ENV.WHATSAPP_NUMBER}" target="_blank" class="btn btn-primary" 
+    style="margin-top: 10px; display: inline-block;">
+    Contact with WhatsApp
+    </a>
+`;
 
-    return thankYouCard;
+return thankYouCard;
 }
 
 // Order Submit Script Start =================================================
 
 const orderForm = document.getElementById("orderForm");
 if (orderForm) {
-    orderForm.addEventListener("submit", async function (e) {
-        e.preventDefault();
-        
-        if (!orderForm.checkValidity()) {
-            orderForm.reportValidity();
-            return;
-        }
+orderForm.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    
+    if (!orderForm.checkValidity()) {
+        orderForm.reportValidity();
+        return;
+    }
 
-        const modalContent = document.querySelector(".modal-content");
-        const loader = document.getElementById("pageLoader");
-        const submitBtn = document.getElementById("submitBtn");
-        if (loader) loader.classList.remove("hidden");
+    const modalContent = document.querySelector(".modal-content");
+    const loader = document.getElementById("pageLoader");
+    const submitBtn = document.getElementById("submitBtn");
+    if (loader) loader.classList.remove("hidden");
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="loading loading-spinner loading-sm"></span> প্রসেসিং...';
+    }
+
+
+    function getProductJSON() {
+        const productSummary = document.getElementById("productSummary");
+        if (!productSummary) return [];
+        const allRows = productSummary.querySelectorAll(".summary-row");
+        const contents = [];
+        allRows.forEach(row => {
+            const product_id = row.dataset.productId;
+            if (!product_id || product_id === "undefined" || product_id === "null") {
+                console.warn("Skipping row with invalid product_id:", row);
+                return;
+            }
+            const product_type = row.dataset.productType;
+            const reference_id = row.dataset.referenceId;
+            const product_unit_price = row.dataset.productUnitPrice;
+            const product_title = row.querySelector(".product_name")?.textContent.trim() || "";
+            const qty = Number(row.querySelector(".qty")?.textContent) || 0;
+            const total_amount = parseFloat(row.querySelector(".total_amount")?.textContent) || 0;
+            contents.push({
+                product_type: product_type,
+                reference_product: reference_id,
+                id: product_id,
+                name: product_title,
+                price: product_unit_price,
+                quantity: qty,
+                total_amount: total_amount
+            });
+        });
+        return contents;
+    }
+    function getCustomerJSON() {
+        const nameEl = document.getElementById("name");
+        const phoneEl = document.getElementById("phone");
+        const districtEl = document.getElementById("deliverydistrict");
+        const addressEl = document.getElementById("address");
+        return {
+            name: nameEl ? nameEl.value.trim() : "",
+            phone: phoneEl ? phoneEl.value.trim() : "",
+            district: districtEl ? districtEl.value.trim() : "",
+            address: addressEl ? addressEl.value.trim() : "",
+        }
+    }
+    const customerData = getCustomerJSON();
+    function getAmountJSON() {
+        const productTotalEl = document.getElementById("productTotal");
+        const summaryDeliveryEl = document.getElementById("summaryDelivery");
+        const summaryTotalEl = document.getElementById('summaryTotal');
+        return {
+            productTotal: parseFloat(productTotalEl ? productTotalEl.textContent : 0),
+            deliveryCharge: Number(summaryDeliveryEl ? summaryDeliveryEl.textContent : 0),
+            totalAmount: parseFloat(summaryTotalEl ? summaryTotalEl.textContent : 0 || 0),
+        }
+    }
+
+    function resetSubmitState() {
+        if (loader) loader.classList.add("hidden");
         if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="loading loading-spinner loading-sm"></span> প্রসেসিং...';
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = "অর্ডার কনফার্ম করুন";
         }
+    }
 
+    // temporary OTP OFF — frontend now assumes OTP verified via /verify-otp/ before order submit,
+    // or is simply not required (otp_required: false below).
 
-        function getProductJSON() {
-            const productSummary = document.getElementById("productSummary");
-            if (!productSummary) return [];
-            const allRows = productSummary.querySelectorAll(".summary-row");
-            const contents = [];
-            allRows.forEach(row => {
-                const product_id = row.dataset.productId;
-                if (!product_id || product_id === "undefined" || product_id === "null") {
-                    console.warn("Skipping row with invalid product_id:", row);
-                    return;
+    if (!customerData.name || !customerData.phone || !customerData.district || !customerData.address) {
+        alert("অনুগ্রহ করে সমস্ত গ্রাহক তথ্য পূরণ করুন।");
+        resetSubmitState();
+        return;
+    }
+    if (!isValidBDPhoneNew(customerData.phone)) {
+        alert("অনুগ্রহ করে সঠিক বাংলাদেশি মোবাইল নম্বর লিখুন!");
+        resetSubmitState();
+        return;
+    }
+    if (getProductJSON().length === 0) {
+        alert("অনুগ্রহ করে অন্তত একটি পণ্য নির্বাচন করুন।");
+        resetSubmitState();
+        return;
+    }
+    if (getAmountJSON().totalAmount <= 0) {
+        alert("অবৈধ অর্ডার পরিমাণ। দয়া করে পণ্য এবং পরিমাণ পরীক্ষা করুন।");
+        resetSubmitState();
+        return;
+    }
+
+    // ----- PIXEL INITIATE CHECKOUT SETUP -----
+    const product_details_for_event_send = function getProductJsonForEventSend() {
+        const productSummary = document.getElementById("productSummary");
+        if (!productSummary) return [];
+        const allRows = productSummary.querySelectorAll(".summary-row");
+        const contents = [];
+        allRows.forEach(row => {
+            const product_id = row.dataset.productId;
+            const product_unit_price = row.dataset.productUnitPrice;
+            const product_title = row.querySelector(".product_name")?.textContent.trim() || "";
+            const qty = Number(row.querySelector(".qty")?.textContent) || 0;
+            contents.push({
+                id: product_id,
+                name: product_title,
+                quantity: qty,
+                price: product_unit_price,
+            });
+        });
+        return contents;
+    };
+    const summaryTotalElFinal = document.getElementById('summaryTotal');
+    const summaryTotal = parseFloat(summaryTotalElFinal ? summaryTotalElFinal.textContent : 0 || 0);
+    GAInitiateCheckoutEvent(product_details_for_event_send(), summaryTotal);
+
+    const noteEl = document.getElementById("note");
+    const formData = {
+        customer: customerData,
+        products: getProductJSON(),
+        amount: getAmountJSON(),
+        note: noteEl ? (noteEl.value.trim() || "No Note Is Provided From Client") : "No Note Is Provided From Client",
+        otp_required: false,
+        coupon_code: appliedCouponCode,
+        landing_page_code: ENV.PRODUCT_LANDING_PAGE_ID,
+        ...window.getAttributionData(),
+    };
+
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    function handleOrderSuccess(bill) {
+        // ----- PIXEL PURCHASE SETUP -----
+        GAInitiatePurchaseEvent(product_details_for_event_send(), summaryTotal, null, customerData);
+
+        lockModal = true;
+        if (modalContent) {
+            modalContent.innerHTML = "";
+            modalContent.appendChild(OrderCompleteCard(bill));
+        }
+        if (loader) loader.classList.add("hidden");
+        document.body.style.overflow = 'hidden';
+
+        let countdown = 10;
+        const countdownEl = document.getElementById("countdown");
+        const interval = setInterval(() => {
+            countdown -= 1;
+            if (countdownEl) countdownEl.textContent = countdown;
+            if (countdown <= 0) {
+                clearInterval(interval);
+                window.location.href = "/";
+            }
+        }, 1000);
+    }
+
+    try {
+        const response = await fetch(`${ENV.API_BASE_URL}/site/api/create-order/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            handleOrderSuccess(data.bill);
+        } else if (data.otp_required && !isMandatoryOtpEnabled()) {
+            resetSubmitState();
+            showOtpVerifyModal({
+                phone: data.phone || customerData.phone,
+                message: data.message,
+                apiBase: ENV.API_BASE_URL,
+                orderEndpoint: "/site/api/create-order/",
+                orderPayload: formData,
+                onSuccess: function (successData) {
+                    handleOrderSuccess(successData && successData.bill);
                 }
-                const product_type = row.dataset.productType;
-                const reference_id = row.dataset.referenceId;
-                const product_unit_price = row.dataset.productUnitPrice;
-                const product_title = row.querySelector(".product_name")?.textContent.trim() || "";
-                const qty = Number(row.querySelector(".qty")?.textContent) || 0;
-                const total_amount = parseFloat(row.querySelector(".total_amount")?.textContent) || 0;
-                contents.push({
-                    product_type: product_type,
-                    reference_product: reference_id,
-                    id: product_id,
-                    name: product_title,
-                    price: product_unit_price,
-                    quantity: qty,
-                    total_amount: total_amount
-                });
             });
-            return contents;
-        }
-        function getCustomerJSON() {
-            const nameEl = document.getElementById("name");
-            const phoneEl = document.getElementById("phone");
-            const districtEl = document.getElementById("deliverydistrict");
-            const addressEl = document.getElementById("address");
-            return {
-                name: nameEl ? nameEl.value.trim() : "",
-                phone: phoneEl ? phoneEl.value.trim() : "",
-                district: districtEl ? districtEl.value.trim() : "",
-                address: addressEl ? addressEl.value.trim() : "",
-            }
-        }
-        const customerData = getCustomerJSON();
-        function getAmountJSON() {
-            const productTotalEl = document.getElementById("productTotal");
-            const summaryDeliveryEl = document.getElementById("summaryDelivery");
-            const summaryTotalEl = document.getElementById('summaryTotal');
-            return {
-                productTotal: parseFloat(productTotalEl ? productTotalEl.textContent : 0),
-                deliveryCharge: Number(summaryDeliveryEl ? summaryDeliveryEl.textContent : 0),
-                totalAmount: parseFloat(summaryTotalEl ? summaryTotalEl.textContent : 0 || 0),
-            }
-        }
-
-        function resetSubmitState() {
-            if (loader) loader.classList.add("hidden");
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = "অর্ডার কনফার্ম করুন";
-            }
-        }
-
-        // temporary OTP OFF — frontend now assumes OTP verified via /verify-otp/ before order submit,
-        // or is simply not required (otp_required: false below).
-
-        if (!customerData.name || !customerData.phone || !customerData.district || !customerData.address) {
-            alert("অনুগ্রহ করে সমস্ত গ্রাহক তথ্য পূরণ করুন।");
+        } else if (data.blocked) {
             resetSubmitState();
-            return;
-        }
-        if (!isValidBDPhoneNew(customerData.phone)) {
-            alert("অনুগ্রহ করে সঠিক বাংলাদেশি মোবাইল নম্বর লিখুন!");
-            resetSubmitState();
-            return;
-        }
-        if (getProductJSON().length === 0) {
-            alert("অনুগ্রহ করে অন্তত একটি পণ্য নির্বাচন করুন।");
-            resetSubmitState();
-            return;
-        }
-        if (getAmountJSON().totalAmount <= 0) {
-            alert("অবৈধ অর্ডার পরিমাণ। দয়া করে পণ্য এবং পরিমাণ পরীক্ষা করুন।");
-            resetSubmitState();
-            return;
-        }
-
-        // ----- PIXEL INITIATE CHECKOUT SETUP -----
-        const product_details_for_event_send = function getProductJsonForEventSend() {
-            const productSummary = document.getElementById("productSummary");
-            if (!productSummary) return [];
-            const allRows = productSummary.querySelectorAll(".summary-row");
-            const contents = [];
-            allRows.forEach(row => {
-                const product_id = row.dataset.productId;
-                const product_unit_price = row.dataset.productUnitPrice;
-                const product_title = row.querySelector(".product_name")?.textContent.trim() || "";
-                const qty = Number(row.querySelector(".qty")?.textContent) || 0;
-                contents.push({
-                    id: product_id,
-                    name: product_title,
-                    quantity: qty,
-                    price: product_unit_price,
-                });
-            });
-            return contents;
-        };
-        const summaryTotalElFinal = document.getElementById('summaryTotal');
-        const summaryTotal = parseFloat(summaryTotalElFinal ? summaryTotalElFinal.textContent : 0 || 0);
-        GAInitiateCheckoutEvent(product_details_for_event_send(), summaryTotal);
-
-        const noteEl = document.getElementById("note");
-        const formData = {
-            customer: customerData,
-            products: getProductJSON(),
-            amount: getAmountJSON(),
-            note: noteEl ? (noteEl.value.trim() || "No Note Is Provided From Client") : "No Note Is Provided From Client",
-            otp_required: false,
-            coupon_code: appliedCouponCode,
-            landing_page_code: ENV.PRODUCT_LANDING_PAGE_ID,
-            ...window.getAttributionData(),
-        };
-
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
-        function handleOrderSuccess(bill) {
-            // ----- PIXEL PURCHASE SETUP -----
-            GAInitiatePurchaseEvent(product_details_for_event_send(), summaryTotal, null, customerData);
-
-            lockModal = true;
-            if (modalContent) {
-                modalContent.innerHTML = "";
-                modalContent.appendChild(OrderCompleteCard(bill));
-            }
-            if (loader) loader.classList.add("hidden");
-            document.body.style.overflow = 'hidden';
-
-            let countdown = 10;
-            const countdownEl = document.getElementById("countdown");
-            const interval = setInterval(() => {
-                countdown -= 1;
-                if (countdownEl) countdownEl.textContent = countdown;
-                if (countdown <= 0) {
-                    clearInterval(interval);
-                    window.location.href = "/";
-                }
-            }, 1000);
-        }
-
-        try {
-            const response = await fetch(`${ENV.API_BASE_URL}/site/api/create-order/`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json"
-                },
-                body: JSON.stringify(formData)
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                handleOrderSuccess(data.bill);
-            } else if (data.otp_required && !isMandatoryOtpEnabled()) {
-                resetSubmitState();
-                showOtpVerifyModal({
-                    phone: data.phone || customerData.phone,
-                    message: data.message,
-                    apiBase: ENV.API_BASE_URL,
-                    orderEndpoint: "/site/api/create-order/",
-                    orderPayload: formData,
-                    onSuccess: function (successData) {
-                        handleOrderSuccess(successData && successData.bill);
-                    }
-                });
-            } else if (data.blocked) {
-                resetSubmitState();
-                showBlockedMessageModal(data.message);
-            } else {
-                alert("অর্ডার সাবমিট করতে সমস্যা হয়েছে! দয়া করে আবার চেষ্টা করুন।\n" + (data.message || ""));
-                resetSubmitState();
-            }
-        } catch (err) {
-            console.log("অর্ডার সাবমিট করতে সমস্যা হয়েছে! দয়া করে আবার চেষ্টা করুন।\n" + err.message);
+            showBlockedMessageModal(data.message);
+        } else {
+            alert("অর্ডার সাবমিট করতে সমস্যা হয়েছে! দয়া করে আবার চেষ্টা করুন।\n" + (data.message || ""));
             resetSubmitState();
         }
-    });
+    } catch (err) {
+        console.log("অর্ডার সাবমিট করতে সমস্যা হয়েছে! দয়া করে আবার চেষ্টা করুন।\n" + err.message);
+        resetSubmitState();
+    }
+});
 }
 // Order Submit Script End =================================================
 
 
 // Order Form Modal Open & Close Script End=================================
+
+function showCampaignBadge(product) {
+const cp = product && product.campaign_pricing;
+const img = document.getElementById("header-image");
+if (!cp || !cp.badge_text || !img) return;
+let host = img.parentElement;
+if (!host.classList.contains("camp-host")) {
+    host = document.createElement("span");
+    host.className = "camp-host";
+    host.style.cssText = "position:relative;display:inline-block;max-width:100%;vertical-align:top";
+    img.parentElement.insertBefore(host, img);
+    host.appendChild(img);
+}
+const parts = cp.badge_text.split(" \u00b7 ");
+const corner = document.createElement("span");
+corner.className = "campaign-badge";
+corner.style.cssText = "position:absolute;top:0;left:0;z-index:5;width:12em;height:12em;overflow:hidden;pointer-events:none;font-size:11px;border-top-left-radius:0";
+const band = document.createElement("span");
+band.style.cssText = "position:absolute;top:2.5em;left:-4em;width:16em;height:3em;display:flex;flex-direction:column;justify-content:center;background:linear-gradient(#EF4444,#D32F2F);color:#fff;text-align:center;font-weight:800;line-height:1.25;white-space:nowrap;transform:rotate(-45deg);box-shadow:0 2px 4px rgba(0,0,0,.3)";
+if (parts.length > 1) {
+    const name = document.createElement("span");
+    name.style.fontSize = ".8em";
+    name.textContent = parts[0];
+    band.appendChild(name);
+}
+const off = document.createElement("span");
+off.textContent = parts.length > 1 ? parts.slice(1).join(" \u00b7 ") : parts[0];
+band.appendChild(off);
+corner.appendChild(band);
+host.appendChild(corner);
+}

@@ -366,6 +366,7 @@ function renderProducts(products) {
         <div class="prod-card">
 
             <div class="prod-img" onclick="openProduct('${slug}')">
+                ${cardBadgeHtml(p)}
                 <img src="${image}" alt="${productName}">
             </div>
 
@@ -374,7 +375,7 @@ function renderProducts(products) {
             </div>
 
             <div class="prod-price">
-                ৳ ${p.discount_price || p.price} <span class="price-orig">${p.discount_price ? `৳ ${p.price}` : ""}</span>
+                ${cardPriceHtml(p)}
             </div>
 
             <button
@@ -672,10 +673,54 @@ async function updateWishlistCount() {
 /* =========================
    ── QUICK ADD CART (guest + logged-in, simple products only)
 ========================= */
+window.__CAMP_LISTING = window.__CAMP_LISTING || {};
+
+function cardPriceHtml(p) {
+    const c = p.campaign_listing;
+    if (!c || !(Number(c.campaign_price) > 0)) {
+        return `৳ ${p.discount_price || p.price} <span class="price-orig">${p.discount_price ? `৳ ${p.price}` : ""}</span>`;
+    }
+    window.__CAMP_LISTING[p.id] = p;
+    const hasStrike = Number(c.strike_price) > Number(c.campaign_price);
+    return `৳ ${c.campaign_price} ${hasStrike ? `<span class="price-orig">৳ ${c.strike_price}</span>` : ""}`;
+}
+
+function campCornerHtml(text, big, id) {
+    const parts = String(text).split(" · ");
+    const inner = parts.length > 1
+        ? `<small>${parts[0]}</small><span>${parts.slice(1).join(" · ")}</span>`
+        : `<span>${text}</span>`;
+    return `<span${id ? ` id="${id}"` : ""} class="camp-corner${big ? " camp-corner-lg" : ""}"><span class="camp-band">${inner}</span></span>`;
+}
+
+function cardBadgeHtml(p) {
+    const c = p.campaign_listing;
+    if (!c || !c.badge_text || !(Number(c.strike_price) > Number(c.campaign_price))) return "";
+    return campCornerHtml(c.badge_text);
+}
+
+function autoCampaignSnapshot(p) {
+    const c = p.campaign_listing;
+    const camp = Number(c.campaign_price);
+    const strike = Number(c.strike_price);
+    return {
+        name: p.name,
+        image: p.image || "",
+        price: strike > camp ? strike : Number(p.price),
+        discount_price: camp,
+        campaign: c.campaign_slug,
+        campaign_price: camp,
+        surface: c.campaign_surface || "ecom",
+        is_customized: p.customization_mode === "mandatory",
+        customization_price: p.customization_price || 0
+    };
+}
+
 async function quickAddCart(productId, variantId = null, snapshot = null) {
 
     const token = localStorage.getItem("access") || localStorage.getItem("token");
-    const product = ALL_PRODUCTS.find(p => p.id === productId);
+    const product = ALL_PRODUCTS.find(p => p.id === productId) || window.__CAMP_LISTING[productId];
+    if (!snapshot && product && product.campaign_listing) snapshot = autoCampaignSnapshot(product);
 
     const campaignSlug = snapshot?.campaign || null;   // campaign context (campaign page / campaign product page)
 
@@ -705,7 +750,10 @@ async function quickAddCart(productId, variantId = null, snapshot = null) {
         if (variantId) payload.variant_id = variantId;
         if (snapshot?.customization_note) payload.customization_note = snapshot.customization_note;
         if (snapshot?.is_customized) payload.is_customized = true;
-        if (campaignSlug) payload.campaign = campaignSlug;
+        if (campaignSlug) {
+            payload.campaign = campaignSlug;
+            if (snapshot?.surface) payload.surface = snapshot.surface;
+        }
 
         const response = await fetch(`${API_BASE}/cart/add/`, {
             method: "POST",

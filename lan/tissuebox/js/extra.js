@@ -57,6 +57,7 @@ async function loadProduct() {
         document.querySelectorAll(".product-new-price").forEach(el => {
             el.textContent = toBanglaNumber(Math.floor(price));
         });
+        showCampaignBadge(product);
 
         // Globals
         productName = product.name;
@@ -514,4 +515,33 @@ document.addEventListener("DOMContentLoaded", () => {
     calculateOrder(); // initial
 });
 
-
+function showCampaignBadge(product) {
+    const cp = product && product.campaign_pricing;
+    const img = document.getElementById("hero-product-img");
+    if (!cp || !cp.badge_text || !img) return;
+    let host = img.parentElement;
+    if (!host.classList.contains("camp-host")) {
+        host = document.createElement("span");
+        host.className = "camp-host";
+        host.style.cssText = "position:relative;display:inline-block;max-width:100%;vertical-align:top";
+        img.parentElement.insertBefore(host, img);
+        host.appendChild(img);
+    }
+    const parts = cp.badge_text.split(" \u00b7 ");
+    const corner = document.createElement("span");
+    corner.className = "campaign-badge";
+    corner.style.cssText = "position:absolute;top:0;left:0;z-index:5;width:12em;height:12em;overflow:hidden;pointer-events:none;font-size:10px;border-top-left-radius:0";
+    const band = document.createElement("span");
+    band.style.cssText = "position:absolute;top:2.5em;left:-4em;width:16em;height:3em;display:flex;flex-direction:column;justify-content:center;background:linear-gradient(#EF4444,#D32F2F);color:#fff;text-align:center;font-weight:800;line-height:1.25;white-space:nowrap;transform:rotate(-45deg);box-shadow:0 2px 4px rgba(0,0,0,.3)";
+    if (parts.length > 1) {
+        const name = document.createElement("span");
+        name.style.fontSize = ".8em";
+        name.textContent = parts[0];
+        band.appendChild(name);
+    }
+    const off = document.createElement("span");
+    off.textContent = parts.length > 1 ? parts.slice(1).join(" \u00b7 ") : parts[0];
+    band.appendChild(off);
+    corner.appendChild(band);
+    host.appendChild(corner);
+}

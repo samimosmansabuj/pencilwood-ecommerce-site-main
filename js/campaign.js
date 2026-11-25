@@ -333,6 +333,14 @@
             '</section>';
     }
 
+    function campCornerHtml(text) {
+        const parts = String(text).split(" · ");
+        const inner = parts.length > 1
+            ? "<small>" + parts[0] + "</small><span>" + parts.slice(1).join(" · ") + "</span>"
+            : "<span>" + text + "</span>";
+        return '<span class="camp-corner"><span class="camp-band">' + inner + "</span></span>";
+    }
+
     /* ----- product card for the campaign grid (same .prod-card as the store) ----- */
     function productCardHtml(p, cslug) {
         const cp = p.campaign_pricing || {};
@@ -341,7 +349,7 @@
         const campaignPrice = cp.campaign_price != null ? num(cp.campaign_price) : num(p.discount_price || p.price);
         const strike = num(cp.strike_price);
         const showStrike = strike > campaignPrice;
-        const badge = (showStrike && cp.badge_text) ? '<span class="cmp-badge">' + esc(cp.badge_text) + '</span>' : "";
+        const badge = (showStrike && cp.badge_text) ? campCornerHtml(esc(cp.badge_text)) : "";
         const gift = (cp.gifts_included === true && p.has_gift === true) ? '<span class="cmp-gift">🎁 Free Gift</span>' : "";
 
         const limited = cp.stock_limit != null;
@@ -363,8 +371,8 @@
             : '<button type="button" class="prod-cart cmp-add">+ Cart</button>';
 
         return '<div class="prod-card cmp-prod' + (out ? " cmp-prod-out" : "") + '" data-pid="' + esc(p.id) + '" data-pslug="' + esc(pslug) + '">' +
-            badge + gift +
-            '<a class="prod-img" href="' + href + '" tabindex="-1" aria-hidden="true">' + imgHtml + '</a>' +
+            gift +
+            '<a class="prod-img" href="' + href + '" tabindex="-1" aria-hidden="true">' + badge + imgHtml + '</a>' +
             '<a class="prod-name cmp-name" href="' + href + '" title="' + esc(p.name) + '">' + esc(p.name) + '</a>' +
             '<div class="prod-price cmp-price-row"><span class="cmp-price">৳ ' + campaignPrice + '</span>' +
             (showStrike ? '<span class="price-orig">৳ ' + strike + '</span>' : "") + '</div>' +
@@ -668,7 +676,7 @@
             cart.splice(idx, 1);
         } else {
             delete line.campaign; delete line.campaign_title; delete line.campaign_valid; delete line.campaign_reason;
-            delete line.campaign_remaining; delete line.campaign_unit; delete line.campaign_strike; delete line.campaign_badge;
+            delete line.campaign_remaining; delete line.campaign_unit; delete line.campaign_strike; delete line.campaign_badge; delete line.surface;
         }
         writeGuest(cart);
     }

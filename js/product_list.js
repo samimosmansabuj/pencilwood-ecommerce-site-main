@@ -168,6 +168,7 @@ async function featureSectionAdd() {
             <div class="prod-card">
 
                 <div class="prod-img" onclick="openProduct('${slug}')">
+                    ${cardBadgeHtml(p)}
                     <img src="${image}" alt="${productName}">
                 </div>
 
@@ -176,7 +177,7 @@ async function featureSectionAdd() {
                 </div>
 
                 <div class="prod-price">
-                    ৳ ${p.discount_price || p.price} <span class="price-orig">${p.discount_price ? `৳ ${p.price}` : ""}</span>
+                    ${cardPriceHtml(p)}
                 </div>
 
                 <button
