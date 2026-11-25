@@ -17,6 +17,10 @@ let couponDiscount = 0;
 
 let ckCustomState = {};
 
+// campaign "price changed" handling (see the PRICE CHANGED section at the end of this file)
+let priceChangeLines = [];      // lines shown in the #ckPriceChange panel
+let lastPriceChangeResp = [];   // lines[] of the last HTTP 409 {code:"price_changed"} answer
+
 (function injectCkCustomStyles() {
     if (document.getElementById("ckCustomStyles")) return;
     const st = document.createElement("style");
@@ -739,13 +743,14 @@ async function loadCheckoutSummary() {
             const data = await res.json();
 
             if (!data.status) {
-                toast(data.message || "Checkout failed");
+                ckSummaryFailed(data, res.status);
                 return;
             }
 
             checkoutData = data.data;
             selectedDeliveryCharge = Number(data.data.delivery_charge || 0);
             renderDeliveryChargeText();
+            ckSyncPriceChanges(data.data.items || []);
             renderCheckoutProducts(data.data.items || []);
             renderOffers(data.data.offers || []);
             renderSummary(data.data.items || [], data.data.subtotal || 0);
@@ -756,7 +761,8 @@ async function loadCheckoutSummary() {
                     id: item.product_id,
                     name: item.product,
                     price: item.total / item.quantity,
-                    quantity: item.quantity
+                    quantity: item.quantity,
+                    ...ckTrackCampaign(item)
                 })),
                 data.data.subtotal || 0
             );
@@ -780,13 +786,14 @@ async function loadCheckoutSummary() {
             const data = await res.json();
 
             if (!data.status) {
-                toast(data.message || "Checkout failed");
+                ckSummaryFailed(data, res.status);
                 return;
             }
 
             checkoutData = data.data;
             selectedDeliveryCharge = Number(data.data.delivery_charge || 0);
             renderDeliveryChargeText();
+            ckSyncPriceChanges(data.data.items || []);
             renderCheckoutProducts(data.data.items || []);
             renderOffers(data.data.offers || []);
             renderSummary(data.data.items || [], data.data.subtotal || 0);
@@ -797,7 +804,8 @@ async function loadCheckoutSummary() {
                     id: item.product_id,
                     name: item.product,
                     price: item.total / item.quantity,
-                    quantity: item.quantity
+                    quantity: item.quantity,
+                    ...ckTrackCampaign(item)
                 })),
                 data.data.subtotal || 0
             );
@@ -805,7 +813,26 @@ async function loadCheckoutSummary() {
 
     } catch (err) {
         console.error("CHECKOUT ERROR:", err);
-        toast("Failed to load checkout");
+        ckSummaryFailed({ message: "Failed to load checkout" }, 0);
+    }
+}
+
+/* The summary could not be loaded: never leave the page on "Loading checkout..." with a ৳0 total.
+   Show what went wrong and a way back to the cart (or a retry). */
+function ckSummaryFailed(data, httpStatus) {
+    const msg = (data && data.message) || "Checkout failed";
+    toast(msg);
+    checkoutData = null;
+    const box = document.getElementById("checkoutProducts");
+    if (box) {
+        box.innerHTML = `
+            <div class="ck-product" style="flex-direction:column;align-items:flex-start;gap:10px;">
+                <div style="color:#b91c1c;font-weight:600;">${ckEscapeHtml(msg)}</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <a class="ck-pc-btn" href="/cart" style="text-decoration:none;">Back to cart</a>
+                    <button type="button" class="ck-pc-btn" onclick="loadCheckoutSummary()">Try again</button>
+                </div>
+            </div>`;
     }
 }
 
@@ -862,6 +889,7 @@ function renderCheckoutProducts(items) {
                         ${item.product}${giftBadge}
                         ${variantText ? `<span style="color:#888;font-size:12px"> (${variantText})</span>` : ""}
                     </div>
+                    ${ckCampTag(item)}
                     <div class="ck-product-meta">
                         ${item.is_gift ? `Qty: ${item.quantity}` : `Qty:
                         <span class="ck-qty">
@@ -893,6 +921,9 @@ function renderSummary(items, subtotal) {
     if (!summaryBox) return;
     summaryBox.innerHTML = "";
     let breakdownHtml = "";
+    // the server decides how delivery is counted (delivery_info.count_mode); the browser never computes it
+    const dInfo = checkoutData && checkoutData.delivery_info;
+    const orderWise = !!(dInfo && dInfo.count_mode === "ORDER_WISE");
 
     items.forEach(item => {
         const variantText = item.variant && typeof item.variant === "object"
@@ -906,7 +937,7 @@ function renderSummary(items, subtotal) {
         summaryBox.innerHTML += `
             <div class="sum-row">
                 <span>
-                    ${item.product}${giftBadge}${variantText ? ` (${variantText})` : ""}
+                    ${item.product}${giftBadge}${variantText ? ` (${variantText})` : ""}${item.campaign && !item.is_gift ? ' <small class="cmp-sum-tag" title="Campaign price">🏷</small>' : ""}
                     × ${item.quantity}
                 </span>
                 <span>
@@ -915,7 +946,9 @@ function renderSummary(items, subtotal) {
             </div>
         `;
 
-        if (Number(item.delivery_charge || 0) > 0) {
+        // PER PRODUCT: a product's charge is on its first row only (the server sends 0 on its other rows);
+        // PER ORDER: no per-product charge, ONE order line is added after the loop.
+        if (!orderWise && Number(item.delivery_charge || 0) > 0) {
             breakdownHtml += `
                 <div class="delivery-item">
                     <span class="delivery-item-name">${item.product}</span>
@@ -925,11 +958,21 @@ function renderSummary(items, subtotal) {
         }
     });
 
+    if (orderWise && Number(checkoutData.delivery_charge || 0) > 0) {
+        breakdownHtml = `
+            <div class="delivery-item">
+                <span class="delivery-item-name">Delivery charge</span>
+                <span class="delivery-item-charge">৳ ${checkoutData.delivery_charge}</span>
+            </div>
+        `;
+    }
+
     document.getElementById("ckSubtotal").innerText = subtotal;
 
     const breakdown = document.getElementById("deliveryBreakdown");
     if (breakdown) {
-        breakdown.innerHTML = breakdownHtml || `<div class="delivery-item">No delivery charge</div>`;
+        // cart with a campaign line: show the server's groups (campaign name / "Regular items"); otherwise unchanged
+        breakdown.innerHTML = ckDeliveryGroupsHtml() || breakdownHtml || `<div class="delivery-item">No delivery charge</div>`;
     }
 
     updateTotals();
@@ -1059,7 +1102,8 @@ async function applyCoupon(code, silent) {
         .map(item => ({
             product_id: item.product_id,
             variant_id: item.variant_id || null,
-            quantity: item.quantity
+            quantity: item.quantity,
+            ...(item.campaign ? { campaign: item.campaign } : {})
         }));
 
     if (btn && !silent) btn.disabled = true;
@@ -1079,7 +1123,9 @@ async function applyCoupon(code, silent) {
         if (data.status) {
             appliedCoupon = { code: data.data.code };
             couponDiscount = Number(data.data.discount_amount || 0);
-            setCouponMessage(`Coupon "${data.data.code}" applied`, "success");
+            // the API may add a rule note (e.g. coupon not applied to campaign items) - show it as sent
+            const couponNote = (data.data && (data.data.note || data.data.message)) || "";
+            setCouponMessage(`Coupon "${data.data.code}" applied` + (couponNote ? ` — ${couponNote}` : ""), "success");
         } else {
             appliedCoupon = null;
             couponDiscount = 0;
@@ -1396,6 +1442,11 @@ async function placeOrder() {
         return;
     }
 
+    // pressing Place Order again after a "price changed" message confirms the new (regular) price
+    if (!(await ckResolveStalePriceChanges())) {
+        return;
+    }
+
     const placeBtn = document.getElementById("placeOrderBtn");
     if (placeBtn) {
         if (placeBtn.disabled) return;
@@ -1448,7 +1499,8 @@ async function placeOrder() {
                     id: item.product_id,
                     name: item.product,
                     price: item.total / item.quantity,
-                    quantity: item.quantity
+                    quantity: item.quantity,
+                    ...ckTrackCampaign(item)
                 })),
                 checkoutData?.subtotal || 0,
                 data.order_id,
@@ -1477,6 +1529,14 @@ async function placeOrder() {
 
             showOrderSuccess(data);
         } else {
+            if (data.code === "price_changed") {
+                ckHandlePriceChanged(data);
+                if (placeBtn) {
+                    placeBtn.textContent = "Place Order";
+                    placeBtn.disabled = false;
+                }
+                return;
+            }
             if (data.otp_required) {
                 showOtpVerifyModal({
                     phone: data.phone || phone,
@@ -1774,3 +1834,242 @@ document.addEventListener("click", async function (e) {
     }
     loadCheckoutSummary();
 });
+
+/* =========================================
+   CAMPAIGN: tags, delivery groups, tracking
+========================================= */
+function ckCampTag(item) {
+    return window.PWCampaign ? PWCampaign.lineTagFromSummary(item) : "";
+}
+
+function ckTrackCampaign(item) {
+    if (!item || !item.campaign || item.is_gift) return {};
+    const q = Number(item.quantity) || 1;
+    return { campaign: item.campaign, campaign_price: Number(item.campaign_price != null ? item.campaign_price : item.total / q) };
+}
+
+/* server groups: [{ label, amount, waived, normal_amount, products:[{name}] }] */
+function ckDeliveryGroupsHtml() {
+    const db = checkoutData && checkoutData.delivery_breakdown;
+    if (!(checkoutData && checkoutData.has_campaign && db && Array.isArray(db.groups) && db.groups.length)) return "";
+    // one "Regular items" group in per-order mode = just ONE line "Delivery charge ৳X"
+    const onlyOrderLine = db.groups.length === 1 && db.groups[0].type === "normal" && db.groups[0].count_mode === "ORDER_WISE";
+    return db.groups.map(g => {
+        if (onlyOrderLine) {
+            return `
+            <div class="delivery-item cmp-dgroup">
+                <span class="delivery-item-name">Delivery charge</span>
+                <span class="delivery-item-charge">৳ ${g.amount}</span>
+            </div>`;
+        }
+        const names = (g.products || []).map(p => ckEscapeHtml(p.name)).join(", ");
+        const amount = g.waived
+            ? `<span class="cmp-d-incl">Free</span>`
+            : `৳ ${g.amount}`;
+        return `
+            <div class="delivery-item cmp-dgroup">
+                <span class="delivery-item-name">${ckEscapeHtml(g.label)}${names ? `<small>${names}</small>` : ""}${g.waived ? `<small class="cmp-d-note">No extra delivery charge for these items. The campaign delivery charge above covers them.</small>` : ""}</span>
+                <span class="delivery-item-charge">${amount}</span>
+            </div>`;
+    }).join("");
+}
+
+/* =========================================
+   CAMPAIGN: PRICE CHANGED  (HTTP 409 { code:"price_changed", lines:[...] })
+   Customer can: remove the line, switch it to the regular price, keep N at the campaign
+   price (stock limit), or press Place Order again to confirm the regular price.
+   Nothing is changed silently.
+========================================= */
+function ckLineMatch(item, l) {
+    return Number(item.product_id) === Number(l.product_id) &&
+        (item.variant_id || null) === (l.variant_id || null) &&
+        (item.campaign || null) === (l.campaign || null);
+}
+
+function ckSyncPriceChanges(items) {
+    const lines = [];
+    (items || []).filter(i => i.campaign && !i.is_gift).forEach(item => {
+        const resp = lastPriceChangeResp.find(l => ckLineMatch(item, l));
+        const stale = item.campaign_valid === false;
+        if (!stale && (!resp || item.campaign_valid === true)) return;
+        lines.push({
+            product_id: item.product_id,
+            variant_id: item.variant_id || null,
+            campaign: item.campaign,
+            product: item.product,
+            cart_id: item.cart_id != null ? item.cart_id : null,
+            quantity: item.quantity,
+            reason: (resp && resp.reason) || item.campaign_reason || null,
+            message: (resp && resp.message) || item.campaign_message || "",
+            new_unit_price: resp && resp.new_unit_price != null ? resp.new_unit_price : (item.normal_unit_price != null ? item.normal_unit_price : null),
+            campaign_unit_price: resp && resp.campaign_unit_price != null ? resp.campaign_unit_price : null,
+            remaining: resp && resp.remaining != null ? resp.remaining : (item.campaign_stock_left != null ? item.campaign_stock_left : null)
+        });
+    });
+    priceChangeLines = lines;
+    renderPriceChangePanel();
+}
+
+function ckPcKind(l) {
+    return window.PWCampaign ? PWCampaign.reasonKind(l.reason, l.remaining) : "ended";
+}
+
+function renderPriceChangePanel() {
+    const box = document.getElementById("ckPriceChange");
+    if (!box) return;
+    if (!priceChangeLines.length) { box.innerHTML = ""; return; }
+
+    const rows = priceChangeLines.map((l, i) => {
+        const kind = ckPcKind(l);
+        const text = l.message || (window.PWCampaign ? PWCampaign.reasonText(kind, { remaining: l.remaining, normalUnit: l.new_unit_price }) : "The campaign price changed.");
+        const prices = (l.campaign_unit_price != null && l.new_unit_price != null)
+            ? `<div class="ck-pc-prices"><s>৳ ${l.campaign_unit_price}</s> → <b>৳ ${l.new_unit_price}</b> each</div>` : "";
+        const cap = (kind === "limited" && Number(l.remaining) > 0)
+            ? `<button type="button" class="ck-pc-btn" data-pc-act="cap" data-pc-idx="${i}">Keep ${Number(l.remaining)} at campaign price</button>` : "";
+        return `
+            <div class="ck-pc-row">
+                <div class="ck-pc-name">${ckEscapeHtml(l.product)}</div>
+                <div class="ck-pc-msg">${ckEscapeHtml(text)}</div>
+                ${prices}
+                <div class="ck-pc-actions">
+                    ${cap}
+                    <button type="button" class="ck-pc-btn" data-pc-act="normal" data-pc-idx="${i}">Use regular price</button>
+                    <button type="button" class="ck-pc-btn ck-pc-danger" data-pc-act="remove" data-pc-idx="${i}">Remove</button>
+                </div>
+            </div>`;
+    }).join("");
+
+    box.innerHTML = `
+        <div class="ck-pc">
+            <div class="ck-pc-title">⚠️ Campaign price changed</div>
+            <div class="ck-pc-sub">Please review the lines below. Choose an option for each line, or press <b>Place Order</b> again to confirm the regular price.</div>
+            ${rows}
+        </div>`;
+}
+
+function ckHandlePriceChanged(data) {
+    lastPriceChangeResp = Array.isArray(data.lines) ? data.lines : [];
+    toast(data.message || "Some campaign prices have changed. Please review your order.");
+    loadCheckoutSummary().then(() => {
+        document.getElementById("ckPriceChange")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+}
+
+document.addEventListener("click", async function (e) {
+    const b = e.target.closest("[data-pc-act]");
+    if (!b) return;
+    const l = priceChangeLines[Number(b.dataset.pcIdx)];
+    if (!l) return;
+    b.disabled = true;
+    const ok = await ckApplyPriceAction(l, b.dataset.pcAct);
+    if (ok) loadCheckoutSummary();
+    else b.disabled = false;
+});
+
+async function ckApplyPriceAction(l, act) {
+    try {
+        const ok = isLoggedIn() ? await ckApplyPriceActionServer(l, act) : ckApplyPriceActionGuest(l, act);
+        if (ok) lastPriceChangeResp = lastPriceChangeResp.filter(x => !(Number(x.product_id) === Number(l.product_id) &&
+            (x.variant_id || null) === (l.variant_id || null) && (x.campaign || null) === (l.campaign || null)));
+        return ok;
+    } catch (err) {
+        console.error("PRICE CHANGE ACTION ERROR:", err);
+        toast("Could not update this line. Please try again.");
+        return false;
+    }
+}
+
+function ckGoCartIfEmpty(count) {
+    if (count > 0) return;
+    toast("Your checkout is empty");
+    setTimeout(() => { window.location.href = "/cart"; }, 800);
+}
+
+function ckApplyPriceActionGuest(l, act) {
+    const list = JSON.parse(localStorage.getItem("checkout_guest_items")) || [];
+    const idx = list.findIndex(i => Number(i.product_id) === Number(l.product_id) &&
+        (i.variant_id || null) === (l.variant_id || null) && (i.campaign || null) === (l.campaign || null));
+    if (idx < 0) return true;
+    const it = list[idx];
+
+    if (act === "remove") {
+        list.splice(idx, 1);
+        if (window.PWCampaign) PWCampaign.guestRemoveLine(l.product_id, l.variant_id, l.campaign);
+    } else if (act === "cap") {
+        it.quantity = Number(l.remaining);
+        if (window.PWCampaign) PWCampaign.guestSetQty(l.product_id, l.variant_id, l.campaign, it.quantity);
+    } else {                                   // "normal": same product, regular price
+        delete it.campaign;
+        const twin = list.findIndex((o, k) => k !== idx && !o.campaign && Number(o.product_id) === Number(it.product_id) &&
+            (o.variant_id || null) === (it.variant_id || null) && !!o.is_customized === !!it.is_customized);
+        if (twin >= 0) {
+            list[twin].quantity = Number(list[twin].quantity) + Number(it.quantity);
+            list.splice(idx, 1);
+        }
+        if (window.PWCampaign) PWCampaign.guestSwitchToNormal(l.product_id, l.variant_id, l.campaign);
+    }
+    localStorage.setItem("checkout_guest_items", JSON.stringify(list));
+    if (typeof updateCartCountFromBackend === "function") updateCartCountFromBackend();
+    ckGoCartIfEmpty(list.length);
+    return true;
+}
+
+async function ckApplyPriceActionServer(l, act) {
+    const ids = JSON.parse(localStorage.getItem("checkout_cart_ids")) || [];
+    const cartId = l.cart_id;
+    if (cartId == null) { toast("Please refresh the checkout page"); return false; }
+
+    if (act === "cap") {
+        const res = await fetch(`${API_BASE}/api/ecom/cart/update/${cartId}/`, {
+            method: "POST", headers: getAuthHeaders(), body: JSON.stringify({ quantity: Number(l.remaining) })
+        });
+        const d = await res.json();
+        if (!d.status) { toast(d.message || "Could not update quantity"); return false; }
+        return true;
+    }
+
+    let newId = null;
+    if (act === "normal") {
+        // re-add the same product WITHOUT the campaign, then drop the campaign line
+        const item = ((checkoutData && checkoutData.items) || []).find(i => i.cart_id === cartId) || {};
+        const payload = { product_id: l.product_id, quantity: Number(l.quantity) || 1 };
+        if (l.variant_id) payload.variant_id = l.variant_id;
+        if (item.is_customized) {
+            payload.is_customized = true;
+            payload.customization_note = item.customization_note || ckComposeNote(item);
+        }
+        const addRes = await fetch(`${API_BASE}/cart/add/`, { method: "POST", headers: getAuthHeaders(), body: JSON.stringify(payload) });
+        const addData = await addRes.json();
+        if (!addData.status) { toast(addData.message || "Could not switch to the regular price"); return false; }
+        newId = addData.cart_id != null ? addData.cart_id : null;
+    }
+
+    const delRes = await fetch(`${API_BASE}/cart/remove/${cartId}/`, { method: "DELETE", headers: getAuthHeaders() });
+    const delData = await delRes.json();
+    if (!delData.status) { toast(delData.message || "Could not update the cart"); return false; }
+
+    const next = ids.filter(x => x !== cartId);
+    if (newId != null && !next.includes(newId)) next.push(newId);
+    localStorage.setItem("checkout_cart_ids", JSON.stringify(next));
+    if (typeof updateCartCountFromBackend === "function") updateCartCountFromBackend();
+    ckGoCartIfEmpty(next.length);
+    return true;
+}
+
+/* second press of Place Order: lines whose campaign is over / sold out switch to the regular price.
+   "Only N left" lines need an explicit choice (we never guess the quantity). */
+async function ckResolveStalePriceChanges() {
+    if (!priceChangeLines.length) return true;
+    const limited = priceChangeLines.find(l => ckPcKind(l) === "limited");
+    if (limited) {
+        toast(`Please choose an option for ${limited.product}`);
+        document.getElementById("ckPriceChange")?.scrollIntoView({ behavior: "smooth", block: "center" });
+        return false;
+    }
+    for (const l of priceChangeLines.slice()) {
+        if (!(await ckApplyPriceAction(l, "normal"))) return false;
+    }
+    priceChangeLines = [];
+    renderPriceChangePanel();
+    return true;
+}

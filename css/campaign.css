@@ -1,0 +1,395 @@
+/* ==========================================================================
+   CAMPAIGN STYLES  (home section, campaigns page, campaign page, product page,
+   cart / drawer / checkout tags, site popup)
+   Uses the store tokens from home.css (--br, --red, --green, --border, --r, --sh ...)
+========================================================================== */
+
+/* ───────────── shared bits ───────────── */
+.cmp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.cmp-chip-live { background: #dcfce7; color: #166534; }
+.cmp-chip-live i {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--green, #1E8C45);
+  animation: cmpPulse 1.4s ease-in-out infinite;
+}
+.cmp-chip-soon { background: #fff3dc; color: #8a5200; }
+@keyframes cmpPulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.7); } }
+
+.cmp-btn {
+  display: inline-block;
+  padding: 10px 20px;
+  border: 0;
+  border-radius: var(--r, 8px);
+  background: var(--br, #CA7200);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition: opacity .2s;
+}
+.cmp-btn:hover { opacity: .9; }
+.cmp-btn-ghost { background: #fff; color: var(--br, #CA7200); border: 1px solid var(--br, #CA7200); }
+
+.cmp-loading { display: flex; justify-content: center; padding: 60px 0; }
+.cmp-spin {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 3px solid var(--border, #E4DDD0); border-top-color: var(--br, #CA7200);
+  animation: cmpSpin .8s linear infinite;
+}
+@keyframes cmpSpin { to { transform: rotate(360deg); } }
+
+.cmp-msg {
+  background: #fff;
+  border: 1px solid var(--border, #E4DDD0);
+  border-radius: var(--r-lg, 12px);
+  padding: 44px 20px;
+  text-align: center;
+}
+.cmp-msg-ic { font-size: 44px; line-height: 1; margin-bottom: 10px; }
+.cmp-msg h2 { font-size: 20px; margin-bottom: 6px; }
+.cmp-msg p { color: var(--mid, #555); font-size: 14px; max-width: 460px; margin: 0 auto 18px; }
+.cmp-msg-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+/* ───────────── home section + campaigns page ───────────── */
+.cmp-viewall { font-size: 12px; font-weight: 700; color: var(--text, #1A1A1A); white-space: nowrap; }
+.cmp-viewall:hover { text-decoration: underline; }
+.cmp-home-body { padding: 14px; }
+
+.cmp-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.cmp-card {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid var(--border-l, #F0EBE3);
+  border-radius: var(--r-lg, 12px);
+  overflow: hidden;
+  color: inherit;
+  transition: transform .22s, box-shadow .22s;
+}
+.cmp-card:hover { transform: translateY(-3px); box-shadow: var(--sh-md, 0 4px 20px rgba(0,0,0,.11)); }
+.cmp-card-media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: linear-gradient(135deg, #2E1A0E, var(--br, #CA7200));
+  overflow: hidden;
+}
+.cmp-card-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cmp-card-ph {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px; text-align: center;
+  color: #fff; font-size: 20px; font-weight: 700;
+}
+.cmp-card-body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.cmp-card-title {
+  font-size: 15px; font-weight: 700; color: var(--text, #1A1A1A); line-height: 1.3;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.cmp-card-desc {
+  font-size: 12px; color: var(--mid, #555); line-height: 1.4;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.cmp-card-foot { margin-top: auto; padding-top: 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cmp-card-meta { font-size: 11px; color: var(--mid, #555); font-weight: 600; }
+
+/* ───────────── slim campaign rows (home + campaigns page) ───────────── */
+.cmp-rows { display: flex; flex-direction: column; gap: 12px; }
+.cmp-row {
+  position: relative; display: block; overflow: hidden; color: #fff;
+  height: clamp(96px, 15vw, 170px);
+  border-radius: var(--r-lg, 12px);
+  background: linear-gradient(135deg, #2E1A0E 0%, var(--br, #CA7200) 80%);
+  transition: transform .22s, box-shadow .22s;
+}
+.cmp-row:hover { transform: translateY(-2px); box-shadow: var(--sh-md, 0 4px 20px rgba(0,0,0,.18)); }
+.cmp-row-media, .cmp-row-media img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.cmp-row-media img { object-fit: cover; display: block; }
+.cmp-row-over {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  padding: 10px clamp(12px, 2.5vw, 26px);
+  background: linear-gradient(90deg, rgba(0,0,0,.72) 0%, rgba(0,0,0,.35) 55%, rgba(0,0,0,.6) 100%);
+}
+.cmp-row-text { min-width: 0; flex: 1 1 auto; }
+.cmp-row-title {
+  font-size: clamp(16px, 2.6vw, 28px); font-weight: 700; line-height: 1.15;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.cmp-row-desc {
+  margin-top: 3px; font-size: clamp(11px, 1.3vw, 14px); opacity: .95;
+  display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+}
+.cmp-row-side { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; text-align: right; }
+.cmp-row-count {
+  background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.35); border-radius: 8px;
+  padding: 3px 10px; font-size: clamp(11px, 1.4vw, 14px); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.cmp-row-go { font-size: 12px; font-weight: 700; }
+@media (max-width: 600px) {
+  .cmp-row { height: 112px; }
+  .cmp-row-over { flex-direction: column; align-items: flex-start; justify-content: flex-end; gap: 6px; background: linear-gradient(180deg, rgba(0,0,0,.15) 0%, rgba(0,0,0,.75) 100%); }
+  .cmp-row-side { flex-direction: row; align-items: center; text-align: left; flex-wrap: wrap; gap: 6px; }
+  .cmp-row-go { display: none; }
+  .cmp-row-desc { display: none; }
+}
+
+/* checkout: note under the "Regular items" delivery line */
+.cmp-d-note { display: block; margin-top: 2px; font-size: 11px; font-weight: 400; color: var(--mid, #555); }
+
+/* home slider: campaign slide with countdown */
+.slide.slide-campaign .slide-count {
+  display: inline-block; margin: 6px 0 10px; padding: 4px 12px; border-radius: 8px;
+  background: #1A1A1A; color: #fff; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+.slide.slide-campaign .slide-sub { font-size: 13px; font-weight: 700; color: var(--red, #E53935); margin: 0; }
+.slide.slide-campaign .slide-img img { object-fit: cover; }
+
+/* ───────────── campaign page ───────────── */
+.cmp-page { padding-bottom: 8px; }
+
+.cmp-hero {
+  position: relative;
+  border-radius: var(--r-lg, 12px);
+  overflow: hidden;
+  background: linear-gradient(135deg, #2E1A0E 0%, var(--br, #CA7200) 70%);
+}
+.cmp-hero picture, .cmp-hero img { display: block; width: 100%; }
+.cmp-hero img { height: clamp(170px, 30vw, 380px); object-fit: cover; }
+.cmp-hero-plain { min-height: 180px; display: flex; align-items: center; }
+.cmp-hero-text { padding: 26px 28px; color: #fff; max-width: 720px; }
+.cmp-hero-over {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  max-width: none;
+  padding: 36px 28px 22px;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.68) 100%);
+}
+.cmp-hero-text h1 { font-size: clamp(22px, 4vw, 38px); line-height: 1.15; font-weight: 700; }
+.cmp-hero-text p { margin-top: 6px; font-size: clamp(13px, 1.8vw, 16px); opacity: .95; max-width: 640px; }
+.cmp-hero-btn {
+  margin-top: 14px; padding: 10px 22px; border: 0; border-radius: 999px;
+  background: #fff; color: var(--br-d, #CA7200); font-weight: 700; font-size: 13px; cursor: pointer;
+}
+.cmp-hero-btn:hover { opacity: .92; }
+
+.cmp-countbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  background: #fff; border: 1px solid var(--border, #E4DDD0); border-radius: var(--r-lg, 12px);
+  padding: 10px 14px;
+}
+.cmp-countbar-l { display: flex; align-items: center; gap: 10px; }
+.cmp-countbar-t { font-size: 13px; font-weight: 700; color: var(--text, #1A1A1A); }
+
+.cmp-boxes { display: flex; gap: 8px; }
+.cmp-box {
+  min-width: 56px; padding: 6px 8px; text-align: center;
+  background: #1A1A1A; color: #fff; border-radius: 8px; line-height: 1.1;
+}
+.cmp-box b { display: block; font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.cmp-box span { font-size: 9px; text-transform: uppercase; letter-spacing: .06em; opacity: .75; }
+
+.cmp-count-note { font-size: 12px; font-weight: 600; color: var(--text, #1A1A1A); }
+.cmp-grid-wrap { padding: 12px; }
+
+.cmp-soon {
+  background: #fff; border: 1px solid var(--border, #E4DDD0); border-radius: var(--r-lg, 12px);
+  padding: 34px 18px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.cmp-soon h2 { font-size: clamp(18px, 3vw, 24px); }
+.cmp-soon .cmp-box { min-width: 70px; padding: 10px; }
+.cmp-soon .cmp-box b { font-size: 28px; }
+.cmp-soon-note { color: var(--mid, #555); font-size: 13px; max-width: 440px; }
+
+/* ───────────── campaign product card (same .prod-card, fixed rules) ───────────── */
+.products-grid.cmp-products {
+  display: grid;
+  grid-template-columns: repeat(var(--c-d, 6), minmax(0, 1fr));
+  align-items: stretch;
+  gap: 12px;
+  /* few products: keep the cards a sensible size and centre the row instead of stretching them */
+  max-width: calc(var(--c-d, 6) * 340px);
+  margin-left: auto;
+  margin-right: auto;
+}
+.cmp-prod { min-width: 0; height: 100%; }
+.cmp-prod .prod-img { display: block; width: 100%; aspect-ratio: 1 / 1; }
+.cmp-prod .prod-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cmp-noimg {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 34px; font-weight: 700; color: var(--lighter, #C0B8B0); background: #f3efe8;
+}
+.cmp-prod .cmp-name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  line-height: 1.3;
+  min-height: 2.6em;           /* always two lines tall -> every card is the same height */
+  color: var(--text, #1A1A1A);
+  text-decoration: none;
+  word-break: break-word;
+}
+.cmp-price-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 6px; min-height: 1.5em; }
+.cmp-price { color: var(--red, #E53935); font-weight: 700; }
+.cmp-price-row .price-orig { font-size: 11px; }
+
+.cmp-stock { font-size: 11px; line-height: 1.3; min-height: 1.3em; color: var(--light, #888); font-weight: 600; }
+.cmp-stock-low { color: var(--red, #E53935); }
+.cmp-stock-out { color: #b91c1c; }
+
+.cmp-prod .prod-cart { margin-top: auto; width: 100%; }        /* button pinned to the bottom */
+.cmp-btn-out, .cmp-btn-out:hover { background: #bdb5aa; cursor: not-allowed; opacity: 1; }
+.cmp-prod-out .prod-img, .cmp-prod-out .cmp-name { opacity: .55; }
+
+.cmp-badge {
+  position: absolute; top: 12px; left: 12px; z-index: 2;
+  background: var(--red, #E53935); color: #fff;
+  font-size: 10px; font-weight: 700; line-height: 1.4;
+  padding: 2px 7px; border-radius: 4px; max-width: calc(100% - 24px);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cmp-gift {
+  position: absolute; top: 12px; right: 12px; z-index: 2;
+  background: #fff; color: #166534; border: 1px solid #bbf7d0;
+  font-size: 10px; font-weight: 700; line-height: 1.4;
+  padding: 2px 7px; border-radius: 999px;
+}
+
+/* ───────────── product page (campaign context) ───────────── */
+.badge-campaign { background: var(--red, #E53935) !important; color: #fff !important; }
+.cmp-pd-box {
+  margin-top: 8px; padding: 8px 10px;
+  border: 1px dashed var(--red, #E53935); border-radius: 8px; background: #fff7f6;
+}
+.cmp-pd-label { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.cmp-pd-chip { font-size: 12px; font-weight: 700; color: var(--red, #E53935); }
+.cmp-pd-ends { font-size: 12px; font-weight: 700; color: var(--text, #1A1A1A); font-variant-numeric: tabular-nums; }
+.cmp-pd-save { margin-top: 4px; font-size: 12px; font-weight: 700; color: #166534; }
+.cmp-pd-save:empty { display: none; }
+.cmp-pd-out { margin-top: 6px; font-size: 12px; color: #b91c1c; font-weight: 600; }
+.cmp-pd-out a { color: var(--br, #CA7200); text-decoration: underline; }
+.cmp-pd-notice {
+  margin-top: 8px; padding: 7px 10px; border-radius: 8px;
+  background: #f5f0e6; color: #6b4a14; font-size: 12px; font-weight: 600;
+}
+
+/* ───────────── cart / drawer / checkout line tags ───────────── */
+.cmp-line-tag {
+  display: inline-block; margin-top: 3px; padding: 1px 8px; border-radius: 999px;
+  background: #fff1ef; color: var(--red, #E53935); font-size: 11px; font-weight: 700;
+}
+.cmp-line-tag b { margin-left: 2px; }
+.cmp-line-warn { margin-top: 3px; font-size: 12px; color: #b91c1c; font-weight: 600; line-height: 1.35; }
+.cmp-line-note { margin-top: 3px; font-size: 11px; color: #8a5200; font-weight: 600; }
+.cmp-sum-tag { font-size: 11px; }
+
+/* checkout: delivery groups + price-changed panel */
+.cmp-dgroup .delivery-item-name { display: flex; flex-direction: column; }
+.cmp-dgroup small { font-size: 11px; color: var(--light, #888); font-weight: 400; }
+.cmp-d-incl { color: #166534; font-weight: 600; }
+
+.ck-pc {
+  background: #fff7ed; border: 1px solid #fdba74; border-radius: 12px;
+  padding: 14px; margin-bottom: 12px;
+}
+.ck-pc-title { font-weight: 700; font-size: 15px; color: #9a3412; }
+.ck-pc-sub { font-size: 12px; color: #7c2d12; margin: 4px 0 10px; }
+.ck-pc-row { background: #fff; border: 1px solid #fed7aa; border-radius: 10px; padding: 10px 12px; margin-top: 8px; }
+.ck-pc-name { font-weight: 700; font-size: 13px; }
+.ck-pc-msg { font-size: 12px; color: #b91c1c; margin-top: 2px; line-height: 1.4; }
+.ck-pc-prices { font-size: 12px; margin-top: 3px; }
+.ck-pc-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.ck-pc-btn {
+  padding: 6px 12px; border-radius: 8px; border: 1px solid var(--br, #CA7200);
+  background: #fff; color: var(--br, #CA7200); font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.ck-pc-btn:hover { background: var(--br, #CA7200); color: #fff; }
+.ck-pc-btn:disabled { opacity: .5; cursor: wait; }
+.ck-pc-danger { border-color: #dc2626; color: #dc2626; }
+.ck-pc-danger:hover { background: #dc2626; color: #fff; }
+
+/* ───────────── site popup ───────────── */
+body.pwp-open { overflow: hidden; }
+.pwp-overlay {
+  position: fixed; inset: 0; z-index: 99990;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px; background: rgba(0, 0, 0, .62);
+  opacity: 0; transition: opacity .2s ease;
+}
+.pwp-overlay.pwp-show { opacity: 1; }
+.pwp-card {
+  position: relative; width: min(92vw, 520px); max-height: 92vh;
+  display: flex; flex-direction: column; align-items: stretch;
+  transform: translateY(14px) scale(.98); transition: transform .22s ease;
+}
+.pwp-overlay.pwp-show .pwp-card { transform: none; }
+.pwp-poster { display: block; border-radius: 14px; overflow: hidden; background: #fff; box-shadow: var(--sh-lg, 0 12px 40px rgba(0,0,0,.25)); }
+a.pwp-poster { cursor: pointer; }
+.pwp-poster picture, .pwp-poster img { display: block; width: 100%; }
+.pwp-poster img { height: auto; max-height: 80vh; object-fit: contain; }
+.pwp-close {
+  position: absolute; top: -12px; right: -12px; z-index: 2;
+  width: 34px; height: 34px; border-radius: 50%; border: 0;
+  background: #fff; color: #1A1A1A; font-size: 22px; line-height: 1; cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0,0,0,.3);
+}
+.pwp-close:focus-visible, .pwp-cta:focus-visible, a.pwp-poster:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+.pwp-cta {
+  margin-top: 10px; align-self: center; padding: 11px 28px; border-radius: 999px;
+  background: var(--br, #CA7200); color: #fff; font-weight: 700; font-size: 14px;
+}
+
+/* ───────────── responsive ───────────── */
+@media (max-width: 992px) {
+  .products-grid.cmp-products { grid-template-columns: repeat(var(--c-t, 4), minmax(0, 1fr)); max-width: calc(var(--c-t, 4) * 340px); }
+  .cmp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 768px) {
+  .cmp-hero-over { padding: 28px 16px 14px; }
+  .cmp-hero-text { padding: 20px 16px; }
+  .cmp-countbar { justify-content: center; text-align: center; }
+  .cmp-countbar-l { width: 100%; justify-content: center; }
+  .cmp-soon .cmp-box { min-width: 62px; }
+  /* home: campaign cards scroll sideways like the product sliders */
+  .cmp-home .cmp-grid:not(.cmp-grid-page) {
+    display: flex; overflow-x: auto; gap: 10px; scroll-snap-type: x mandatory;
+    padding-bottom: 6px; -webkit-overflow-scrolling: touch;
+  }
+  .cmp-home .cmp-grid:not(.cmp-grid-page) .cmp-card { flex: 0 0 78%; scroll-snap-align: start; }
+}
+
+@media (max-width: 600px) {
+  .products-grid.cmp-products { grid-template-columns: repeat(var(--c-m, 2), minmax(0, 1fr)); gap: 8px; max-width: calc(var(--c-m, 2) * 340px); }
+  .cmp-grid-wrap { padding: 8px; }
+  .cmp-grid-page { grid-template-columns: 1fr; }
+  .cmp-box { min-width: 48px; }
+  .cmp-box b { font-size: 17px; }
+  .cmp-soon .cmp-box b { font-size: 22px; }
+  .cmp-home-body { padding: 10px; }
+  .pwp-close { top: 6px; right: 6px; }
+}
+
+@media (max-width: 380px) {
+  .cmp-prod .cmp-name { font-size: 11.5px; }
+  .cmp-badge, .cmp-gift { font-size: 9px; padding: 2px 5px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cmp-chip-live i, .cmp-spin { animation: none; }
+  .pwp-overlay, .pwp-card { transition: none; }
+}

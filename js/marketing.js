@@ -122,6 +122,11 @@ function logEventToBackend(eventName, payload) {
 //    only if that provider is currently active.
 // ---------------------------------------------------------------------
 
+// campaign lines carry { campaign: "<slug>", campaign_price } ; normal lines are sent exactly as before
+function _campaignFields(p) {
+    return (p && p.campaign) ? { campaign: p.campaign, campaign_price: Number(p.campaign_price != null ? p.campaign_price : p.price) } : {};
+}
+
 function GAViewItemEvent(product) {
     if (!product) return;
     dataLayer.push({
@@ -129,12 +134,14 @@ function GAViewItemEvent(product) {
         ecommerce: {
             currency: "BDT",
             value: Number(product.discount_price),
+            ..._campaignFields(product),
             items: [
                 {
                     item_id: String(product.id),
                     item_name: product.name,
                     price: Number(product.discount_price),
-                    quantity: 1
+                    quantity: 1,
+                    ..._campaignFields(product)
                 }
             ]
         }
@@ -150,7 +157,7 @@ function GAViewItemEvent(product) {
         });
     }
 
-    logEventToBackend('view_item', { product_id: product.id, value: product.discount_price });
+    logEventToBackend('view_item', { product_id: product.id, value: product.discount_price, ..._campaignFields(product) });
 }
 
 function GAAddToCartEvent(product) {
@@ -160,12 +167,14 @@ function GAAddToCartEvent(product) {
         ecommerce: {
             currency: "BDT",
             value: Number(product.discount_price),
+            ..._campaignFields(product),
             items: [
                 {
                     item_id: String(product.id),
                     item_name: product.name,
                     price: Number(product.discount_price),
-                    quantity: 1
+                    quantity: 1,
+                    ..._campaignFields(product)
                 }
             ]
         }
@@ -181,7 +190,7 @@ function GAAddToCartEvent(product) {
         });
     }
 
-    logEventToBackend('add_to_cart', { product_id: product.id, value: product.discount_price });
+    logEventToBackend('add_to_cart', { product_id: product.id, value: product.discount_price, ..._campaignFields(product) });
 }
 
 function GAInitiateCheckoutEvent(products, total) {
@@ -195,7 +204,8 @@ function GAInitiateCheckoutEvent(products, total) {
                 item_id: String(product.id),
                 item_name: product.name,
                 price: Number(product.price),
-                quantity: Number(product.quantity)
+                quantity: Number(product.quantity),
+                ..._campaignFields(product)
             }))
         }
     });
@@ -211,7 +221,7 @@ function GAInitiateCheckoutEvent(products, total) {
         });
     }
 
-    logEventToBackend('begin_checkout', { total, items: products.length });
+    logEventToBackend('begin_checkout', { total, items: products.length, ...(products.some(p => p.campaign) ? { campaigns: [...new Set(products.filter(p => p.campaign).map(p => p.campaign))] } : {}) });
 }
 
 function GAInitiatePurchaseEvent(products, total, orderId, customer) {
@@ -246,7 +256,8 @@ function GAInitiatePurchaseEvent(products, total, orderId, customer) {
                 item_id: String(product.id),
                 item_name: product.name,
                 price: Number(product.price),
-                quantity: Number(product.quantity)
+                quantity: Number(product.quantity),
+                ..._campaignFields(product)
             }))
         },
         user_data: userData,
@@ -289,6 +300,7 @@ function GAInitiatePurchaseEvent(products, total, orderId, customer) {
         order_id: transactionId,
         total,
         items: products.length,
+        ...(products.some(p => p.campaign) ? { campaigns: [...new Set(products.filter(p => p.campaign).map(p => p.campaign))] } : {}),
         customer: {
             name: fullName || null,
             phone: customer.phone || null,

@@ -48,6 +48,18 @@ async function initComponents() {
     }
     loadComponent("cart-drawer-container", "components/cart-drawer.html");
 
+    // Campaign helpers (cart drawer lines, campaign tags) + site popup. Loaded on every page.
+    if (!window.PWCampaign && !document.querySelector('script[src*="campaign.js"]')) {
+        const cmpScript = document.createElement("script");
+        cmpScript.src = "js/campaign.js?v=1";
+        document.body.appendChild(cmpScript);
+    }
+    if (!window.PWPopup && !document.querySelector('script[src*="popup.js"]')) {
+        const popScript = document.createElement("script");
+        popScript.src = "js/popup.js?v=1";
+        document.body.appendChild(popScript);
+    }
+
     // Ensure cart-drawer.js is loaded
     if (!window.openCartDrawer && !document.querySelector('script[src*="cart-drawer.js"]')) {
         const cdScript = document.createElement("script");

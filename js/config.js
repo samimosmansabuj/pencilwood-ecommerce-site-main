@@ -60,3 +60,9 @@ async function logoutUser() {
 }
 // =========================
 
+/* =========================
+   CAMPAIGN + POPUP API PATHS (the single place to change them; API_BASE comes from env.js)
+========================= */
+window.CAMPAIGN_API_PATH = "/api/ecom/campaigns/";   // list: GET <path>   detail: GET <path><slug>/   (CAMPAIGN_API_CONTRACT.md)
+window.POPUP_API_PATH = "/site/api/popup/";          // GET -> { status, server_now, data } ; data is null when nothing is eligible
+

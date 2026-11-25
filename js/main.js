@@ -145,6 +145,7 @@ async function loadHeroSlider() {
             SLIDES = [];
         }
 
+        await addCampaignSlides();
         renderSlider();
         if (typeof window.hideLoader === "function") window.hideLoader();
 
@@ -155,6 +156,41 @@ async function loadHeroSlider() {
         if (typeof window.hideLoader === "function") window.hideLoader();
     }
 }
+
+/* Campaigns with "Show in the home page slider" ON: a slide with a countdown
+   ("Starts in ..." before the start, "Ends in ..." while running). When the campaign ends it
+   leaves the slider by itself (the list API only returns live / upcoming campaigns). */
+async function addCampaignSlides() {
+    try {
+        if (!window.PWCampaign) return;
+        const list = await PWCampaign.getList(true);
+        const slides = list
+            .filter(c => c.show_in_slider && (c.status === "live" || c.status === "upcoming"))
+            .filter(c => c.status !== "live" || Date.parse(c.end_at) > PWCampaign.now())
+            .map(c => ({
+                is_campaign: true,
+                slug: c.slug,
+                status: c.status,
+                start_at: c.start_at,
+                end_at: c.end_at,
+                title: c.hero_title || c.title,
+                image: c.banner_desktop || c.thumbnail || c.banner_mobile || null,
+                url: PWCampaign.campaignUrl(c.slug),
+                button_name: c.hero_button_text || "Shop Now",
+                price: null
+            }));
+        SLIDES = slides.concat(SLIDES.filter(s => !s.is_campaign));
+    } catch (e) {
+        console.error("CAMPAIGN SLIDES ERROR:", e);
+    }
+}
+
+// a campaign in the slider starts / ends -> rebuild the slider (slide switches to "Ends in" or disappears)
+document.addEventListener("pwcampaign:expired", e => {
+    const el = e.detail && e.detail.el;
+    if (!el || !el.closest || !el.closest(".hero-slider")) return;
+    setTimeout(loadHeroSlider, 1500);
+});
 
 function renderSlider() {
 
@@ -185,12 +221,18 @@ function renderSlider() {
                 : API_BASE + s.image)
             : "";
 
-        const priceHTML = s.price
+        let priceHTML = s.price
             ? `<p>৳ ${s.price}</p>`
             : "";
 
+        if (s.is_campaign && window.PWCampaign) {
+            const live = s.status === "live";
+            priceHTML = `<p class="slide-sub">${live ? "Live now" : "Coming soon"}</p>
+                <span class="slide-count" ${PWCampaign.countAttrs(live ? s.end_at : s.start_at, live ? "full-end" : "full-start", live ? "end" : "start", s.slug)}></span>`;
+        }
+
         return `
-        <div class="slide ${i === 0 ? "active" : ""}">
+        <div class="slide ${s.is_campaign ? "slide-campaign " : ""}${i === 0 ? "active" : ""}">
 
             <div class="slide-content">
 
@@ -228,6 +270,7 @@ function renderSlider() {
     `;
 
     startSliderAuto();
+    if (window.PWCampaign) PWCampaign.tick();
 }
 
 function goSliderLink(url) {
@@ -634,10 +677,13 @@ async function quickAddCart(productId, variantId = null, snapshot = null) {
     const token = localStorage.getItem("access") || localStorage.getItem("token");
     const product = ALL_PRODUCTS.find(p => p.id === productId);
 
+    const campaignSlug = snapshot?.campaign || null;   // campaign context (campaign page / campaign product page)
+
     GAAddToCartEvent({
         id: productId,
         name: snapshot?.name || product?.name || "",
-        discount_price: snapshot?.discount_price ?? snapshot?.price ?? product?.discount_price ?? product?.price
+        discount_price: snapshot?.discount_price ?? snapshot?.price ?? product?.discount_price ?? product?.price,
+        ...(campaignSlug ? { campaign: campaignSlug, campaign_price: snapshot?.campaign_price ?? snapshot?.discount_price } : {})
     });
 
     if (!token) {
@@ -659,6 +705,7 @@ async function quickAddCart(productId, variantId = null, snapshot = null) {
         if (variantId) payload.variant_id = variantId;
         if (snapshot?.customization_note) payload.customization_note = snapshot.customization_note;
         if (snapshot?.is_customized) payload.is_customized = true;
+        if (campaignSlug) payload.campaign = campaignSlug;
 
         const response = await fetch(`${API_BASE}/cart/add/`, {
             method: "POST",

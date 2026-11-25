@@ -21,6 +21,7 @@
   <link rel="stylesheet" href="css/products.css?v=72">
   <link rel="stylesheet" href="css/product.css?v=72">
   <link rel="stylesheet" href="css/info-pages.css?v=72">
+  <link rel="stylesheet" href="css/campaign.css?v=2">
 </head>
 
 <body>
@@ -40,6 +41,17 @@
 
     <!-- HERO -->
     <div class="hero-slider" id="heroSliderSection"></div>
+
+    <!-- CAMPAIGNS (dashboard-driven; stays hidden until the API returns live/upcoming campaigns) -->
+    <div class="lp-section cmp-home" id="campaignsSection" style="display:none;">
+      <div class="lp-head">
+        <div class="lp-title">Campaigns</div>
+        <a class="cmp-viewall" id="campaignsViewAll" href="/campaigns">View all &rarr;</a>
+      </div>
+      <div class="cmp-home-body">
+        <div class="cmp-rows" id="campaignsGrid"></div>
+      </div>
+    </div>
 
     <!-- Feature Product -->
     <div class="lp-section" id="kidzProductSection">
@@ -219,13 +231,14 @@
   <script src="js/env.js?v=72"></script>
   <script src="js/tracking.js?v=72"></script>
   <script src="js/activity-tracker.js?v=72"></script>
-  <script src="js/marketing.js?v=72"></script>
-  <script src="js/config.js?v=72"></script>
-  <script src="js/main.js?v=72"></script>
-  <script src="js/cart-drawer.js?v=72"></script>
-  <script src="js/loadComponents.js?v=72"></script>
+  <script src="js/marketing.js?v=74"></script>
+  <script src="js/config.js?v=74"></script>
+  <script src="js/campaign.js?v=2"></script>
+  <script src="js/main.js?v=75"></script>
+  <script src="js/cart-drawer.js?v=74"></script>
+  <script src="js/loadComponents.js?v=74"></script>
   <script src="js/site-content.js?v=72"></script>
-  <script src="js/cart.js?v=72"></script>
+  <script src="js/cart.js?v=75"></script>
   <script src="js/wishlist.js?v=72"></script>
   <script src="js/auth.js?v=72"></script>
   <script src="js/product_list.js?v=72"></script>
