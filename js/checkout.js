@@ -1103,7 +1103,7 @@ async function applyCoupon(code, silent) {
             product_id: item.product_id,
             variant_id: item.variant_id || null,
             quantity: item.quantity,
-            ...(item.campaign ? { campaign: item.campaign } : {})
+            ...(item.campaign ? { campaign: item.campaign, surface: "campaign_page" } : {})
         }));
 
     if (btn && !silent) btn.disabled = true;

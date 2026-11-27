@@ -8,6 +8,7 @@ let VARIANT_ATTR_STATE = {};
 let CUSTOM_MODE = false;
 let LAST_PRICE_ARGS = null;
 let CURRENT_GALLERY_KEY = "";
+let CAMPAIGN_SURFACE = "campaign_page";
 let CAMPAIGN_CTX = null;      // campaign_pricing object when ?campaign=<slug> is valid
 let CAMPAIGN_NOTICE = null;   // "ended" | "not_in_campaign" | "not_started"
 let CAMPAIGN_META = null;     // { title, end_at, ... } from the campaign list
@@ -117,7 +118,7 @@ async function loadProductDetails() {
     try {
 
         const res = campaignParam
-            ? await fetch(`${API_BASE}/api/ecom/products/${slug}/?campaign=${encodeURIComponent(campaignParam)}`, { cache: "no-store" })
+            ? await fetch(`${API_BASE}/api/ecom/products/${slug}/?campaign=${encodeURIComponent(campaignParam)}&surface=campaign_page`, { cache: "no-store" })
             : await fetch(`${API_BASE}/api/ecom/products/${slug}/`);
         
         if (!res.ok) {
@@ -142,6 +143,11 @@ async function loadProductDetails() {
             if (product.server_now && window.PWCampaign) PWCampaign.setServerNow(product.server_now);
             if (product.campaign_pricing) CAMPAIGN_CTX = product.campaign_pricing;
             else if (product.campaign_notice) CAMPAIGN_NOTICE = product.campaign_notice;
+            CAMPAIGN_SURFACE = "campaign_page";
+        } else if (product.campaign_pricing) {
+            if (product.server_now && window.PWCampaign) PWCampaign.setServerNow(product.server_now);
+            CAMPAIGN_CTX = product.campaign_pricing;
+            CAMPAIGN_SURFACE = product.campaign_surface || "ecom";
         }
         window.__CURRENT_PRODUCT_ID__ = product.id;
         if (window.__runTracking) window.__runTracking();
@@ -859,7 +865,7 @@ function renderPriceAndStock(price, discountPrice, stock) {
         showStrike = strike > camp;                       // no visible discount -> no strike, no badge
         finalPrice = camp + customExtra;
         oldPriceText = showStrike ? `৳ ${strike + customExtra}` : "";
-        discountText = showStrike ? (cp.badge_text || "") : "";
+        discountText = "";
         if (cp.stock_limit != null) {
             const left = Math.max(0, Number(cp.stock_left != null ? cp.stock_left : cp.stock_limit));
             if (left <= 0) campaignSoldOut = true;
@@ -979,6 +985,7 @@ function campaignLineSnapshot() {
     return {
         campaign: slug,
         campaign_title: campaignTitle(),
+        surface: CAMPAIGN_SURFACE,
         campaign_price: camp,
         price: strike > camp ? strike : Number(cp.regular_price || camp),
         discount_price: camp
@@ -1038,10 +1045,12 @@ function renderCampaignBox() {
 
 /* called from renderPriceAndStock on every price repaint (variant change, customization toggle) */
 function paintCampaignBox(cp, showStrike, soldOut) {
-    const chip = document.getElementById("cmpBadgeChip");
-    if (chip) {
-        chip.textContent = showStrike && cp && cp.badge_text ? `🏷 ${cp.badge_text}` : "";
-        chip.style.display = chip.textContent ? "" : "none";
+    const galMain = document.getElementById("galMain");
+    if (galMain) {
+        const text = showStrike && cp && cp.badge_text ? cp.badge_text : "";
+        const old = document.getElementById("cmpCorner");
+        if (old) old.remove();
+        if (text) galMain.insertAdjacentHTML("beforeend", campCornerHtml(text, true, "cmpCorner"));
     }
     const save = document.getElementById("cmpPdSave");
     if (save) {
@@ -1132,7 +1141,7 @@ function setupButtons(product, slug) {
                     variant_id: variant ? variant.id : null,
                     quantity: 1,
                     is_customized: custom.customized,
-                    ...(camp ? { campaign: camp.campaign } : {})
+                    ...(camp ? { campaign: camp.campaign, surface: camp.surface || "campaign_page" } : {})
                 }]));
                 localStorage.removeItem("checkout_cart_ids");
 
@@ -1144,7 +1153,10 @@ function setupButtons(product, slug) {
                 const payload = { product_id: product.id, quantity: 1 };
                 if (SELECTED_VARIANT) payload.variant_id = SELECTED_VARIANT.id;
                 if (custom.customized) payload.is_customized = true;
-                if (camp) payload.campaign = camp.campaign;
+                if (camp) {
+                    payload.campaign = camp.campaign;
+                    payload.surface = camp.surface || "campaign_page";
+                }
 
                 const addRes = await fetch(`${API_BASE}/cart/add/`, {
                     method: "POST",
@@ -1404,11 +1416,12 @@ async function loadRelatedProducts(product) {
             container.innerHTML += `
             <div class="prod-card">
                 <div class="prod-img" onclick="openProduct('${slug}')">
+                    ${cardBadgeHtml(p)}
                     <img src="${image}" alt="${p.name}">
                 </div>
                 <div class="prod-name" onclick="openProduct('${slug}')">${p.name}</div>
                 <div class="prod-price">
-                    ৳ ${p.discount_price || p.price} <span class="price-orig">${p.discount_price ? `৳ ${p.price}` : ""}</span>
+                    ${cardPriceHtml(p)}
                 </div>
                 <button class="prod-cart" onclick="quickAddCart(${p.id})">+ Cart</button>
             </div>

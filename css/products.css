@@ -446,3 +446,43 @@
     font-size: 11px;
   }
 }
+
+.camp-corner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  width: 12em;
+  height: 12em;
+  overflow: hidden;
+  pointer-events: none;
+  font-size: 10px;
+}
+
+.camp-corner-lg {
+  font-size: 14px;
+}
+
+.camp-band {
+  position: absolute;
+  top: 2.5em;
+  left: -4em;
+  width: 16em;
+  height: 3em;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: linear-gradient(#EF4444, #D32F2F);
+  color: #fff;
+  text-align: center;
+  font-weight: 800;
+  line-height: 1.25;
+  white-space: nowrap;
+  transform: rotate(-45deg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, .3);
+}
+
+.camp-band small {
+  font-size: .8em;
+  font-weight: 700;
+}
